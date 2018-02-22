@@ -293,7 +293,7 @@ class HifiObject:
                     if material is not None and material not in bpy.context.object.data.materials.values():          
                         bpy.context.object.data.materials.append(material)
             
-                if self.scene.use_boolean_operation is not 'NONE':
+                if self.scene.use_boolean_operation != "NONE":
                     bpy.ops.object.modifier_add(type='BOOLEAN')
                     name = child.name + '-Boolean'
                     bpy.context.object.modifiers["Boolean"].name = name
