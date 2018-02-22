@@ -292,6 +292,15 @@ def add_octagon(entity):
     
     return bpy.context.active_object
 
+def add_uv_sphere(entity):
+    bpy.ops.mesh.primitive_uv_sphere_add(location=(0,0,0), enter_editmode=False, calc_uvs=True)
+    bpy.ops.object.mode_set(mode = 'EDIT')
+    
+    bpy.ops.mesh.faces_shade_smooth()
+    
+    set_generic(entity, False)
+    
+    return bpy.context.active_object
 
 def add_sphere(entity):
     bpy.ops.mesh.primitive_cube_add(location=(0,0,0), enter_editmode=False, calc_uvs=True)

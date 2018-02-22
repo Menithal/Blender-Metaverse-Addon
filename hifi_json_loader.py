@@ -50,6 +50,11 @@ class HifiJsonOperator(bpy.types.Operator, ImportHelper):
     filename_ext = ".json"
     filter_glob = StringProperty(default="*.json", options={'HIDDEN'})
     
+    uv_sphere = BoolProperty( 
+        name = "Use UV Sphere",
+        description = "Uses UV Sphere instead of Quad Sphere",
+        default = False,
+    )
     
     join_children = BoolProperty( 
         name = "Join Mesh Children",
@@ -96,6 +101,7 @@ class HifiJsonOperator(bpy.types.Operator, ImportHelper):
 
 
 def load_file(operator, context, filepath="",
+              uv_sphere= False,
               join_children=True, 
               merge_distance = 0.01, 
               delete_interior_faces = True,
@@ -104,6 +110,6 @@ def load_file(operator, context, filepath="",
     json_data = open(filepath).read()
     data = json.loads(json_data)
     
-    scene = HifiScene(data, join_children, merge_distance, delete_interior_faces, use_boolean_operation)
+    scene = HifiScene(data, uv_sphere, join_children, merge_distance, delete_interior_faces, use_boolean_operation)
     return {"FINISHED"}
 

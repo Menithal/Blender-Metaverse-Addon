@@ -82,12 +82,14 @@ def quat_swap_nyz(q):
 
 class HifiScene:
     def __init__(self, json, 
+              uv_sphere = False,
               join_children=True, 
               merge_distance = 0.01, 
               delete_interior_faces = True,
-              use_boolean_operation = None):
+              use_boolean_operation = "NONE"):
         json_entities = json['Entities']
-        
+
+        self.uv_sphere = uv_sphere
         self.join_children = join_children
         self.merge_distance = merge_distance
         self.delete_interior_faces = delete_interior_faces
@@ -273,8 +275,11 @@ class HifiObject:
             elif self.type == "Model":
                 add_box(self)
             elif self.type == 'Sphere':
-                add_sphere(self)
-                
+                if self.uv_sphere:
+                   add_uv_sphere(self)
+                else: 
+                   add_sphere(self)
+
             else:
                 print(' Warning: ' , self.type, self.shape, ' Not Supported ')
                 return
