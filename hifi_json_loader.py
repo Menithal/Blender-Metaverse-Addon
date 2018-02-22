@@ -76,9 +76,9 @@ class HifiJsonOperator(bpy.types.Operator, ImportHelper):
     )
     
     use_boolean_operation = EnumProperty(
-        items=(('NONE', "No Operation", "Do not use boolean operations"),
-               ('CARVE', "Carve Operation", "EXPERIMENTAL: Use CARVE boolean Operation to join mesh"),
-               ('BMESH', "BMesh Operation", "EXPERIMENTAL: Use BMESH boolean Operation to join mesh")),
+        items=(('NONE', "None", "Do not use boolean operations"),
+               ('CARVE', "Carve", "EXPERIMENTAL: Use CARVE boolean Operation to join mesh"),
+               ('BMESH', "BMesh", "EXPERIMENTAL: Use BMESH boolean Operation to join mesh")),
         name = "Boolean",
         description = "EXPERIMENTAL: Enable Boolean Operation when joining parents",
         )    
@@ -88,6 +88,7 @@ class HifiJsonOperator(bpy.types.Operator, ImportHelper):
         
         sub = layout.column()
         
+        sub.prop(self, "uv_sphere")
         sub.prop(self, "join_children")
         
         sub.prop(self, "merge_distance")
