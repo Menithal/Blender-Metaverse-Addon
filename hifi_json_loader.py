@@ -71,7 +71,7 @@ class HifiJsonOperator(bpy.types.Operator, ImportHelper):
     )
     
     use_boolean_operation = EnumProperty(
-        items=((None, "No Operation", "Do not use boolean operations"),
+        items=(('NONE', "No Operation", "Do not use boolean operations"),
                ('CARVE', "Carve Operation", "EXPERIMENTAL: Use CARVE boolean Operation to join mesh"),
                ('BMESH', "BMesh Operation", "EXPERIMENTAL: Use BMESH boolean Operation to join mesh")),
         name = "Boolean",
@@ -99,7 +99,7 @@ def load_file(operator, context, filepath="",
               join_children=True, 
               merge_distance = 0.01, 
               delete_interior_faces = True,
-              use_boolean_operation = None):
+              use_boolean_operation = 'NONE'):
                   
     json_data = open(filepath).read()
     data = json.loads(json_data)
