@@ -31,26 +31,32 @@ bl_info = {
 }
 
 import addon_utils
-import importlib
 import sys
 import bpy
-
-from hifi_json_loader import *
 
 
 if "add_mesh_extra_objects" not in addon_utils.addons_fake_modules:
     print(" Could not find add_mesh_extra_objects, Trying to add it automatically. Otherwise install it first via Blender Add Ons")
     addon_utils.enable("add_mesh_extra_objects")
-    
+
+
 def reload_module(name): 
     if name in sys.modules: 
         del sys.modules[name]
 
-reload_module('hifi_scene')
-reload_module('bpy_util')   
-reload_module('hifi_primitives')  
-reload_module('hifi_json_loader')    
+
+if "bpy" in locals():
+    import importlib
+    if "hifi_scene" in locals():
+        importlib.reload(hifi_scene)
+    if "bpy_util" in locals():
+        importlib.reload(bpy_util)
+    if "hifi_primitives" in locals():
+        importlib.reload(hifi_primitives)
+    if "hifi_json_loader" in locals():
+        importlib.reload(hifi_json_loader)
     
+from .hifi_json_loader import *
 
     
 def menu_func_import(self, context):

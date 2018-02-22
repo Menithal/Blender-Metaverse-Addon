@@ -24,7 +24,7 @@
 from math import sqrt, acos, pow, sin, cos
 from hashlib import md5
 from mathutils import Quaternion, Vector, Euler, Matrix
-from hifi_primitives import *
+from .hifi_primitives import *
 
 
 NEAREST_DIGIT = 10000
@@ -275,7 +275,7 @@ class HifiObject:
             elif self.type == "Model":
                 add_box(self)
             elif self.type == 'Sphere':
-                if self.uv_sphere:
+                if self.scene.uv_sphere:
                    add_uv_sphere(self)
                 else: 
                    add_sphere(self)

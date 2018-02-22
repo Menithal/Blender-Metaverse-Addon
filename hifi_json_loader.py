@@ -36,7 +36,7 @@ from bpy_extras.io_utils import (
 )
 
 
-from hifi_scene import *
+from .hifi_scene import *
 
 class HifiJsonOperator(bpy.types.Operator, ImportHelper):
     
