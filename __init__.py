@@ -20,7 +20,7 @@
 bl_info = {
     "name": "HiFi Blender Add-on",
     "author": "Matti 'Menithal' Lahtinen",
-    "version": (0,0,1),
+    "version": (0,1,0),
     "blender": (2,7,7),
     "location": "File > Import-Export, Materials, Armature",
     "description": "Blender tools to allow for easier Content creation for High Fidelity",
@@ -33,7 +33,7 @@ bl_info = {
 import addon_utils
 import sys
 import bpy
-
+import hifi_material_ui
 
 if "add_mesh_extra_objects" not in addon_utils.addons_fake_modules:
     print(" Could not find add_mesh_extra_objects, Trying to add it automatically. Otherwise install it first via Blender Add Ons")
