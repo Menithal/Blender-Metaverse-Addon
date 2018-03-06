@@ -58,8 +58,7 @@ if "bpy" in locals():
         importlib.reload(hifi_material_ui)
     
 from .hifi_json_loader import *
-import .hifi_material_ui
-
+from .hifi_material_ui import register as material_ui_register, unregister as material_ui_unregister
 
     
 def menu_func_import(self, context):
@@ -69,10 +68,12 @@ def menu_func_import(self, context):
 def register():
     bpy.utils.register_class(HifiJsonOperator)
     bpy.types.INFO_MT_file_import.append(menu_func_import)
+    material_ui_register()
  
 def unregister():
     bpy.utils.unregister_class(HifiJsonOperator)
     bpy.types.INFO_MT_file_import.remove(menu_func_import)
+    material_ui_unregister()
 
  
 if __name__ == "__main__":
