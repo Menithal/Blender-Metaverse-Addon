@@ -33,7 +33,6 @@ bl_info = {
 import addon_utils
 import sys
 import bpy
-import hifi_material_ui
 
 if "add_mesh_extra_objects" not in addon_utils.addons_fake_modules:
     print(" Could not find add_mesh_extra_objects, Trying to add it automatically. Otherwise install it first via Blender Add Ons")
@@ -55,8 +54,12 @@ if "bpy" in locals():
         importlib.reload(hifi_primitives)
     if "hifi_json_loader" in locals():
         importlib.reload(hifi_json_loader)
+    if "hifi_material_ui" in locals():
+        importlib.reload(hifi_material_ui)
     
 from .hifi_json_loader import *
+import .hifi_material_ui
+
 
     
 def menu_func_import(self, context):
