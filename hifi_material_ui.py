@@ -65,6 +65,7 @@ def find_first_texture_in(mat, has_operation):
     
     return found_slot
 
+NONE = {'NONE'}
 #TODO: Figure out a cleaner way to do all of this.
 
 class HifiMaterialOperator(bpy.types.Panel):
@@ -122,7 +123,6 @@ class HifiMaterialOperator(bpy.types.Panel):
     def poll(self, context):
         mat = context.material
         engine = context.scene.render.engine
-        print('poll')
         return mat and engine in self.COMPAT_ENGINES
     
         
@@ -138,7 +138,8 @@ class HifiMaterialOperator(bpy.types.Panel):
         
         diffuse = find_first_texture_in(material, that_has_diffuse)
         print('draw')
-        if diffuse:
+        
+        if diffuse and diffuse.texture.type != 'NONE':
             
             layout.label(text="Diffuse Texture")
             split = layout.split(0.9)
@@ -153,7 +154,7 @@ class HifiMaterialOperator(bpy.types.Panel):
         layout.separator()
         glossiness = find_first_texture_in(material, that_has_glossiness)
         
-        if glossiness:          
+        if glossiness and glossiness.texture.type != 'NONE':          
             
             layout.label(text="Glossiness Texture")
             split = layout.split(0.9)
@@ -172,7 +173,7 @@ class HifiMaterialOperator(bpy.types.Panel):
         
         metallicness = find_first_texture_in(material, that_has_metallicness)
         
-        if metallicness:
+        if metallicness and metallicness.texture.type !=  'NONE':
             layout.label(text= "Metallicness Texture")
             split = layout.split(0.9)
             box = split.box()
@@ -187,7 +188,7 @@ class HifiMaterialOperator(bpy.types.Panel):
         
         normal = find_first_texture_in(material, that_has_normal)
         
-        if normal:
+        if normal and normal.texture.type != 'NONE':
             layout.label(text= "Normal Texture")  
             split = layout.split(0.9)
             box = split.box()
@@ -200,7 +201,7 @@ class HifiMaterialOperator(bpy.types.Panel):
         
         transparency = find_first_texture_in(material, that_has_transparency)
         
-        if transparency:
+        if transparency and transparency.texture.type != 'NONE':
             
             layout.label(text= "Transparency Texture")
             split = layout.split(0.9)
@@ -216,7 +217,7 @@ class HifiMaterialOperator(bpy.types.Panel):
         layout.separator() 
         emit = find_first_texture_in(material, that_has_emit)
         
-        if emit:        
+        if emit and emit.texture.type != 'NONE':        
             layout.label(text= "Emit Texture")
             split = layout.split(0.9)
             box = split.box()
