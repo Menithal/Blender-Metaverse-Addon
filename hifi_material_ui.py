@@ -152,30 +152,27 @@ class HifiMaterialOperator(bpy.types.Panel):
     
         
     def draw (self, context):
+        print(self);
         layout = self.layout
-        ob = context.active_object     
-        material = context.material
         
         print('---------------------')
         row = layout.row()
         
-        row.prop(material, "hifi_material_color")             
+        row.prop(context.material, "hifi_material_color")             
         row.operator(HifiResetDiffuseOperator.bl_idname)
                 
-        #build_texture_ui(layout, material, operator, float_widget):
-        build_texture_ui(layout, material, HifiDiffuseTextureOperator)
-        build_texture_ui(layout, material, HifiRoughnessTextureOperator, "hifi_roughness_float")
+        build_texture_ui(context, layout, HifiDiffuseTextureOperator)
+        build_texture_ui(context, layout, HifiRoughnessTextureOperator, "hifi_roughness_float")
         
         layout.label(text='Note, Glossiness is inverse of Roughness')
         layout.separator()
         
-        build_texture_ui(layout, material, HifiMetallicTextureOperator, "hifi_metallic_float")
-        build_texture_ui(layout, material, HifiNormalTextureOperator)
+        build_texture_ui(context, layout, HifiMetallicTextureOperator, "hifi_metallic_float")
+        build_texture_ui(context, layout, HifiNormalTextureOperator)
         
-        build_texture_ui(layout, material, HifiEmitTextureOperator)
+        build_texture_ui(context, layout, HifiEmitTextureOperator)
         
  
-        
        # setattr(mat, "hifi_material_color", mat.diffuse_color)
        # mat.specular_hardness = int((1-(mat.hifi_roughness_float / 100))*512)
        # setattr(mat, "hifi_roughness_float", (1 - mat.specular_hardness / 512) * 100)
@@ -183,8 +180,8 @@ class HifiMaterialOperator(bpy.types.Panel):
        # setattr(mat, "hifi_transparency_float")
                     
 
-def build_texture_ui(layout, material, operator, float_widget = None):
-    
+def build_texture_ui(context, layout, operator, float_widget = None):
+    material = context.material
     texture_slot = find_first_texture_in(lambda slot: operator.has_operation(None, slot))
      
     print('Rendering ', operator); 
@@ -192,11 +189,19 @@ def build_texture_ui(layout, material, operator, float_widget = None):
         layout.label(text = operator.bl_label)
         split = layout.split(0.9)
         box = split.box()
+        
+        # Having Issues here:
+        
+        box.template_preview(texture_slot.texture, 
+            parent=material, slot=texture_slot, 
+            preview_id=operator.bl_label+'preview')
+        
         box.template_image(texture_slot.texture, "image", texture_slot.texture.image_user)
         
         button = split.operator(operator.bl_idname, icon='X', text="")
         button.enabled = False
-    else :
+ 
+    else:
         row = layout.row()
         
         if float_widget:
