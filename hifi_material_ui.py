@@ -192,9 +192,9 @@ def build_texture_ui(context, layout, operator, float_widget = None):
         
         # Having Issues here:
         
-        box.template_preview(texture_slot.texture, 
-            parent=material, slot=texture_slot, 
-            preview_id=operator.bl_label+'preview')
+        #box.template_preview(texture_slot.texture, 
+        #    parent=material, slot=texture_slot, 
+        #    preview_id=operator.bl_label+'preview')
         
         box.template_image(texture_slot.texture, "image", texture_slot.texture.image_user)
         
@@ -216,7 +216,7 @@ def build_texture_ui(context, layout, operator, float_widget = None):
 
 class HifiResetDiffuseOperator(bpy.types.Operator):
     bl_idname = HifiMaterialOperator.bl_idname + "_diffuse_reset_color"
-    bl_label = "Reset Tint"
+    bl_label = "Reset Tint" 
    
     def execute(self, context):
         mat = context.material
