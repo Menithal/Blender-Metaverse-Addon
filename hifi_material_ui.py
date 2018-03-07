@@ -60,7 +60,7 @@ def texture_operation_glossiness( slot, mode, texture ):
     
     
 def texture_operation_metallic( slot, mode, texture ):
-    slot.use_map_hardness = mode
+    slot.use_map_color_spec = mode
     
 
 def texture_operation_normal (slot, mode, texture ):
@@ -69,7 +69,7 @@ def texture_operation_normal (slot, mode, texture ):
     
 
 def texture_operation_transparency( slot, mode,  texture):
-    slot.use_map_hardness = mode
+    slot.use_map_alpha = mode
     
     
 def texture_operation_emit( slot, mode,texture):
@@ -191,7 +191,6 @@ def build_texture_ui(layout, material, operator, float_widget = None):
     if texture_slot and texture_slot.texture.type != 'NONE':
         layout.label(text = operator.bl_label)
         split = layout.split(0.9)
-       
         box = split.box()
         box.template_image(texture_slot.texture, "image", texture_slot.texture.image_user)
         
