@@ -25,11 +25,7 @@ from .hifi_scene import *
 
 import addon_utils
 
-# Order of Joining Parented objects
-# 1. Make sure materials are present by all children are root Object
-# 2. Add boolean modifier to parent object, and link to all the added objects.
-
-
+# Utility Script to debug selected edges
 def debug_get_selected_edges():
     edges = bpy.context.active_object.data.edges
     selected_edges = []
@@ -40,7 +36,7 @@ def debug_get_selected_edges():
             
     print('Selected Edges: ', selected_edges)
 
-
+# Utility Script to debug selected edges
 def debug_get_selected_face():
     faces = bpy.context.active_object.data.polygons
     selected_polys = []
@@ -51,7 +47,7 @@ def debug_get_selected_face():
             
     print('Selected Polygons: ', selected_polys)
     
-    
+# Utility to select Polygons from the uv_array
 def select_polygons(uv_array):    
     bpy.ops.object.mode_set(mode = 'EDIT')
     bpy.ops.mesh.select_mode(type="FACE")
@@ -64,6 +60,7 @@ def select_polygons(uv_array):
         polygons[polygon].select = True
         
         
+# Utility to select Edges from the uv_array
 def select_edges(uv_array):
     bpy.ops.object.mode_set(mode = 'EDIT')
     bpy.ops.mesh.select_mode(type="EDGE")
@@ -76,6 +73,7 @@ def select_edges(uv_array):
         edges[edge].select = True
 
 
+# Utility to mark selected and then unwrap
 def mark_seams_and_uv_unwrap():
     bpy.ops.object.mode_set(mode = 'EDIT')
     bpy.ops.mesh.mark_seam(clear=False)
@@ -91,7 +89,7 @@ def mark_seams_and_uv_unwrap():
 def ___empty():
     pass
 
-
+# Utility Set Generics (position, dimensions, and rotation). Then has calls a callback if there are any custom UV unwrap
 def set_generic(entity, split = False, entity_specific_uv = ___empty):
     
     entity.blender_object = bpy.context.active_object
@@ -158,8 +156,6 @@ def add_light(entity):
 
 
 def add_tetrahedron(entity):
-    
-    ## UV 
     bpy.ops.mesh.generate_geodesic_dome(base_type='Tetrahedron', orientation='EdgeUp', geodesic_class='Class 1')
 
     bpy.context.object.rotation_euler[2] = 0.785398
@@ -174,7 +170,6 @@ def add_tetrahedron(entity):
     
     
 def add_octahedron(entity):
-    ## UV 
     bpy.ops.mesh.primitive_solid_add(source='8')
 
     def uv():
@@ -188,7 +183,6 @@ def add_octahedron(entity):
 
 
 def add_icosahedron(entity):
-    ## UV 
     bpy.ops.mesh.generate_geodesic_dome(geodesic_types='Geodesic', orientation='EdgeUp', base_type='Icosahedron', geodesic_class='Class 1')
     
     def uv():
@@ -203,7 +197,6 @@ def add_icosahedron(entity):
 
     
 def add_docadehedron(entity):
-    ## UV 
     bpy.ops.mesh.primitive_solid_add(source='12')
     bpy.ops.transform.rotate(value=1.5708, axis=(0, 0, 1), constraint_axis=(False, False, True), constraint_orientation='GLOBAL')
     
@@ -231,7 +224,6 @@ def add_quad(entity):
 
 
 def add_circle(entity):
-    # Require UV Unwrapping
     bpy.ops.mesh.primitive_circle_add(view_align=False, enter_editmode=True, location=(0, 0, 0))
     bpy.ops.mesh.edge_face_add()
     set_generic(entity, True)

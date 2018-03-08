@@ -35,9 +35,12 @@ PIVOT_VECTOR = (0.5,0.5,0.5)
 'w,x,y,z'
 ZERO_QUAT = (1,0,0,0)
 
+# Utility to round to nearest digit. Hifi exports some times so fairly erroronious floats, so truncating them can help
+## TODO: Allow scene to set to what digit should everything be rouded to
 def round_nearest(val):
     return round(val * NEAREST_DIGIT)/NEAREST_DIGIT
 
+# Utility to make sure a tuple is returned from a dict
 def parse_dict_vector(entity, index, default = ZERO_VECTOR):
     if index in entity:
         vect = entity[index]
@@ -45,7 +48,7 @@ def parse_dict_vector(entity, index, default = ZERO_VECTOR):
     else:
         return default
 
-
+# Utility to make sure tuple quaternion is returned from a dict
 def parse_dict_quaternion(entity, index):
     if index in entity:
         quat = entity[index]
@@ -53,19 +56,19 @@ def parse_dict_quaternion(entity, index):
     else:
         return ZERO_QUAT
 
-
+# Utility to swap y and z and reduce vector(0.5) of all values, as default blender center pivot is 0 not 0.5
 def swap_pivot(v):
     return Vector(((v[0] - PIVOT_VECTOR[0]), (v[2] - PIVOT_VECTOR[1]), -(v[1] - PIVOT_VECTOR[2])))
     
-    
+# Utility to swap y and z, and return a VEctor
 def swap_yz(v):
     return Vector((v[0], v[2], v[1]))
 
-
+# Utility to swap y and -z
 def swap_nyz(vector):
     return Vector((vector[0], -vector[2], vector[1]))
 
-
+# Utility to swap quaternion axis to -zy
 def quat_swap_nyz(q):
     q1 = Quaternion(q)
         
@@ -104,30 +107,56 @@ class HifiScene:
         
         self.root = []
         
-        # Build Indices
+        # Build Indices for entity ids, and build the Objects
         print( ' building indices ')
         for idx, entity in enumerate(json_entities):
             self.entity_ids.append(entity['id'])   
             hifi_entity = HifiObject(entity, self)
             self.entities.append(hifi_entity)
         
-        # Build Trees
+        # Build Trees by checking if parents exist in parent tree
         print( ' building parents ')
         for entity in self.entities:
             self.append_parent(entity)
             
                 
         self.build_scene()
-        
+    
+    # links Parents and children together. to build a tree
+    def append_parent(self, entity):
+        # Check if parent id for entity exists
+        result = self.search_entity(entity.parent_id) 
+        if result is not None:
+            # add entity as a child of parent
+            result.add_child(entity)
+            # set parent as a parent of entity
+            entity.set_parent(result)
+            
+    
+    def search_entity(self, id):
+        # TODO: May need to do some more advanced tricks here maybe later.
+        found_entity = None
+        try:
+            # Get index of instance of the id from existing ids
+            index = self.entity_ids.index(id)
+            # if found, return found entity
+            found_entity = self.entities[index]
+        except e:
+            pass
+        finally:
+            # Regardless of failure, always return None or the entity
+            return found_entity
+            
 
-    ## put this outside of this.
     def build_scene(self):
+        # Store context to set cursor
         current_context = bpy.context.area.type 
         bpy.context.area.type = 'VIEW_3D'
-
+        # set context to 3D View and set Cursor
         bpy.context.space_data.cursor_location[0] = 0.0
         bpy.context.space_data.cursor_location[1] = 0.0
         bpy.context.space_data.cursor_location[2] = 0.0
+        # return context back to earlier, and build scene.
         bpy.context.area.type = current_context
         print("Building Scene out of " + str(len(self.entities)) + ' Objects and '
              + str(len(self.material_index)) + ' materials')
@@ -135,26 +164,7 @@ class HifiScene:
         for entity in self.entities:
             if entity.is_root():
                 entity.build()
-                
-    
-    def append_parent(self, entity):
-        result = self.search_entity(entity.parent_id) 
-        if result is not None:
-            result.add_child(entity)
-            entity.set_parent(result)
-    
-    
-    def search_entity(self, id):
-        # May need to do some more advanced tricks here maybe later.
-        found_entity = None
-        try:
-            index = self.entity_ids.index(id)
-            found_entity = self.entities[index]
-        except e:
-            pass
-        finally:
-            return found_entity
-            
+        
         
     def append_material(self, color):
         # Just Hash result
@@ -186,7 +196,7 @@ class HifiObject:
         self.children = []
         self.blender_object = None
         self.scene = scene
-        # Make sure the Blender Object has a name    
+        # Make sure the Blender Object has a name: And to make it unique, append id of the entity as well.    
         if 'name' in entity and len(entity['name'].strip()) > 0:
             self.name = entity['name'] + '-' + self.id
         elif 'shape' in entity:
@@ -234,14 +244,14 @@ class HifiObject:
             
 
     def build(self):
-        # Type Logic Here
+        # First places down the children (recursive)
         for child in self.children:
             child.build()
         
-        if self.type == 'Box' or self.type == 'Shape':
-            if self.shape == 'Cube':
-                add_box(self)
-            elif self.shape == 'Icosahedron':
+        # Place self by selecting what primitive to add, depending on type and shape.
+        # Boxes and Spheres are the only primitive to have a separate type vs others
+        if self.type == 'Shape':
+            if self.shape == 'Icosahedron':
                 add_icosahedron(self)
             elif self.shape == 'Dodecahedron':
                 add_docadehedron(self)
@@ -257,13 +267,14 @@ class HifiObject:
                 add_octahedron(self)
             elif self.shape == 'Cone':
                 add_cone(self)
+            elif self.shape == 'Triangle':
+                add_triangle(self)
+                
+            # The following will be deprecated, as they are no longer quads or circles when exported
             elif self.shape == 'Quad':
                 add_quad(self)
             elif self.shape == 'Circle':
                 add_circle(self)
-            
-            elif self.shape == 'Triangle':
-                add_triangle(self)
             else:
                 print(' Warning: ' , self.shape, ' Not Defined ')
                 return
@@ -279,55 +290,68 @@ class HifiObject:
                    add_uv_sphere(self)
                 else: 
                    add_sphere(self)
-
+            elif self.type == 'Box':
+                add_box(self)
             else:
                 print(' Warning: ' , self.type, self.shape, ' Not Supported ')
                 return
             
-            
+        # Now if above is a mesh type to do join / boolean operations on
         if self.blender_object.type == "MESH":
             for child in self.children:
-                ## Merge Materials Here.
+                # Material Combinator to pre-combine materials prior to applying boolean operator or joining objects together
+                # This allows the materials to be maintained even if they are joined.
+                # for each material the child's blender objects have
                 for material in child.blender_object.data.materials.values():
-                    
+                    # and if the material is set, and is not yet set for the parent, add an instance of the material to the parent
                     if material is not None and material not in bpy.context.object.data.materials.values():          
                         bpy.context.object.data.materials.append(material)
-            
+                # If the scene wants to use boolean operators, this overrides join children (as it is a method to join children)
                 if self.scene.use_boolean_operation != "NONE":
                     bpy.ops.object.modifier_add(type='BOOLEAN')
+                    # Set name for modifier to keep track of it.
                     name = child.name + '-Boolean'
                     bpy.context.object.modifiers["Boolean"].name = name
                     bpy.context.object.modifiers[name].operation = 'UNION'
                     bpy.context.object.modifiers[name].solver = self.scene.use_boolean_operation
                     bpy.context.object.modifiers[name].object = child.blender_object
                     bpy.ops.object.modifier_apply(apply_as='DATA', modifier=name)
+                    # Clean up the child object from the blender scene.
                     bpy.data.objects.remove(child.blender_object)
-                        
+                    # TODO: Set Child.blender_object as the blender object of the parent to maintain links
+                # If not boolean operator, but join_children is still True
                 elif self.scene.join_children:
+                    # Select the child
                     child.select()
+                    # Select self
                     self.select()
+                    # Join
                     bpy.ops.object.join()
 
-        self.select()
+            # Safety select
+            self.select()
         
-        if self.blender_object.type == "MESH":
             bpy.ops.object.modifier_add(type='EDGE_SPLIT')
             bpy.ops.object.mode_set(mode = 'EDIT')
+
             if len(self.children)>0:
                 bpy.ops.mesh.remove_doubles(threshold=self.scene.merge_distance)
-        
+        # endif
+
+        # And at the end, make sure object is selected.
         bpy.ops.object.mode_set(mode = 'OBJECT')
 
+    # Position and rotations of children are always relative to parent in Hifi Tree.
         
-
+    # Get the absolute position by getting the relative position of the parent, and adding my own to it.
+    # note that then position is relative to the parents rotation too, so make sure to eliminate that as well.
     def relative_position(self):
         if self.parent is not None:
-            position = self.parent.relative_position()
-            return self.parent.relative_rotation() * self.position + position
+            return self.parent.relative_rotation() * self.position + self.parent.relative_position()
         else:
             return self.position
         
-                
+    # Rotation is based on the rotaiton of the parent and self. 
     def relative_rotation(self):
         if self.parent is not None:
             rotation = self.parent.relative_rotation()
@@ -335,7 +359,6 @@ class HifiObject:
         else:
             return self.rotation
         
-                
 
     def set_parent(self, parent):
         if type(parent) is HifiObject:

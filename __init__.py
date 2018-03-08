@@ -20,7 +20,7 @@
 bl_info = {
     "name": "HiFi Blender Add-on",
     "author": "Matti 'Menithal' Lahtinen",
-    "version": (0,0,1),
+    "version": (0,1,0),
     "blender": (2,7,7),
     "location": "File > Import-Export, Materials, Armature",
     "description": "Blender tools to allow for easier Content creation for High Fidelity",
@@ -33,7 +33,6 @@ bl_info = {
 import addon_utils
 import sys
 import bpy
-
 
 if "add_mesh_extra_objects" not in addon_utils.addons_fake_modules:
     print(" Could not find add_mesh_extra_objects, Trying to add it automatically. Otherwise install it first via Blender Add Ons")
@@ -55,8 +54,11 @@ if "bpy" in locals():
         importlib.reload(hifi_primitives)
     if "hifi_json_loader" in locals():
         importlib.reload(hifi_json_loader)
+    if "hifi_material_ui" in locals():
+        importlib.reload(hifi_material_ui)
     
 from .hifi_json_loader import *
+from .hifi_material_ui import register as material_ui_register, unregister as material_ui_unregister
 
     
 def menu_func_import(self, context):
@@ -66,10 +68,12 @@ def menu_func_import(self, context):
 def register():
     bpy.utils.register_class(HifiJsonOperator)
     bpy.types.INFO_MT_file_import.append(menu_func_import)
+    material_ui_register()
  
 def unregister():
     bpy.utils.unregister_class(HifiJsonOperator)
     bpy.types.INFO_MT_file_import.remove(menu_func_import)
+    material_ui_unregister()
 
  
 if __name__ == "__main__":
