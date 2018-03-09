@@ -78,7 +78,7 @@ def parse_object(blender_object, path, options):
         dimensions = swap_yz(blender_object.dimensions)
         
         bpy.ops.object.origin_set(type='GEOMETRY_ORIGIN', center='BOUNDS')
-        
+
         bpy.ops.export_scene.fbx(filepath=path + mesh_name + ".fbx", version='BIN7400', embed_textures=True, path_mode='COPY',
                                 use_selection=True, axis_forward='-Z', axis_up='Y')
                                 
@@ -102,7 +102,8 @@ def parse_object(blender_object, path, options):
                 'x': dimensions.x,
                 'y': dimensions.y,
                 'z': dimensions.z
-            },
+            },           
+            "shapeType": "static-mesh",
             'userData': '{"blender_export":"' + scene_id +'"}'
         }         
         
