@@ -22,7 +22,7 @@
 
 
 import bpy
-import hifi_utility
+from .hifi_utility import *
 import uuid
 import re
 import os
@@ -64,8 +64,8 @@ def parse_object(blender_object, path, options):
     scene_id = str(uuid_gen)
     
     type = blender_object.type
-    orientation = hifi_utility.quat_swap_nzy(blender_object.rotation_quaternion)
-    position = hifi_utility.swap_nzy(blender_object.location)
+    orientation = quat_swap_nzy(blender_object.rotation_quaternion)
+    position = swap_nzy(blender_object.location)
     
     
     bpy.ops.object.select_all(action = 'DESELECT')
@@ -73,7 +73,7 @@ def parse_object(blender_object, path, options):
         blender_object.select = True
         bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY', center='BOUNDS')
         
-        dimensions = hifi_utility.swap_yz(blender_object.dimensions)
+        dimensions = swap_yz(blender_object.dimensions)
         
         bpy.ops.export_scene.fbx(filepath=path + mesh_name + ".fbx", version='BIN7400', embed_textures=True, path_mode='COPY',
                                 use_selection=True, axis_forward='-Z', axis_up='Y')
@@ -108,8 +108,8 @@ def parse_object(blender_object, path, options):
             
             parent_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, parent.name)
             
-            parent_orientation = hifi_utility.quat_swap_nzy(relative_rotation(blender_object))
-            parent_position = hifi_utility.swap_nzy(relative_position(blender_object))
+            parent_orientation = quat_swap_nzy(relative_rotation(blender_object))
+            parent_position = swap_nzy(relative_position(blender_object))
             
             json_data["position"] = {
                 'x': parent_position.x,
