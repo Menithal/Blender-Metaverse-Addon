@@ -20,7 +20,7 @@
 bl_info = {
     "name": "HiFi Blender Add-on",
     "author": "Matti 'Menithal' Lahtinen",
-    "version": (0,1,0),
+    "version": (0,2,0),
     "blender": (2,7,7),
     "location": "File > Import-Export, Materials, Armature",
     "description": "Blender tools to allow for easier Content creation for High Fidelity",
@@ -56,22 +56,30 @@ if "bpy" in locals():
         importlib.reload(hifi_json_loader)
     if "hifi_material_ui" in locals():
         importlib.reload(hifi_material_ui)
+    if "hifi_utility" in locals():
+        importlib.reload(hifi_utility)
+    if "hifi_json_writer" in locals():
+        importlib.reload(hifi_json_writer)
     
+
 from .hifi_json_loader import *
+from .hifi_json_writer import *
 from .hifi_material_ui import register as material_ui_register, unregister as material_ui_unregister
 
     
 def menu_func_import(self, context):
     self.layout.operator(HifiJsonOperator.bl_idname, text="High Fidelity JSON (.json)")
-    
+    self.layout.operator(HifiJsonWriter.bl_idname, text="High Fidelity JSON / FBX (.json/.fbx)")
     
 def register():
     bpy.utils.register_class(HifiJsonOperator)
+    bpy.utils.register_class(HifiJsonWriter)
     bpy.types.INFO_MT_file_import.append(menu_func_import)
     material_ui_register()
  
 def unregister():
     bpy.utils.unregister_class(HifiJsonOperator)
+    bpy.utils.register_class(HifiJsonWriter)
     bpy.types.INFO_MT_file_import.remove(menu_func_import)
     material_ui_unregister()
 

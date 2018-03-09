@@ -21,7 +21,7 @@
 
 
 import bpy
-from .hifi_scene import *
+from .hifi_scene_import import *
 
 import addon_utils
 
