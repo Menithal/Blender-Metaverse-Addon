@@ -190,6 +190,7 @@ class HifiMaterialOperator(bpy.types.Panel):
         
         build_texture_ui(context, layout, HifiMetallicTextureOperator, "hifi_metallic_float")
         build_texture_ui(context, layout, HifiNormalTextureOperator)
+        build_texture_ui(context, layout, HifiTransparencyTextureOperator, "hifi_transparency_float")
         
         build_texture_ui(context, layout, HifiEmitTextureOperator)
         

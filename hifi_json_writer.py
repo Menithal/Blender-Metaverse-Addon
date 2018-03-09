@@ -63,6 +63,7 @@ def parse_object(blender_object, path, options):
     uuid_gen = uuid.uuid5(uuid.NAMESPACE_DNS, blender_object.name)
     scene_id = str(uuid_gen)
     
+    
     type = blender_object.type
     orientation = quat_swap_nzy(blender_object.rotation_quaternion)
     position = swap_nzy(blender_object.location)
@@ -71,9 +72,12 @@ def parse_object(blender_object, path, options):
     bpy.ops.object.select_all(action = 'DESELECT')
     if type == 'MESH':        
         blender_object.select = True
-        bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY', center='BOUNDS')
+        
+
         
         dimensions = swap_yz(blender_object.dimensions)
+        
+        bpy.ops.object.origin_set(type='GEOMETRY_ORIGIN', center='BOUNDS')
         
         bpy.ops.export_scene.fbx(filepath=path + mesh_name + ".fbx", version='BIN7400', embed_textures=True, path_mode='COPY',
                                 use_selection=True, axis_forward='-Z', axis_up='Y')
