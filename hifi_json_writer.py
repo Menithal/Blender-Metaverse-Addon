@@ -28,7 +28,7 @@ import re
 import os
 import json
 
-from bpy.props import StringProperty
+from bpy.props import (StringProperty, BoolProperty)
 from mathutils import Quaternion
 from math import sqrt
 
@@ -56,37 +56,61 @@ def select(blender_object):
     
 
 def parse_object(blender_object, path, options):  
-    
-    name = re.sub(r'\.\d{3}$', '', blender_object.name)
+    # Store existing rotation mode, just in case.
+    stored_rotation_mode = bpy.context.object.rotation_mode
+    json_data = None
+    # Make sure context is quaternion for the models
+    if options['remove_trailing']:
+        name = re.sub(r'\.\d{3}$', '', blender_object.name)
+    else:
+        name = blender_object.name
+
     # If you ahve an object thats the same mesh, but different object: All Objects will use this as reference allowing for instancing.
-    mesh_name = blender_object.data.name
     uuid_gen = uuid.uuid5(uuid.NAMESPACE_DNS, blender_object.name)
     scene_id = str(uuid_gen)
     
-    
+    reference_name = blender_object.data.name
     type = blender_object.type
-    orientation = quat_swap_nzy(blender_object.rotation_quaternion)
-    position = swap_nzy(blender_object.location)
     
+    blender_object.rotation_mode = 'QUATERNION'
+    orientation = quat_swap_nzy(blender_object.rotation_quaternion)
+    print(name, ' original ', blender_object.rotation_quaternion) 
+    print(name, ' nzy ', orientation)     
+    position = swap_nzy(blender_object.location)
     
     bpy.ops.object.select_all(action = 'DESELECT')
     if type == 'MESH':        
         blender_object.select = True
         
-
-        
+        temp_dimensions = Vector(blender_object.dimensions)
         dimensions = swap_yz(blender_object.dimensions)
         
-        bpy.ops.object.origin_set(type='GEOMETRY_ORIGIN', center='BOUNDS')
+        bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY', center='BOUNDS')
 
-        bpy.ops.export_scene.fbx(filepath=path + mesh_name + ".fbx", version='BIN7400', embed_textures=True, path_mode='COPY',
+        print("Storing existing rotation")
+        temp_rotation = Quaternion(blender_object.rotation_quaternion)
+        # Temporary Rotate Model to a zero rotation so that the exported model rotation is normalized.
+        blender_object.rotation_quaternion = Quaternion((1,0,0,0))
+        blender_object.dimensions = Vector((1,1,1))
+
+        print("Saving fbx", name)
+        # TODO: Option to also export via gltf instead of fbx
+        # TODO: Add Option to not embedtextures / copy paths
+        bpy.ops.export_scene.fbx(filepath=path + reference_name + ".fbx", version='BIN7400', embed_textures=True, path_mode='COPY',
                                 use_selection=True, axis_forward='-Z', axis_up='Y')
-                                
+
+        # Restore earlier rotation
+        blender_object.dimensions = temp_dimensions
+        blender_object.rotation_quaternion = temp_rotation      
+
+        print(name, 'temp rotation', temp_rotation)   
+        print(name, ' gathered ', orientation)    
+        print(name, ' gathered ', orientation)                  
         json_data = {
             'name': name,
             'id': scene_id,
             'type': 'Model',
-            'modelURL': options['url'] + mesh_name + '.fbx',
+            'modelURL': options['url'] + reference_name + '.fbx',
             'position': {
                 'x': position.x,
                 'y': position.y,
@@ -107,7 +131,7 @@ def parse_object(blender_object, path, options):
             'userData': '{"blender_export":"' + scene_id +'"}'
         }         
         
-        ## This gets quite Complex, as Id have to do this recursively.               
+ 
         if blender_object.parent:
             parent = blender_object.parent
             
@@ -130,9 +154,7 @@ def parse_object(blender_object, path, options):
             }
             
             json_data["parentID"] = str(parent_uuid)
-            
-            
-        return json_data
+        
             
     elif type == 'LAMP':
         print(name, 'is Light')
@@ -147,7 +169,6 @@ def parse_object(blender_object, path, options):
             'name': name,
             'id': scene_id,
             'type': 'Light',
-            'modelURL': options['url'] + mesh_name + '.fbx',
             'position': {
                 'x': position.x,
                 'y': position.y,
@@ -176,20 +197,21 @@ def parse_object(blender_object, path, options):
         }   
             
         if light.type is 'POINT':
-            blender_object.select = True
-            return json_data        
+            blender_object.select = True 
         
-        # TODO: Spot Lights require rotation by 90 degrees to get pointing in the right direction
-        return None
-        
+        # TODO: Spot Lights require rotation by 90 degrees to get pointing in the right direction        
     elif type == 'ARMATURE': # Same as Mesh actually.
         print(name, 'is armature')
     
     else:
         print('Skipping unsupported feature', name, type)
     
-        
+    
+    # Restore object's rotation mode
+    blender_object.rotation_mode = stored_rotation_mode
+    
     bpy.ops.object.select_all(action = 'DESELECT')
+    return json_data
 
 # Rotation is based on the rotaiton of the parent and self. 
 def relative_rotation(parent_object):
@@ -219,14 +241,21 @@ class HifiJsonWriter(bpy.types.Operator, ExportHelper):
     directory = StringProperty()
     filename_ext = ".hifi.json"
     filter_glob = StringProperty(default="*.hifi.json", options={'HIDDEN'})
-    
+
     url_override = StringProperty(default="", name="Marketplace / Base Url", 
                                     description="Set Marketplace / URL Path here to override")
+    clone_scene = BoolProperty(default=False, name="Clone Scene prior to export", description="Clones the scene and performs the automated export functions on the clone instead of the original. " + 
+                                            "WARNING: instancing will not work, and ids will no longer be the same, for future features.")
+    remove_trailing = BoolProperty(default=False, name="Remove Trailing .### from names")
+
     
     def draw(self, context):
         layout = self.layout
         layout.label("Url Override: Add Marketplace / URL to make sure that the content can be reached.")
         layout.prop(self, "url_override")
+        layout.label("Clone scene: Performs automated actions on a cloned scene instead of the original.")
+        layout.prop(self, "clone_scene")
+        layout.prop(self, "remove_trailing")
         
 
     def execute(self, context):
@@ -234,20 +263,21 @@ class HifiJsonWriter(bpy.types.Operator, ExportHelper):
             raise Exception("filepath not set")
             
         if not self.url_override:
-            raise Exception("Set the Marketplace / URL to make sure that the content can be reached.")
+            raise Exception("You must set the Marketplace / base URL to make sure that the content can be reached after you upload it. ATP currently not supported")
         
         current_scene = bpy.context.scene
+        read_scene = current_scene
         # Creating a temp copy to do the changes in.
-        test = bpy.ops.scene.new(type='FULL_COPY')
-
-        new_scene = bpy.context.scene
-        new_scene.name = 'Hifi_Export_Scene'
-
+        if self.clone_scene:
+            bpy.ops.scene.new(type='FULL_COPY')
+            read_scene = bpy.context.scene # sets the new scene as the new scene
+            read_scene.name = 'Hifi_Export_Scene'
+        
+        
         # Clone Scene. Then select scene. After done delete scene
         path = os.path.dirname(os.path.realpath(self.filepath)) + '/'
         
         ## Parse the marketplace url
-        
         url = self.url_override
         if "https://highfidelity.com/marketplace/items/" in url:
             
@@ -260,15 +290,18 @@ class HifiJsonWriter(bpy.types.Operator, ExportHelper):
         
         entities = []
         
-        for blender_object in new_scene.objects:
+        for blender_object in read_scene.objects:
             
-            parsed = parse_object(blender_object, path, {'url': url})
+            parsed = parse_object(blender_object, path, {'url': url, 'remove_trailing': self.remove_trailing})
             
             if parsed:
                 entities.append(parsed)        
-            
 
-        bpy.ops.scene.delete()
+        # Delete Cloned scene
+        #     
+        if self.clone_scene:
+            bpy.ops.scene.delete()
+        
         hifi_scene = {
             'Version': EXPORT_VERSION,
             'Entities': entities

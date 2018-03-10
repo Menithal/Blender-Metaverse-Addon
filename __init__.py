@@ -20,7 +20,7 @@
 bl_info = {
     "name": "HiFi Blender Add-on",
     "author": "Matti 'Menithal' Lahtinen",
-    "version": (0,2,2),
+    "version": (0,2,10),
     "blender": (2,7,7),
     "location": "File > Import-Export, Materials, Armature",
     "description": "Blender tools to allow for easier Content creation for High Fidelity",
@@ -46,8 +46,8 @@ def reload_module(name):
 
 if "bpy" in locals():
     import importlib
-    if "hifi_scene" in locals():
-        importlib.reload(hifi_scene)
+    if "hifi_scene_import" in locals():
+        importlib.reload(hifi_scene_import)
     if "bpy_util" in locals():
         importlib.reload(bpy_util)
     if "hifi_primitives" in locals():
