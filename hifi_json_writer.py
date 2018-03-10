@@ -73,15 +73,18 @@ def parse_object(blender_object, path, options):
     if type == 'MESH':        
         blender_object.select = True
         
-
-        
         dimensions = swap_yz(blender_object.dimensions)
         
         bpy.ops.object.origin_set(type='GEOMETRY_ORIGIN', center='BOUNDS')
+        bpy.context.object.rotation_mode = 'QUATERNION'
+
+        # Temporary Rotate Model to a zero rotation so that the exported model rotation is normalized.
+        blender_object.rotation_quaternion = Quaternion((1,0,0,0))
 
         bpy.ops.export_scene.fbx(filepath=path + mesh_name + ".fbx", version='BIN7400', embed_textures=True, path_mode='COPY',
                                 use_selection=True, axis_forward='-Z', axis_up='Y')
-                                
+
+        blender_object.rotation_quaternion = blender_object.rotation_quaternion                    
         json_data = {
             'name': name,
             'id': scene_id,
@@ -247,7 +250,6 @@ class HifiJsonWriter(bpy.types.Operator, ExportHelper):
         path = os.path.dirname(os.path.realpath(self.filepath)) + '/'
         
         ## Parse the marketplace url
-        
         url = self.url_override
         if "https://highfidelity.com/marketplace/items/" in url:
             
