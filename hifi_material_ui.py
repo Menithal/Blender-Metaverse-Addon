@@ -351,7 +351,6 @@ classes = [
     HifiNormalTextureOperator,
     HifiTransparencyTextureOperator,
     HifiEmitTextureOperator,
-    
     HifiMaterialOperator
     
 ]

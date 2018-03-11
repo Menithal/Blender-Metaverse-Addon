@@ -120,7 +120,7 @@ def generate_unique_id_modifier(modifiers):
 def apply_all_modifiers(modifiers):
      for modifier in modifiers:
         #Apply all but Armature
-        if modifier.type != 'ARMATURE'>
+        if modifier.type != 'ARMATURE':
             bpy.ops.object.modifier_apply(apply_as='DATA', modifier=modifier.name)
 
 
@@ -158,7 +158,7 @@ def parse_object(blender_object, path, options):
 
             modifier_clone = True
             blender_object = bpy.context.object
-            modifiers = blender_object.modifier
+            modifiers = blender_object.modifiers
 
             blender_object.data.name = reference_name + "-" + generate_unique_id_modifier(modifiers)
             reference_name = blender_object.data.name
