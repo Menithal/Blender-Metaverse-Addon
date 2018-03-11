@@ -30,6 +30,7 @@ from mathutils import Quaternion
 from math import sqrt
 from bpy_extras.io_utils import ExportHelper
 from hashlib import md5
+from copy import copy, deepcopy
 
 
 EXPORT_VERSION = 84
@@ -55,12 +56,15 @@ def select(blender_object):
 # TODO: Separate to utility perhaps?
 def generate_unique_id_modifier(modifiers):
     unique_name = ""
+    print("Trying to parse shit", modifiers, len(modifiers))
     for index, modifier in enumerate(modifiers):
+        print(str(index), "Iterating")
         # for use only 
         old_unique = unique_name + "|name>" + modifier.name
        
-        unique_name = unique_name + "|" + index + "|m:" + modifier.type
+        unique_name = unique_name + "|" + str(index) + "|m:" + modifier.type
         if modifier.type == 'EDGE_SPLIT':
+            print("Edge split")
             unique_name = unique_name + "|sa:" + modifier.split_angle
             if modifier.use_apply_onsplice:
                 unique_name = unique_name + "|uaos"
@@ -69,6 +73,7 @@ def generate_unique_id_modifier(modifiers):
             if modifier.use_edge_sharp:
                 unique_name = unique_name + "|us"
         elif modifier.type == 'MIRROR':
+            print("Mirror")
             if modifier.mirror_object:
                 unique_name = unique_name + '|m:' + modifier.mirror_object.name      
             if modifier.use_x:
@@ -86,16 +91,18 @@ def generate_unique_id_modifier(modifiers):
             if modifier.use_mirror_vertex_groups:
                 unique_name = unique_name + "|mvg"
             if modifier.use_mirror_merge:
-                unique_name = unique_name + "|mm:" + modifier.merge_threshold
+                unique_name = unique_name + "|mm:" + str(modifier.merge_threshold)
         elif modifier.type == 'ARRAY':
+
+            print("Array")
             if modifier.fit_type == 'FIXED_COUNT':
-                unique_name = unique_name + '|c:' + modifier.count
+                unique_name = unique_name + '|c:' + str(modifier.count)
             if modifier.fit_type == 'FIT_LENGTH':
-                unique_name = unique_name + '|fl:' + modifier.fit_length
+                unique_name = unique_name + '|fl:' + str(modifier.fit_length)
             if modifier.fit_type == 'FIT_CURVE' and modifier.curve:
-                unique_name = unique_name + '|cr:' + modifier.curve.name
+                unique_name = unique_name + '|cr:' + str(modifier.curve.name)
             if modifier.use_merge_vertices:
-                unique_name = unique_name + '|mt:' + modifier.merge_threshold
+                unique_name = unique_name + '|mt:' + str(modifier.merge_threshold)
             if modifier.use_constant_offset:
                 unique_name = unique_name + '|cod:' + str(modifier.constant_offset_display.to_tuple())
             # This one behaves differently than above in blender, so custom method
@@ -113,8 +120,9 @@ def generate_unique_id_modifier(modifiers):
             # TODO: Add Support to subsurface / solidify
             unique_name = old_unique
             print( 'Unsupported modifier ', modifier.name, modifier.type, ' Skipping')
-            
-    return uuid.uuid4(uuid.NAMESPACE_DNS, unique_name)
+    
+    print(unique_name)
+    return str(uuid.uuid5(uuid.NAMESPACE_DNS, unique_name))
 
 
 def apply_all_modifiers(modifiers):
@@ -142,27 +150,26 @@ def parse_object(blender_object, path, options):
     type = blender_object.type
     
     blender_object.rotation_mode = 'QUATERNION'
-    orientation = quat_swap_nzy(blender_object.rotation_quaternion)
-    print(name, ' original ', blender_object.rotation_quaternion) 
-    print(name, ' nzy ', orientation)     
+    orientation = quat_swap_nzy(blender_object.rotation_quaternion) 
     position = swap_nzy(blender_object.location)
     
     bpy.ops.object.select_all(action = 'DESELECT')
     if type == 'MESH':  
-        modifier_clone = False
+        original_object = None
         blender_object.select = True      
-
+        uid = ""
         # Here comes the fun part: Apply all modifiers prior to using them in the instance
-        if len(blender_object.modifiers) > 0:
+        if len(blender_object.modifiers) > 0:            
+            # TODO: SOMETHING ABSOLUTELY FISHY HERE
+            original_object = bpy.data.objects[bpy.context.object.name]
             bpy.ops.object.duplicate()
-
-            modifier_clone = True
-            blender_object = bpy.context.object
-            modifiers = blender_object.modifiers
-
-            blender_object.data.name = reference_name + "-" + generate_unique_id_modifier(modifiers)
-            reference_name = blender_object.data.name
+            clone = bpy.context.object
+            
+            modifiers = clone.modifiers
+            uid = "-" + generate_unique_id_modifier(modifiers)
             apply_all_modifiers(modifiers)
+            print(reference_name, uid)
+            blender_object = clone
 
         temp_dimensions = Vector(blender_object.dimensions)
         dimensions = swap_yz(blender_object.dimensions)
@@ -178,7 +185,7 @@ def parse_object(blender_object, path, options):
         # TODO: Option to also export via gltf instead of fbx
         # TODO: Add Option to not embedtextures / copy paths
 
-        bpy.ops.export_scene.fbx(filepath=path + reference_name + ".fbx", version='BIN7400', embed_textures=True, path_mode='COPY',
+        bpy.ops.export_scene.fbx(filepath=path + reference_name + uid + ".fbx", version='BIN7400', embed_textures=True, path_mode='COPY',
                                 use_selection=True, axis_forward='-Z', axis_up='Y')
 
         # Restore earlier rotation
@@ -189,7 +196,7 @@ def parse_object(blender_object, path, options):
             'name': name,
             'id': scene_id,
             'type': 'Model',
-            'modelURL': options['url'] + reference_name + '.fbx',
+            'modelURL': options['url'] + reference_name +  uid + '.fbx',
             'position': {
                 'x': position.x,
                 'y': position.y,
@@ -234,8 +241,12 @@ def parse_object(blender_object, path, options):
             
             json_data["parentID"] = str(parent_uuid)
 
-        if modifier_clone:
+        if original_object:
+            print("removing duplicate")
             bpy.ops.object.delete()
+            blender_object = original_object
+            print("new set", blender_object)
+            blender_object.select = True
             
     elif type == 'LAMP':
         print(name, 'is Light')
@@ -354,7 +365,8 @@ class HifiJsonWriter(bpy.types.Operator, ExportHelper):
             read_scene = bpy.context.scene # sets the new scene as the new scene
             read_scene.name = 'Hifi_Export_Scene'
         
-        
+        bpy.ops.object.select_all(action = 'DESELECT')
+
         # Clone Scene. Then select scene. After done delete scene
         path = os.path.dirname(os.path.realpath(self.filepath)) + '/'
         
