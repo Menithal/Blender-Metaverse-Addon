@@ -173,10 +173,8 @@ class HifiMaterialOperator(bpy.types.Panel):
     
         
     def draw (self, context):
-        print(self);
         layout = self.layout
         
-        print('---------------------')
         row = layout.row()
         
         row.prop(context.material, "hifi_material_color")             
