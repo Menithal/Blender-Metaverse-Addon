@@ -19,21 +19,18 @@
 # Scene Logic for Exporting Blender Scenes
 # By Matti 'Menithal' Lahtinen
 
-
-
 import bpy
 from .hifi_utility import *
 import uuid
 import re
 import os
 import json
-
 from bpy.props import (StringProperty, BoolProperty)
 from mathutils import Quaternion
 from math import sqrt
-
 from bpy_extras.io_utils import ExportHelper
-from hashlib import md5
+from hashlib import md5, sha256
+from copy import copy, deepcopy
 
 
 EXPORT_VERSION = 84
@@ -53,14 +50,92 @@ def select(blender_object):
         select(child)            
                 
     blender_object.select = True
+
+# Can't use name to define the unique id as this is not shared between instancing, instead going to go through 
+# Each modifier in order and hope the order is the same
+# TODO: Separate to utility perhaps?
+def generate_unique_id_modifier(modifiers):
+    unique_name = ""
+    for index, modifier in enumerate(modifiers):
+        print(str(index), "Iterating", modifier.name, modifier.type)
+        # for use only 
+        old_unique = unique_name + "|name>" + modifier.name
+       
+        unique_name = unique_name + "|" + str(index) + "|m:" + modifier.type
+        if modifier.type == 'EDGE_SPLIT':
+            print("Edge split")
+            unique_name = unique_name + "|sa:" + str(modifier.split_angle)
+            if modifier.use_apply_on_spline:
+                unique_name = unique_name + "|uaos"
+            if modifier.use_edge_angle:
+                unique_name = unique_name + "|ua"
+            if modifier.use_edge_sharp:
+                unique_name = unique_name + "|us"
+        elif modifier.type == 'MIRROR':
+            print("Mirror")
+            if modifier.mirror_object:
+                unique_name = unique_name + '|m:' + modifier.mirror_object.name      
+            if modifier.use_x:
+                unique_name = unique_name + "|x"
+            if modifier.use_y:
+                unique_name = unique_name + "|y"
+            if modifier.use_z:
+                unique_name = unique_name + "|z"
+            if modifier.use_mirror_u:
+                unique_name = unique_name + "|u"
+            if modifier.use_mirror_v:
+                unique_name = unique_name + "|v"
+            if modifier.use_clip:
+                unique_name = unique_name + "|c"
+            if modifier.use_mirror_vertex_groups:
+                unique_name = unique_name + "|mvg"
+            if modifier.use_mirror_merge:
+                unique_name = unique_name + "|mm:" + str(modifier.merge_threshold)
+        elif modifier.type == 'ARRAY':
+
+            print("Array")
+            if modifier.fit_type == 'FIXED_COUNT':
+                unique_name = unique_name + '|c:' + str(modifier.count)
+            if modifier.fit_type == 'FIT_LENGTH':
+                unique_name = unique_name + '|fl:' + str(modifier.fit_length)
+            if modifier.fit_type == 'FIT_CURVE' and modifier.curve:
+                unique_name = unique_name + '|cr:' + str(modifier.curve.name)
+            if modifier.use_merge_vertices:
+                unique_name = unique_name + '|mt:' + str(modifier.merge_threshold)
+            if modifier.use_constant_offset:
+                unique_name = unique_name + '|cod:' + str(modifier.constant_offset_display.to_tuple())
+            # This one behaves differently than above in blender, so custom method
+            if modifier.use_relative_offset:
+                rod = (modifier.relative_offset_displace[0], modifier.relative_offset_displace[1], modifier.relative_offset_displace[2])
+                unique_name = unique_name + '|rod:' + str(rod)
+
+            if modifier.start_cap:
+                unique_name = unique_name + '|sc:' + modifier.start_cap.name
+            if modifier.end_cap:
+                unique_name = unique_name + '|ec:' + modifier.end_cap.name
+            if modifier.use_object_offset and modifier.offset_object:
+                unique_name = unique_name + '|oo:' + modifier.offset_object.name
+        else:
+            # TODO: Add Support to subsurface / solidify
+            unique_name = old_unique
+            print( 'Unsupported modifier ', modifier.name, modifier.type, ' Skipping')
     
+    print(unique_name)
+    return str(uuid.uuid5(uuid.NAMESPACE_DNS, unique_name))
+
+
+def apply_all_modifiers(modifiers):
+     for modifier in modifiers:
+        #Apply all but Armature
+        if modifier.type != 'ARMATURE':
+            bpy.ops.object.modifier_apply(apply_as='DATA', modifier=modifier.name)
+
 
 def parse_object(blender_object, path, options):  
     # Store existing rotation mode, just in case.
-    stored_rotation_mode = bpy.context.object.rotation_mode
     json_data = None
     # Make sure context is quaternion for the models
-    if options['remove_trailing']:
+    if options.remove_trailing:
         name = re.sub(r'\.\d{3}$', '', blender_object.name)
     else:
         name = blender_object.name
@@ -70,19 +145,37 @@ def parse_object(blender_object, path, options):
     scene_id = str(uuid_gen)
     
     reference_name = blender_object.data.name
-    type = blender_object.type
+    bo_type = blender_object.type
     
+    stored_rotation_mode = str(blender_object.rotation_mode)
     blender_object.rotation_mode = 'QUATERNION'
-    orientation = quat_swap_nzy(blender_object.rotation_quaternion)
-    print(name, ' original ', blender_object.rotation_quaternion) 
-    print(name, ' nzy ', orientation)     
+    orientation = quat_swap_nzy(blender_object.rotation_quaternion) 
     position = swap_nzy(blender_object.location)
     
-    bpy.ops.object.select_all(action = 'DESELECT')
-    if type == 'MESH':        
-        blender_object.select = True
-        
-        temp_dimensions = Vector(blender_object.dimensions)
+    if bo_type == 'MESH':  
+        original_object = None
+        blender_object.select = True      
+        uid = ""
+        # Here comes the fun part: Apply all modifiers prior to using them in the instance
+        if len(blender_object.modifiers) > 0: 
+            # Lets do a LOW-LEVEL duplicate, too much automation in duplicate         
+            clone = blender_object.copy()
+            original_object = blender_object
+            clone.data = blender_object.data.copy()
+            bpy.context.scene.objects.link(clone)
+            clone.select = True
+            original_object.select = False
+            
+            uid = "-" + generate_unique_id_modifier(clone.modifiers)
+            print(uid)
+            bpy.context.scene.objects.active = clone
+            apply_all_modifiers(clone.modifiers)
+            blender_object = clone
+
+            clone.select = True
+            
+
+        #temp_dimensions = Vector(blender_object.dimensions)
         dimensions = swap_yz(blender_object.dimensions)
         
         bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY', center='BOUNDS')
@@ -91,26 +184,48 @@ def parse_object(blender_object, path, options):
         temp_rotation = Quaternion(blender_object.rotation_quaternion)
         # Temporary Rotate Model to a zero rotation so that the exported model rotation is normalized.
         blender_object.rotation_quaternion = Quaternion((1,0,0,0))
-        blender_object.dimensions = Vector((1,1,1))
+        
+        #blender_object.dimensions = Vector((1,1,1))
 
-        print("Saving fbx", name)
         # TODO: Option to also export via gltf instead of fbx
         # TODO: Add Option to not embedtextures / copy paths
-        bpy.ops.export_scene.fbx(filepath=path + reference_name + ".fbx", version='BIN7400', embed_textures=True, path_mode='COPY',
-                                use_selection=True, axis_forward='-Z', axis_up='Y')
+
+        file_path = path + reference_name + uid + ".fbx"
+
+        atp_enabled = options.atp
+
+        bpy.ops.export_scene.fbx(filepath=file_path, version='BIN7400', embed_textures=True, path_mode='COPY',
+                            use_selection=True, axis_forward='-Z', axis_up='Y')
 
         # Restore earlier rotation
-        blender_object.dimensions = temp_dimensions
+        # blender_object.dimensions = temp_dimensions
         blender_object.rotation_quaternion = temp_rotation      
+             
+        if options.atp:
+            if options.use_folder:
+                last_folder_re = re.search(r"(?:=\/|\\)?([a-zA-Z0-9_\-]+)(?:\/|\\)?$", path)
+                start = last_folder_re.start(0)+1
+                end = last_folder_re.end(0)
 
-        print(name, 'temp rotation', temp_rotation)   
-        print(name, ' gathered ', orientation)    
-        print(name, ' gathered ', orientation)                  
+                last_folder = path[start:end]
+            else:
+                last_folder = ""               
+            # If I actually needed to keep the hashes around. Its simpler to just use the file paths instead.
+            # atp_hash = sha256()
+                       
+            # with open(file_path, "rb") as f:
+            #    atp_hash.update(f.read())            
+
+            model_url = "atp:/"+ last_folder + reference_name + uid + '.fbx'
+        else:
+            model_url = options.url + reference_name +  uid + '.fbx'
+
+
         json_data = {
             'name': name,
             'id': scene_id,
             'type': 'Model',
-            'modelURL': options['url'] + reference_name + '.fbx',
+            'modelURL': model_url,
             'position': {
                 'x': position.x,
                 'y': position.y,
@@ -128,7 +243,7 @@ def parse_object(blender_object, path, options):
                 'z': dimensions.z
             },           
             "shapeType": "static-mesh",
-            'userData': '{"blender_export":"' + scene_id +'"}'
+            'userData': '{"blender_export":"' + scene_id +'"}, "grabbable_key":["grabbable":false]}'
         }         
         
  
@@ -154,9 +269,15 @@ def parse_object(blender_object, path, options):
             }
             
             json_data["parentID"] = str(parent_uuid)
-        
+
+        if original_object:
+            print("removing duplicate")
+            bpy.ops.object.delete()
+            blender_object = original_object
+            print("new set", blender_object)
+            blender_object.select = True
             
-    elif type == 'LAMP':
+    elif bo_type == 'LAMP':
         print(name, 'is Light')
         
         # Hifi 5, Blender 3.3
@@ -193,22 +314,24 @@ def parse_object(blender_object, path, options):
             },
 
             'intensity': light.energy,
-            'userData': '{"blender_export":"' + scene_id +'"}'
+            'userData': '{"blender_export":"' + scene_id +'", "grabbable_key":["grabbable":false]}'
         }   
             
         if light.type is 'POINT':
             blender_object.select = True 
         
         # TODO: Spot Lights require rotation by 90 degrees to get pointing in the right direction        
-    elif type == 'ARMATURE': # Same as Mesh actually.
+    elif bo_type == 'ARMATURE': # Same as Mesh actually.
         print(name, 'is armature')
     
     else:
-        print('Skipping unsupported feature', name, type)
+        print('Skipping unsupported feature', name, bo_type)
     
     
     # Restore object's rotation mode
-    blender_object.rotation_mode = stored_rotation_mode
+    print(blender_object)
+    if blender_object:
+        blender_object.rotation_mode = stored_rotation_mode
     
     bpy.ops.object.select_all(action = 'DESELECT')
     return json_data
@@ -242,6 +365,9 @@ class HifiJsonWriter(bpy.types.Operator, ExportHelper):
     filename_ext = ".hifi.json"
     filter_glob = StringProperty(default="*.hifi.json", options={'HIDDEN'})
 
+    atp = BoolProperty(default=False, name="Use ATP / Upload to domain", description="Use ATP instead of Marketplace / upload assets to domain")
+    use_folder = BoolProperty(default=True, name="Use Folder", description= "Upload Files as a folder instead of individually")
+   
     url_override = StringProperty(default="", name="Marketplace / Base Url", 
                                     description="Set Marketplace / URL Path here to override")
     clone_scene = BoolProperty(default=False, name="Clone Scene prior to export", description="Clones the scene and performs the automated export functions on the clone instead of the original. " + 
@@ -251,8 +377,15 @@ class HifiJsonWriter(bpy.types.Operator, ExportHelper):
     
     def draw(self, context):
         layout = self.layout
-        layout.label("Url Override: Add Marketplace / URL to make sure that the content can be reached.")
-        layout.prop(self, "url_override")
+        
+        layout.prop(self, "atp")
+        
+        if not self.atp:
+            layout.label("Url Override: Add Marketplace / URL to make sure that the content can be reached.")
+            layout.prop(self, "url_override")
+        else:
+            layout.prop(self, "use_folder")
+        
         layout.label("Clone scene: Performs automated actions on a cloned scene instead of the original.")
         layout.prop(self, "clone_scene")
         layout.prop(self, "remove_trailing")
@@ -262,8 +395,8 @@ class HifiJsonWriter(bpy.types.Operator, ExportHelper):
         if not self.filepath:
             raise Exception("filepath not set")
             
-        if not self.url_override:
-            raise Exception("You must set the Marketplace / base URL to make sure that the content can be reached after you upload it. ATP currently not supported")
+        if not self.url_override and not self.atp:
+            raise Exception("You must Use ATP or Set the Marketplace / base URL to make sure that the content can be reached after you upload it. ATP currently not supported")
         
         current_scene = bpy.context.scene
         read_scene = current_scene
@@ -273,26 +406,32 @@ class HifiJsonWriter(bpy.types.Operator, ExportHelper):
             read_scene = bpy.context.scene # sets the new scene as the new scene
             read_scene.name = 'Hifi_Export_Scene'
         
-        
+        bpy.ops.object.select_all(action = 'DESELECT')
+
         # Clone Scene. Then select scene. After done delete scene
         path = os.path.dirname(os.path.realpath(self.filepath)) + '/'
         
         ## Parse the marketplace url
-        url = self.url_override
-        if "https://highfidelity.com/marketplace/items/" in url:
+        url = ""
+
+        if not self.atp:
+            url = self.url_override
+            if "https://highfidelity.com/marketplace/items/" in url:
+                
+                marketplace_id = url.replace("https://highfidelity.com/marketplace/items/", "").replace("/edit","").replace("/","")
+                
+                url = "http://mpassets.highfidelity.com/" + marketplace_id + "-v1/"
             
-            marketplace_id = url.replace("https://highfidelity.com/marketplace/items/", "").replace("/edit","").replace("/","")
-            
-            url = "http://mpassets.highfidelity.com/" + marketplace_id + "-v1/"
-        
-        if not url.endswith('/'):    
-            url = url + "/"
+            if not url.endswith('/'):    
+                url = url + "/"
         
         entities = []
-        
-        for blender_object in read_scene.objects:
-            
-            parsed = parse_object(blender_object, path, {'url': url, 'remove_trailing': self.remove_trailing})
+
+        # Duplicate list to break reference as we may do updates to the scene
+        current_scene_objects = list(read_scene.objects)
+        for blender_object in current_scene_objects:
+            print(len(current_scene_objects))
+            parsed = parse_object(blender_object, path, self)
             
             if parsed:
                 entities.append(parsed)        

@@ -16,12 +16,17 @@ Enable the plugin under `Import-Export: Hifi Blender Add-On`
 
 # Use
 
-For now, the add-on allows you to import primitive entities from High Fidelity. Simple select the entities you want to export and press export. 
+For now, the add-on allows you to import primitive entities from High Fidelity. In High Fidelity,  select the entities you want to export and press export. 
 
-In Blender, You can then import these entities with `File > Import > High Fidelity JSON`
+In Blender, You can then import these entities with `File > Import > HiFi Metaverse Scene JSON`
 
+You can then set materials to the objects via the material panel, modify the mesh, do uv mapping corrections, then export it, ready for marketplace. 
 
-# Settings
+You can then export the entities with `File > Export > HiFi Metaverse Scene JSON/FBX`
+
+Prior to pressing export, get the path to the server the files will be hosted on, or create an item in the marketplace, and copy the edit link path and paste it into the export url override.
+
+# Import Settings
 
 - Use UV Sphere: Instead of a Quad sphere, use a UV sphere for the base primitive
 - Join Mesh Children: If Boolean is set to None, join Children with their Parents into a Single Mesh
@@ -35,3 +40,7 @@ In Blender, You can then import these entities with `File > Import > High Fideli
 If Entity is not Child of another entity, no Join is done. Only Children are merged with their Parents
 
 Note that Boolean operations work differently, and some may not keep the UV Unwrapping correctly in some situations. Use at your own risk
+# Export Settings
+
+- Marketplace / Base URL : This is the folder path for your marketplace or external server address. Simply paste the directory where you will upload the files here, and the json file will have the urls automatically appended to them. This is not optional and must be set prior to exporting: You will otherwise have an error message
+- Clone Scene prior to export

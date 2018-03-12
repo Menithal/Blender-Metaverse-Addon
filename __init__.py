@@ -20,7 +20,7 @@
 bl_info = {
     "name": "HiFi Blender Add-on",
     "author": "Matti 'Menithal' Lahtinen",
-    "version": (0,2,10),
+    "version": (0,4,0),
     "blender": (2,7,7),
     "location": "File > Import-Export, Materials, Armature",
     "description": "Blender tools to allow for easier Content creation for High Fidelity",
@@ -60,32 +60,38 @@ if "bpy" in locals():
         importlib.reload(hifi_utility)
     if "hifi_json_writer" in locals():
         importlib.reload(hifi_json_writer)
+    if "hifi_armature_ui" in locals():
+        importlib.reload(hifi_armature_ui)
     
 
 from .hifi_json_loader import *
 from .hifi_json_writer import *
+from .hifi_armature_ui import *
 from .hifi_material_ui import register as material_ui_register, unregister as material_ui_unregister
 
     
 def menu_func_import(self, context):
-    self.layout.operator(HifiJsonOperator.bl_idname, text="High Fidelity JSON (.json)")
+    self.layout.operator(HifiJsonOperator.bl_idname, text="HiFi Metaverse Scene JSON (.json)")
    
 def menu_func_export(self,context):
-    self.layout.operator(HifiJsonWriter.bl_idname, text="High Fidelity JSON / FBX (.json/.fbx)")
+    self.layout.operator(HifiJsonWriter.bl_idname, text="HiFi Metaverse Scene JSON / FBX (.json/.fbx)")
 
 def register():
     bpy.utils.register_class(HifiJsonOperator)
     bpy.utils.register_class(HifiJsonWriter)
+
     bpy.types.INFO_MT_file_import.append(menu_func_import)
     bpy.types.INFO_MT_file_export.append(menu_func_export)
     material_ui_register()
+    armature_ui_register()
  
 def unregister():
     bpy.utils.unregister_class(HifiJsonOperator)
-    bpy.utils.register_class(HifiJsonWriter)
+    bpy.utils.unregister_class(HifiJsonWriter)
     bpy.types.INFO_MT_file_import.remove(menu_func_import)
     bpy.types.INFO_MT_file_export.remove(menu_func_export)
     material_ui_unregister()
+    armature_ui_unregister()
 
  
 if __name__ == "__main__":
