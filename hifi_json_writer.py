@@ -57,15 +57,15 @@ def select(blender_object):
 def generate_unique_id_modifier(modifiers):
     unique_name = ""
     for index, modifier in enumerate(modifiers):
-        print(str(index), "Iterating")
+        print(str(index), "Iterating", modifier.name, modifier.type)
         # for use only 
         old_unique = unique_name + "|name>" + modifier.name
        
         unique_name = unique_name + "|" + str(index) + "|m:" + modifier.type
         if modifier.type == 'EDGE_SPLIT':
             print("Edge split")
-            unique_name = unique_name + "|sa:" + modifier.split_angle
-            if modifier.use_apply_onsplice:
+            unique_name = unique_name + "|sa:" + str(modifier.split_angle)
+            if modifier.use_apply_on_spline:
                 unique_name = unique_name + "|uaos"
             if modifier.use_edge_angle:
                 unique_name = unique_name + "|ua"
@@ -133,7 +133,6 @@ def apply_all_modifiers(modifiers):
 
 def parse_object(blender_object, path, options):  
     # Store existing rotation mode, just in case.
-    stored_rotation_mode = bpy.context.object.rotation_mode
     json_data = None
     # Make sure context is quaternion for the models
     if options.remove_trailing:
@@ -146,31 +145,37 @@ def parse_object(blender_object, path, options):
     scene_id = str(uuid_gen)
     
     reference_name = blender_object.data.name
-    type = blender_object.type
+    bo_type = blender_object.type
     
+    stored_rotation_mode = str(blender_object.rotation_mode)
     blender_object.rotation_mode = 'QUATERNION'
     orientation = quat_swap_nzy(blender_object.rotation_quaternion) 
     position = swap_nzy(blender_object.location)
     
-    bpy.ops.object.select_all(action = 'DESELECT')
-    if type == 'MESH':  
+    if bo_type == 'MESH':  
         original_object = None
         blender_object.select = True      
         uid = ""
         # Here comes the fun part: Apply all modifiers prior to using them in the instance
-        if len(blender_object.modifiers) > 0:            
-            # TODO: SOMETHING ABSOLUTELY FISHY HERE
-            original_object = bpy.data.objects[bpy.context.object.name]
-            bpy.ops.object.duplicate()
-            clone = bpy.context.object
+        if len(blender_object.modifiers) > 0: 
+            # Lets do a LOW-LEVEL duplicate, too much automation in duplicate         
+            clone = blender_object.copy()
+            original_object = blender_object
+            clone.data = blender_object.data.copy()
+            bpy.context.scene.objects.link(clone)
+            clone.select = True
+            original_object.select = False
             
-            modifiers = clone.modifiers
-            uid = "-" + generate_unique_id_modifier(modifiers)
-            apply_all_modifiers(modifiers)
-            print(reference_name, uid)
+            uid = "-" + generate_unique_id_modifier(clone.modifiers)
+            print(uid)
+            bpy.context.scene.objects.active = clone
+            apply_all_modifiers(clone.modifiers)
             blender_object = clone
 
-        temp_dimensions = Vector(blender_object.dimensions)
+            clone.select = True
+            
+
+        #temp_dimensions = Vector(blender_object.dimensions)
         dimensions = swap_yz(blender_object.dimensions)
         
         bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY', center='BOUNDS')
@@ -179,7 +184,8 @@ def parse_object(blender_object, path, options):
         temp_rotation = Quaternion(blender_object.rotation_quaternion)
         # Temporary Rotate Model to a zero rotation so that the exported model rotation is normalized.
         blender_object.rotation_quaternion = Quaternion((1,0,0,0))
-        blender_object.dimensions = Vector((1,1,1))
+        
+        #blender_object.dimensions = Vector((1,1,1))
 
         # TODO: Option to also export via gltf instead of fbx
         # TODO: Add Option to not embedtextures / copy paths
@@ -188,14 +194,11 @@ def parse_object(blender_object, path, options):
 
         atp_enabled = options.atp
 
-        # This is to avoid writing
-        if not atp_enabled or (atp_enabled and not os.path.isfile(file_path)):
-            bpy.ops.export_scene.fbx(filepath=file_path, version='BIN7400', embed_textures=True, path_mode='COPY',
-                                use_selection=True, axis_forward='-Z', axis_up='Y')
-
+        bpy.ops.export_scene.fbx(filepath=file_path, version='BIN7400', embed_textures=True, path_mode='COPY',
+                            use_selection=True, axis_forward='-Z', axis_up='Y')
 
         # Restore earlier rotation
-        blender_object.dimensions = temp_dimensions
+        # blender_object.dimensions = temp_dimensions
         blender_object.rotation_quaternion = temp_rotation      
              
         if options.atp:
@@ -215,7 +218,7 @@ def parse_object(blender_object, path, options):
 
             model_url = "atp:/"+ last_folder + reference_name + uid + '.fbx'
         else:
-            model_url = options.url + reference_name +  uid + '.fbx'
+            model_url = options.url_override + reference_name +  uid + '.fbx'
 
 
         json_data = {
@@ -240,7 +243,7 @@ def parse_object(blender_object, path, options):
                 'z': dimensions.z
             },           
             "shapeType": "static-mesh",
-            'userData': '{"blender_export":"' + scene_id +'"}'
+            'userData': '{"blender_export":"' + scene_id +'"}, "grabbable_key":["grabbable":false]}'
         }         
         
  
@@ -274,7 +277,7 @@ def parse_object(blender_object, path, options):
             print("new set", blender_object)
             blender_object.select = True
             
-    elif type == 'LAMP':
+    elif bo_type == 'LAMP':
         print(name, 'is Light')
         
         # Hifi 5, Blender 3.3
@@ -311,22 +314,24 @@ def parse_object(blender_object, path, options):
             },
 
             'intensity': light.energy,
-            'userData': '{"blender_export":"' + scene_id +'"}'
+            'userData': '{"blender_export":"' + scene_id +'", "grabbable_key":["grabbable":false]}'
         }   
             
         if light.type is 'POINT':
             blender_object.select = True 
         
         # TODO: Spot Lights require rotation by 90 degrees to get pointing in the right direction        
-    elif type == 'ARMATURE': # Same as Mesh actually.
+    elif bo_type == 'ARMATURE': # Same as Mesh actually.
         print(name, 'is armature')
     
     else:
-        print('Skipping unsupported feature', name, type)
+        print('Skipping unsupported feature', name, bo_type)
     
     
     # Restore object's rotation mode
-    blender_object.rotation_mode = stored_rotation_mode
+    print(blender_object)
+    if blender_object:
+        blender_object.rotation_mode = stored_rotation_mode
     
     bpy.ops.object.select_all(action = 'DESELECT')
     return json_data
@@ -425,7 +430,7 @@ class HifiJsonWriter(bpy.types.Operator, ExportHelper):
         # Duplicate list to break reference as we may do updates to the scene
         current_scene_objects = list(read_scene.objects)
         for blender_object in current_scene_objects:
-            
+            print(len(current_scene_objects))
             parsed = parse_object(blender_object, path, self)
             
             if parsed:
