@@ -21,7 +21,7 @@
 
 import bpy
 import sys
-from .hifi_armature import structure as base_armature
+from .hifi_armature_data import structure as base_armature
 from mathutils import Quaternion, Vector, Euler, Matrix
 from math import pi
 
@@ -114,8 +114,6 @@ def build_skeleton():
         print('Error', detail)
 
     finally:
-        
-
         bpy.context.area.type = current_view
 
 
