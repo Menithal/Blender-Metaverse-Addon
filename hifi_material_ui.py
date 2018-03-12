@@ -210,8 +210,8 @@ def build_texture_ui(context, layout, operator, float_widget = None):
         split = layout.split(0.9)
         box = split.box()
         
-        # Having Issues here:
-        
+        # TODO: allow previews, but tried it and was having issues:
+
         #box.template_preview(texture_slot.texture, 
         #    parent=material, slot=texture_slot, 
         #    preview_id=operator.bl_label+'preview')
@@ -326,7 +326,15 @@ class HifiTransparencyTextureOperator(HifiGenericTextureOperator, bpy.types.Oper
     enabled = BoolProperty(name="enabled", default=True)
    
     def has_operation(self, slot): return that_has_transparency(slot)
-    def texture_operation(self, slot, mode, texture): texture_operation_transparency(slot, mode, texture)
+    def texture_operation(self, slot, mode, texture):
+        mat = bpy.context.active_object.active_material
+        if mode:
+            mat.use_transparency = True
+            mat.transparency_method = 'Z_TRANSPARENCY'       
+        else:
+            mat.use_transparency = False      
+
+        texture_operation_transparency(slot, mode, texture)
     
     postfix = "transparency"
     

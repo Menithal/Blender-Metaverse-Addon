@@ -36,8 +36,6 @@ def vec4_to_list(v):
 def vec_to_list(v):
     return [v.x,v.y,v.z]
 
-
-
 def build_armature(bone, tree):
     
     print(bone.name)

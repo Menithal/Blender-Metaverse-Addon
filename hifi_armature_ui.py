@@ -16,13 +16,16 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# TODO: Experiemntal Adding Armature to Scene and Sync.
+# Adding Armature related functions to the Blender Hifi Tool set
+# 
 
 
 import bpy
 import sys
-from hifi_armature import structure as base_armature
+from .hifi_armature import structure as base_armature
 from mathutils import Quaternion, Vector, Euler, Matrix
+from math import pi
+
 
 if "bpy" in locals():
     import importlib
@@ -38,7 +41,6 @@ def list_tuple(l):
 
 def list_vector(l):
     t = list_tuple(l)
-    print(t, l)
     return Vector(t)
     
     
@@ -50,9 +52,6 @@ def build_armature_structure(data, current_node, parent):
 
     name = current_node["name"] 
     bpy.ops.armature.bone_primitive_add(name=name)
-    # Refresh Bone Tree after Addition
-    #bpy.ops.object.mode_set(mode='POSE')
-    #bpy.ops.object.mode_set(mode='EDIT')
     
     current_bone_index = data.edit_bones.find(name)
     current_bone = data.edit_bones[current_bone_index]
@@ -99,12 +98,79 @@ def build_skeleton():
             build_armature_structure(current_armature.data, root_bone, None) 
            
         #bpy.ops.object.mode_set(mode = 'OBJECT')    
-
+        
+       
+        bpy.ops.object.mode_set(mode = 'OBJECT')
+        
+        obj = bpy.context.active_object
+        
+        obj.scale = Vector((100, 100, 100))
+        str_angle = 90 * pi/180
+        obj.rotation_euler = Euler((str_angle, 0, 0), 'XYZ')
+                
+        bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
+        bpy.context.active_object.scale = Vector((0.01, 0.01, 0.01))
+        obj.rotation_euler = Euler((-str_angle, 0, 0), 'XYZ')
+        
     except Exception as detail:
         print('Error', detail)
 
     finally:
-        bpy.context.area.type = current_view
         
 
-build_skeleton()
+        bpy.context.area.type = current_view
+
+
+class HifiArmaturePanel(bpy.types.Panel):
+    bl_idname = "armature_toolset.hifi"
+    bl_label = "Armature"
+    
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "TOOLS"
+    bl_category = "High Fidelity"
+    
+    
+    @classmethod
+    def poll(self, context):
+        return context.mode == "OBJECT"
+    
+    def draw(self, context):
+        layout = self.layout
+        layout.operator(HifiArmatureCreateOperator.bl_idname)
+        return None
+
+
+
+class HifiArmatureCreateOperator(bpy.types.Operator):
+    bl_idname = "armature_toolset_create_base_rig.hifi"
+    bl_label = "Create Armature"
+    
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "TOOLS"
+    bl_category = "High Fidelity"
+    
+    def execute(self, context):
+        build_skeleton()        
+        return {'FINISHED'}
+
+    def draw(self, context):
+        layout = self.layout
+        return {'FINISHED'}
+
+        
+classes = [
+    HifiArmaturePanel,
+    HifiArmatureCreateOperator
+]
+
+
+def register():
+    for cls in classes:    
+        bpy.utils.register_class(cls)
+
+def unregister():
+    for cls in classes:    
+        bpy.utils.unregister_class(cls)
+
+if __name__ == "__main__":
+    register()
