@@ -19,13 +19,11 @@
 # Adding Armature related functions to the Blender Hifi Tool set
 # 
 
-
 import bpy
 import sys
 from .hifi_armature import structure as base_armature
 from mathutils import Quaternion, Vector, Euler, Matrix
 from math import pi
-
 
 if "bpy" in locals():
     import importlib
@@ -123,7 +121,7 @@ def build_skeleton():
 
 class HifiArmaturePanel(bpy.types.Panel):
     bl_idname = "armature_toolset.hifi"
-    bl_label = "Armature"
+    bl_label = "Hifi Metaverse Toolset"
     
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
@@ -143,7 +141,7 @@ class HifiArmaturePanel(bpy.types.Panel):
 
 class HifiArmatureCreateOperator(bpy.types.Operator):
     bl_idname = "armature_toolset_create_base_rig.hifi"
-    bl_label = "Create Armature"
+    bl_label = "Create High Fidelity Armature"
     
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
@@ -164,13 +162,13 @@ classes = [
 ]
 
 
-def register():
+def armature_ui_register():
     for cls in classes:    
         bpy.utils.register_class(cls)
 
-def unregister():
+def armature_ui_unregister():
     for cls in classes:    
         bpy.utils.unregister_class(cls)
 
 if __name__ == "__main__":
-    register()
+    armature_ui_register()
