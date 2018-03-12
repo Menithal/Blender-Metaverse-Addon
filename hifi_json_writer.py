@@ -218,7 +218,7 @@ def parse_object(blender_object, path, options):
 
             model_url = "atp:/"+ last_folder + reference_name + uid + '.fbx'
         else:
-            model_url = options.url + reference_name +  uid + '.fbx'
+            model_url = options.url_overrideurl + reference_name +  uid + '.fbx'
 
 
         json_data = {
