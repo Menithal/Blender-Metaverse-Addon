@@ -29,7 +29,7 @@ from bpy.props import (StringProperty, BoolProperty)
 from mathutils import Quaternion
 from math import sqrt
 from bpy_extras.io_utils import ExportHelper
-from hashlib import md5
+from hashlib import md5, sha256
 from copy import copy, deepcopy
 
 
@@ -56,7 +56,6 @@ def select(blender_object):
 # TODO: Separate to utility perhaps?
 def generate_unique_id_modifier(modifiers):
     unique_name = ""
-    print("Trying to parse shit", modifiers, len(modifiers))
     for index, modifier in enumerate(modifiers):
         print(str(index), "Iterating")
         # for use only 
@@ -137,7 +136,7 @@ def parse_object(blender_object, path, options):
     stored_rotation_mode = bpy.context.object.rotation_mode
     json_data = None
     # Make sure context is quaternion for the models
-    if options['remove_trailing']:
+    if options.remove_trailing:
         name = re.sub(r'\.\d{3}$', '', blender_object.name)
     else:
         name = blender_object.name
@@ -185,18 +184,45 @@ def parse_object(blender_object, path, options):
         # TODO: Option to also export via gltf instead of fbx
         # TODO: Add Option to not embedtextures / copy paths
 
-        bpy.ops.export_scene.fbx(filepath=path + reference_name + uid + ".fbx", version='BIN7400', embed_textures=True, path_mode='COPY',
+        file_path = path + reference_name + uid + ".fbx"
+
+        atp_enabled = options.atp
+
+        # This is to avoid writing
+        if not atp_enabled or (atp_enabled and not os.path.isfile(file_path)):
+            bpy.ops.export_scene.fbx(filepath=file_path, version='BIN7400', embed_textures=True, path_mode='COPY',
                                 use_selection=True, axis_forward='-Z', axis_up='Y')
+
 
         # Restore earlier rotation
         blender_object.dimensions = temp_dimensions
         blender_object.rotation_quaternion = temp_rotation      
              
+        if options.atp:
+            if options.use_folder:
+                last_folder_re = re.search(r"(?:=\/|\\)?([a-zA-Z0-9_\-]+)(?:\/|\\)?$", path)
+                start = last_folder_re.start(0)+1
+                end = last_folder_re.end(0)
+
+                last_folder = path[start:end]
+            else:
+                last_folder = ""               
+            # If I actually needed to keep the hashes around. Its simpler to just use the file paths instead.
+            # atp_hash = sha256()
+                       
+            # with open(file_path, "rb") as f:
+            #    atp_hash.update(f.read())            
+
+            model_url = "atp:/"+ last_folder + reference_name + uid + '.fbx'
+        else:
+            model_url = options.url + reference_name +  uid + '.fbx'
+
+
         json_data = {
             'name': name,
             'id': scene_id,
             'type': 'Model',
-            'modelURL': options['url'] + reference_name +  uid + '.fbx',
+            'modelURL': model_url,
             'position': {
                 'x': position.x,
                 'y': position.y,
@@ -334,6 +360,9 @@ class HifiJsonWriter(bpy.types.Operator, ExportHelper):
     filename_ext = ".hifi.json"
     filter_glob = StringProperty(default="*.hifi.json", options={'HIDDEN'})
 
+    atp = BoolProperty(default=False, name="Use ATP / Upload to domain", description="Use ATP instead of Marketplace / upload assets to domain")
+    use_folder = BoolProperty(default=True, name="Use Folder", description= "Upload Files as a folder instead of individually")
+   
     url_override = StringProperty(default="", name="Marketplace / Base Url", 
                                     description="Set Marketplace / URL Path here to override")
     clone_scene = BoolProperty(default=False, name="Clone Scene prior to export", description="Clones the scene and performs the automated export functions on the clone instead of the original. " + 
@@ -343,8 +372,15 @@ class HifiJsonWriter(bpy.types.Operator, ExportHelper):
     
     def draw(self, context):
         layout = self.layout
-        layout.label("Url Override: Add Marketplace / URL to make sure that the content can be reached.")
-        layout.prop(self, "url_override")
+        
+        layout.prop(self, "atp")
+        
+        if not self.atp:
+            layout.label("Url Override: Add Marketplace / URL to make sure that the content can be reached.")
+            layout.prop(self, "url_override")
+        else:
+            layout.prop(self, "use_folder")
+        
         layout.label("Clone scene: Performs automated actions on a cloned scene instead of the original.")
         layout.prop(self, "clone_scene")
         layout.prop(self, "remove_trailing")
@@ -354,8 +390,8 @@ class HifiJsonWriter(bpy.types.Operator, ExportHelper):
         if not self.filepath:
             raise Exception("filepath not set")
             
-        if not self.url_override:
-            raise Exception("You must set the Marketplace / base URL to make sure that the content can be reached after you upload it. ATP currently not supported")
+        if not self.url_override and not self.atp:
+            raise Exception("You must Use ATP or Set the Marketplace / base URL to make sure that the content can be reached after you upload it. ATP currently not supported")
         
         current_scene = bpy.context.scene
         read_scene = current_scene
@@ -371,15 +407,18 @@ class HifiJsonWriter(bpy.types.Operator, ExportHelper):
         path = os.path.dirname(os.path.realpath(self.filepath)) + '/'
         
         ## Parse the marketplace url
-        url = self.url_override
-        if "https://highfidelity.com/marketplace/items/" in url:
+        url = ""
+
+        if not self.atp:
+            url = self.url_override
+            if "https://highfidelity.com/marketplace/items/" in url:
+                
+                marketplace_id = url.replace("https://highfidelity.com/marketplace/items/", "").replace("/edit","").replace("/","")
+                
+                url = "http://mpassets.highfidelity.com/" + marketplace_id + "-v1/"
             
-            marketplace_id = url.replace("https://highfidelity.com/marketplace/items/", "").replace("/edit","").replace("/","")
-            
-            url = "http://mpassets.highfidelity.com/" + marketplace_id + "-v1/"
-        
-        if not url.endswith('/'):    
-            url = url + "/"
+            if not url.endswith('/'):    
+                url = url + "/"
         
         entities = []
 
@@ -387,7 +426,7 @@ class HifiJsonWriter(bpy.types.Operator, ExportHelper):
         current_scene_objects = list(read_scene.objects)
         for blender_object in current_scene_objects:
             
-            parsed = parse_object(blender_object, path, {'url': url, 'remove_trailing': self.remove_trailing})
+            parsed = parse_object(blender_object, path, self)
             
             if parsed:
                 entities.append(parsed)        
