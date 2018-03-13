@@ -296,9 +296,9 @@ def parse_object(blender_object, path, options):
                 'z': position.z
             },
             'color':{
-                'blue': color[2],
-                'green': color[1],
-                'red': color[0]
+                'blue': color[2] * 255,
+                'green': color[1] * 255,
+                'red': color[0] * 255
             },
             'dimensions':{
                 'x':distance,
@@ -406,6 +406,9 @@ class HifiJsonWriter(bpy.types.Operator, ExportHelper):
             read_scene = bpy.context.scene # sets the new scene as the new scene
             read_scene.name = 'Hifi_Export_Scene'
         
+        # Make sure we are in Object mode    
+        bpy.ops.object.mode_set(mode = 'OBJECT')
+        # Deselect all objects
         bpy.ops.object.select_all(action = 'DESELECT')
 
         # Clone Scene. Then select scene. After done delete scene

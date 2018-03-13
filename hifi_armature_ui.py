@@ -95,8 +95,6 @@ def build_skeleton():
         for root_bone in base_armature:
             build_armature_structure(current_armature.data, root_bone, None) 
            
-        #bpy.ops.object.mode_set(mode = 'OBJECT')    
-        
        
         bpy.ops.object.mode_set(mode = 'OBJECT')
         
