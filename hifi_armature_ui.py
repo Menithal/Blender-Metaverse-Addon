@@ -103,7 +103,7 @@ def build_skeleton():
         obj = bpy.context.active_object
         
         obj.scale = Vector((100, 100, 100))
-        str_angle = 90 * pi/180
+        str_angle = -90 * pi/180
         obj.rotation_euler = Euler((str_angle, 0, 0), 'XYZ')
                 
         bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
