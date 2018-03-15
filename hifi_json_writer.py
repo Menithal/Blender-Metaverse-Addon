@@ -210,12 +210,7 @@ def parse_object(blender_object, path, options):
                 last_folder = path[start:end]
             else:
                 last_folder = ""               
-            # If I actually needed to keep the hashes around. Its simpler to just use the file paths instead.
-            # atp_hash = sha256()
-                       
-            # with open(file_path, "rb") as f:
-            #    atp_hash.update(f.read())            
-
+                
             model_url = "atp:/"+ last_folder + reference_name + uid + '.fbx'
         else:
             model_url = options.url_override + reference_name +  uid + '.fbx'
@@ -296,14 +291,14 @@ def parse_object(blender_object, path, options):
                 'z': position.z
             },
             'color':{
-                'blue': color[2],
-                'green': color[1],
-                'red': color[0]
+                'blue': int(color[2] * 255),
+                'green': int(color[1] * 255),
+                'red': int(color[0] * 255)
             },
             'dimensions':{
-                'x':distance,
-                'y':distance,
-                'z':distance,
+                'x': distance,
+                'y': distance,
+                'z': distance,
             },
             'falloffRadius': falloff,
             'rotation': {
@@ -406,6 +401,9 @@ class HifiJsonWriter(bpy.types.Operator, ExportHelper):
             read_scene = bpy.context.scene # sets the new scene as the new scene
             read_scene.name = 'Hifi_Export_Scene'
         
+        # Make sure we are in Object mode    
+        bpy.ops.object.mode_set(mode = 'OBJECT')
+        # Deselect all objects
         bpy.ops.object.select_all(action = 'DESELECT')
 
         # Clone Scene. Then select scene. After done delete scene

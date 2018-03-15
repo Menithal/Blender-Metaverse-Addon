@@ -36,43 +36,69 @@ def vec4_to_list(v):
 def vec_to_list(v):
     return [v.x,v.y,v.z]
 
-def build_armature(bone, tree):
+def build_armature(bone, bones, tree): 
     
-    print(bone.name)
-    rotation = matrix4_to_dict(bone.matrix)
-    
-    print(rotation)
-    head = vec_to_list(bone.head)
-    tail = vec_to_list(bone.tail)
+    regular_bone = bones[bone.name] 
     current_tree = {
         "name": bone.name,
-        "rotation": rotation,
-        "head": head,
-        "tail": tail,
+        "matrix": bone.matrix,
+        "matrix_local": regular_bone.matrix_local,
+        "head": bone.head,
+        "tail": bone.tail,
         "connect": bone.use_connect,
         "children": []
     }
         
     for child in bone.children:
-        build_armature(child, current_tree["children"])
+        build_armature(child, bones, current_tree["children"])
     
     tree.append(current_tree)
     return tree    
+
+
+def build_world_rotations(bone, world_matrix, list):
     
+    parent_rotation = world_matrix.to_quaternion()
+    
+    matrix = bone.matrix
+    
+    current_rotation = matrix.to_quaternion()
+    current_node = {
+        "name": bone.name,
+        "rotation": parent_rotation * current_rotation,
+        "local": bone.matrix_local.to_quaternion()
+    }
+    
+    list.append(current_node)
+    
+    for child in bone.children:
+        build_world_rotations(child, world_matrix, list)
+    
+    return list
 
-armature = bpy.context.object.data
 
+print("|||||||||||||||||||||||||||")
 print("---------------------------")
+print("---------POSE DATA---------")
 print("---------------------------")
-print("---------------------------")
+print("|||||||||||||||||||||||||||")
 
+armature = bpy.context.object
+
+world_matrix = armature.matrix_world
+        
+        
 if bpy.context.active_object:
     bpy.ops.object.mode_set(mode = 'EDIT')
     
-    print(armature.edit_bones[0].name)
-    if len(armature.edit_bones) > 0:
-        test = build_armature( armature.edit_bones[0], [])
-        print(test)
+    print(armature.data.edit_bones[0].name)
+    if len(armature.data.edit_bones) > 0:
+        edit_armature = build_armature( armature.data.edit_bones[0], armature.data.bones, [])
+        print("structure =", edit_armature)
+    
+        print("#-----------------------------")
+
+
 
 
 bpy.ops.object.mode_set(mode = 'OBJECT')
@@ -84,5 +110,4 @@ bpy.ops.object.mode_set(mode = 'OBJECT')
 #    tail = vec_to_dict(bone.tail)
     
 #    print(bone.name, rotation, head, tail)
-    
     

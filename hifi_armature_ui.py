@@ -22,13 +22,13 @@
 import bpy
 import sys
 from .hifi_armature_data import structure as base_armature
+from .hifi_armature_repose import retarget_armature, fix_armature
 from mathutils import Quaternion, Vector, Euler, Matrix
-from math import pi
 
 if "bpy" in locals():
     import importlib
-    if "hifi_armature" in locals():
-        importlib.reload(hifi_armature)
+    if "hifi_armature_repose" in locals():
+        importlib.reload(hifi_armature_repose)
 
 def list_tuple(l):
     if len(l) == 4:
@@ -56,16 +56,19 @@ def build_armature_structure(data, current_node, parent):
     
     current_bone.parent = parent
         
-    current_bone.head = list_vector(current_node["head"])
-    current_bone.tail = list_vector(current_node["tail"])
-    mat = list_matrix(current_node['rotation'])
+    current_bone.head = current_node["head"]
+    current_bone.tail = current_node["tail"]
+    mat = current_node['matrix']
     current_bone.matrix = mat
     
+    if current_node["connect"]:
+        current_bone.use_connect = True
+        
     for child in current_node["children"]:
         build_armature_structure(data, child, current_bone)
     
     return current_bone
-    
+
 
 def build_skeleton():
     current_view = bpy.context.area.type
@@ -85,7 +88,6 @@ def build_skeleton():
         if bpy.context.active_object:
             bpy.ops.object.mode_set(mode = 'OBJECT')
             
-        print ("Adding Armature" )
         bpy.ops.object.add(type="ARMATURE", enter_editmode=True)
         
         current_armature = bpy.context.active_object
@@ -95,21 +97,8 @@ def build_skeleton():
         for root_bone in base_armature:
             build_armature_structure(current_armature.data, root_bone, None) 
            
-        #bpy.ops.object.mode_set(mode = 'OBJECT')    
-        
-       
-        bpy.ops.object.mode_set(mode = 'OBJECT')
-        
-        obj = bpy.context.active_object
-        
-        obj.scale = Vector((100, 100, 100))
-        str_angle = -90 * pi/180
-        obj.rotation_euler = Euler((str_angle, 0, 0), 'XYZ')
-                
-        bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
-        bpy.context.active_object.scale = Vector((0.01, 0.01, 0.01))
-        obj.rotation_euler = Euler((-str_angle, 0, 0), 'XYZ')
-        
+        fix_armature(bpy.context.active_object)
+
     except Exception as detail:
         print('Error', detail)
 
@@ -133,13 +122,13 @@ class HifiArmaturePanel(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         layout.operator(HifiArmatureCreateOperator.bl_idname)
+        layout.operator(HifiArmatureRetargetPoseOperator.bl_idname)
         return None
-
 
 
 class HifiArmatureCreateOperator(bpy.types.Operator):
     bl_idname = "armature_toolset_create_base_rig.hifi"
-    bl_label = "Create High Fidelity Armature"
+    bl_label = "Add HiFi Armature"
     
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
@@ -149,24 +138,44 @@ class HifiArmatureCreateOperator(bpy.types.Operator):
         build_skeleton()        
         return {'FINISHED'}
 
-    def draw(self, context):
-        layout = self.layout
+
+class HifiArmatureRetargetPoseOperator(bpy.types.Operator):
+    bl_idname = "armature_toolset_retarget.hifi"
+    bl_label = "Retarget Avatar Pose / Fix Avatar"
+    
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "TOOLS"
+    bl_category = "High Fidelity"
+    
+    def execute(self, context):
+        retarget_armature({'apply': True})
         return {'FINISHED'}
 
-        
+
+
 classes = [
     HifiArmaturePanel,
-    HifiArmatureCreateOperator
+    HifiArmatureCreateOperator,
+    HifiArmatureRetargetPoseOperator
 ]
+
+def armature_create_menu_func(self,context):
+    self.layout.operator(HifiArmatureCreateOperator.bl_idname,
+        text="Add HiFi Armature",
+        icon="ARMATURE_DATA")
 
 
 def armature_ui_register():
     for cls in classes:    
         bpy.utils.register_class(cls)
+    
+    bpy.types.INFO_MT_armature_add.append(armature_create_menu_func)
 
-def armature_ui_unregister():
+def armature_ui_unregister(): 
     for cls in classes:    
         bpy.utils.unregister_class(cls)
+    
+    bpy.types.INFO_MT_armature_add.remove(armature_create_menu_func)
 
 if __name__ == "__main__":
     armature_ui_register()
