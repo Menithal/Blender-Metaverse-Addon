@@ -22,7 +22,7 @@
 import bpy
 import sys
 from .hifi_armature_data import structure as base_armature
-from .hifi_armature_repose import retarget_armature, fix_armature
+from .hifi_armature_repose import retarget_armature, correct_scale_rotation
 from mathutils import Quaternion, Vector, Euler, Matrix
 
 if "bpy" in locals():
@@ -97,7 +97,7 @@ def build_skeleton():
         for root_bone in base_armature:
             build_armature_structure(current_armature.data, root_bone, None) 
            
-        fix_armature(bpy.context.active_object)
+        correct_scale_rotation(bpy.context.active_object, True)
 
     except Exception as detail:
         print('Error', detail)
@@ -123,6 +123,7 @@ class HifiArmaturePanel(bpy.types.Panel):
         layout = self.layout
         layout.operator(HifiArmatureCreateOperator.bl_idname)
         layout.operator(HifiArmatureRetargetPoseOperator.bl_idname)
+        layout.operator(HifiArmaturePoseOperator.bl_idname)
         return None
 
 
@@ -152,11 +153,25 @@ class HifiArmatureRetargetPoseOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class HifiArmaturePoseOperator(bpy.types.Operator):
+    bl_idname = "armature_toolset_pose.hifi"
+    bl_label = "Pose to Avatar rest Pose"
+    
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "TOOLS"
+    bl_category = "High Fidelity"
+    
+    def execute(self, context):
+        retarget_armature({'apply': False})
+        return {'FINISHED'}
+
+
 
 classes = [
     HifiArmaturePanel,
     HifiArmatureCreateOperator,
-    HifiArmatureRetargetPoseOperator
+    HifiArmatureRetargetPoseOperator,
+    HifiArmaturePoseOperator
 ]
 
 def armature_create_menu_func(self,context):
