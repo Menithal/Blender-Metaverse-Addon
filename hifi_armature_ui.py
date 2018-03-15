@@ -122,8 +122,8 @@ class HifiArmaturePanel(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         layout.operator(HifiArmatureCreateOperator.bl_idname)
-        layout.operator(HifiArmatureRetargetPoseOperator.bl_idname)
         layout.operator(HifiArmaturePoseOperator.bl_idname)
+        layout.operator(HifiArmatureRetargetPoseOperator.bl_idname)
         return None
 
 
@@ -155,7 +155,7 @@ class HifiArmatureRetargetPoseOperator(bpy.types.Operator):
 
 class HifiArmaturePoseOperator(bpy.types.Operator):
     bl_idname = "armature_toolset_pose.hifi"
-    bl_label = "Pose to Avatar rest Pose"
+    bl_label = "Test with Hifi Avatar rest Pose"
     
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
