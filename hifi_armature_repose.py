@@ -6,8 +6,10 @@ from math import pi
 from .hifi_armature_data import structure as base_armature
 
 # This is unit tested to be correct.
+
+
 def correct_scale_rotation(obj, rotation):
-    current_context = bpy.context.area.type 
+    current_context = bpy.context.area.type
     bpy.context.area.type = 'VIEW_3D'
     # set context to 3D View and set Cursor
     bpy.context.space_data.cursor_location[0] = 0.0
@@ -20,23 +22,14 @@ def correct_scale_rotation(obj, rotation):
     bpy.context.scene.objects.active = obj
     bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
     bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
-    print('Active is', bpy.context.active_object.name, bpy.context.selected_objects)
-    print("Now", obj.name, obj.dimensions, obj.scale, bpy.context.selected_objects, obj.rotation_euler)
     obj.scale = Vector((100, 100, 100))
     str_angle = -90 * pi/180
     if rotation:
-        print("Set Angle -90")
         obj.rotation_euler = Euler((str_angle, 0, 0), 'XYZ')
-        print("Euler", obj.rotation_euler )
-    print(obj.name, "Are we rotating?")
     bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
-    print(bpy.context.active_object.name)
-    print("Added size", obj.name, obj.dimensions, obj.scale,  obj.rotation_euler)
     obj.scale = Vector((0.01, 0.01, 0.01))
     if rotation:
-        print("Set Angle 90")
         obj.rotation_euler = Euler((-str_angle, 0, 0), 'XYZ')
-        print("Euler", obj.rotation_euler )
 
 
 def navigate_armature(data, current_rest_node, world_matrix, parent, parent_node):
@@ -71,57 +64,51 @@ def retarget_armature(options):
 
     armature = bpy.context.object
     if armature.type == "ARMATURE":
-        #Center Children First
+        # Center Children First
         bpy.ops.object.mode_set(mode='OBJECT')
 
         # Make sure to reset the bones first.
-        bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
+        bpy.ops.object.transform_apply(
+            location=False, rotation=True, scale=True)
         bpy.ops.object.mode_set(mode='POSE')
         bpy.ops.pose.select_all(action='SELECT')
         bpy.ops.pose.transforms_clear()
         bpy.ops.pose.select_all(action='DESELECT')
 
         print("---")
-        
+
         # Now lets do the repose to rest
         world_matrix = armature.matrix_world
         bones = armature.pose.bones
         for bone in base_armature:
             navigate_armature(bones, bone, world_matrix, None, None)
             print("Iterating Bones")
-        
+
         # Then apply everything
         if options['apply']:
-
-            bpy.context.scene.objects.active = armature      
-            
+            bpy.ops.object.mode_set(mode='OBJECT')
             correct_scale_rotation(armature, True)
-
-            print("Now Fix Armature for all")    
-
+            print("Scale")
             bpy.ops.object.mode_set(mode='POSE')
-            bpy.ops.pose.armature_apply()
 
-            bpy.ops.pose.select_all(action='SELECT')
-            bpy.ops.pose.transforms_clear()
-            bpy.ops.pose.select_all(action='DESELECT')
-
+            print("Now Fix Armature for all")
             for child in armature.children:
-                armature_modifier = None
-
+                armature_modifier = False
+            
                 for modifier in child.modifiers:
-                    if modifier.type == "ARMATURE" and modifier.object == armature_modifier:
+                    if modifier.type == "ARMATURE" and modifier.object == armature:
                         name = modifier.name
                         # COPY OTHER SETTINGs
                         print("Apply", name, " to ", child.name)
 
                         bpy.context.scene.objects.active = child
-                        armature_modifier = modifier
+                        armature_modifier = True
+                        print(armature_modifier)
                         bpy.ops.object.modifier_apply(
                             apply_as='DATA', modifier=modifier.name)
-                        break
+                                
+                print("READY FOR NEXT ")
 
-                # If Overriden Armature is found, then override
                 if armature_modifier:
                     print("Creating new modifier",
                           name, "_fix for ", child.name)
@@ -131,8 +118,13 @@ def retarget_armature(options):
 
                 correct_scale_rotation(child, False)
 
+            print("Set", armature, " active")
+            bpy.context.scene.objects.active = armature
 
-        bpy.ops.object.mode_set(mode='POSE')
-        bpy.ops.pose.select_all(action='DESELECT')
+            bpy.ops.object.mode_set(mode='POSE')
+            print("Apply Armature")
+            bpy.ops.pose.armature_apply()
+
+           
+
         bpy.ops.object.mode_set(mode='OBJECT')
-        bpy.ops.object.select_all(action='DESELECT')
