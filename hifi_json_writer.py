@@ -391,7 +391,9 @@ class HifiJsonWriter(bpy.types.Operator, ExportHelper):
             raise Exception("filepath not set")
             
         if not self.url_override and not self.atp:
-            raise Exception("You must Use ATP or Set the Marketplace / base URL to make sure that the content can be reached after you upload it. ATP currently not supported")
+            bpy.ops.hifi_error.atp_or_override_not_in_use('INVOKE_DEFAULT')
+            return {'CANCELLED'}
+           # raise Exception("You must Use ATP or Set the Marketplace / base URL to make sure that the content can be reached after you upload it. ATP currently not supported")
         
         current_scene = bpy.context.scene
         read_scene = current_scene
@@ -457,3 +459,32 @@ class HifiJsonWriter(bpy.types.Operator, ExportHelper):
         
         return {'FINISHED'}
         
+class HifiATPReminderOperator(bpy.types.Operator):
+    bl_idname = "hifi_error.atp_or_override_not_in_use"
+    bl_label = "You must either select ATP export or override a baseURL for your host (be it marketplace or your own)"
+    bl_options = {'REGISTER', 'INTERNAL'}
+
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def invoke(self, context, even):
+        print("Invoked")
+        wm = context.window_manager
+        return wm.invoke_popup(self, width=400, height=300)
+
+    def execute(self, context):
+        return {'FINISHED'}
+    
+    def draw(self, context): 
+        layout = self.layout
+
+        row = layout.row()
+        row.label(text="Warning:", icon="ERROR")
+        row = layout.row()
+        row.label("You must either select ATP export ")
+        row = layout.row()
+        row.label(" or override a baseURL for your host")
+        row = layout.row()
+        row.label(" (be it marketplace or your own)")
+

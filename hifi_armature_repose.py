@@ -4,9 +4,7 @@ from mathutils import Quaternion, Matrix, Vector, Euler
 
 from math import pi
 from .hifi_armature_data import structure as base_armature
-
 # This is unit tested to be correct.
-
 
 def correct_scale_rotation(obj, rotation):
     current_context = bpy.context.area.type
@@ -63,7 +61,7 @@ def navigate_armature(data, current_rest_node, world_matrix, parent, parent_node
 def retarget_armature(options):
 
     armature = bpy.context.object
-    if armature.type == "ARMATURE":
+    if armature != None and armature.type == "ARMATURE":
         # Center Children First
         bpy.ops.object.mode_set(mode='OBJECT')
 
@@ -124,7 +122,9 @@ def retarget_armature(options):
             bpy.ops.object.mode_set(mode='POSE')
             print("Apply Armature")
             bpy.ops.pose.armature_apply()
-
-           
-
         bpy.ops.object.mode_set(mode='OBJECT')
+
+    else:
+        #Judas proofing:
+        print("No Armature, select, throw an exception")
+        raise Exception("You must select an armature to continue")
