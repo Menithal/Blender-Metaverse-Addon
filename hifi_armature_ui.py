@@ -142,28 +142,64 @@ class HifiArmatureCreateOperator(bpy.types.Operator):
 
 class HifiArmatureRetargetPoseOperator(bpy.types.Operator):
     bl_idname = "armature_toolset_retarget.hifi"
-    bl_label = "Retarget Avatar Pose / Fix Avatar"
+    bl_label = "Retarget Avatar Pose / Fix Avatar Scale / Rotation"
     
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
     bl_category = "High Fidelity"
     
     def execute(self, context):
-        retarget_armature({'apply': True})
+        try:
+            retarget_armature({'apply': True})
+        except Exception:
+            bpy.ops.hifi_error.armature_not_selected('INVOKE_DEFAULT')
+            return {'CANCELLED'}
+
         return {'FINISHED'}
 
 
 class HifiArmaturePoseOperator(bpy.types.Operator):
     bl_idname = "armature_toolset_pose.hifi"
-    bl_label = "Test with Hifi Avatar rest Pose"
+    bl_label = "Test Avatar Rest Pose"
     
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
     bl_category = "High Fidelity"
     
     def execute(self, context):
-        retarget_armature({'apply': False})
+        try:
+            retarget_armature({'apply': False})
+        except Exception:
+            bpy.ops.hifi_error.armature_not_selected('INVOKE_DEFAULT')
+            return {'CANCELLED'}
+        
         return {'FINISHED'}
+        
+
+class HifiReminderOperator(bpy.types.Operator):
+    bl_idname = "hifi_error.armature_not_selected"
+    bl_label = "You must select an armature first prior to pressing the button"
+    bl_options = {'REGISTER', 'INTERNAL'}
+
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def invoke(self, context, even):
+        print("Invoked")
+        wm = context.window_manager
+        return wm.invoke_popup(self, width=400, height=200)
+
+    def execute(self, context):
+        return {'FINISHED'}
+    
+    def draw(self, context): 
+        layout = self.layout
+
+        row = layout.row()
+        row.label(text="Warning:", icon="ERROR")
+        row = layout.row()
+        row.label(self.bl_label)
 
 
 
@@ -171,7 +207,8 @@ classes = [
     HifiArmaturePanel,
     HifiArmatureCreateOperator,
     HifiArmatureRetargetPoseOperator,
-    HifiArmaturePoseOperator
+    HifiArmaturePoseOperator,
+    HifiReminderOperator
 ]
 
 def armature_create_menu_func(self,context):
