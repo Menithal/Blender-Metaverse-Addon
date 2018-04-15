@@ -1,10 +1,10 @@
 
 import bpy
 from mathutils import Quaternion, Matrix, Vector, Euler
-
 from math import pi
-from .hifi_armature_data import structure as base_armature
-# This is unit tested to be correct.
+
+from hifi_tools.armature.skeleton import structure as base_armature
+
 
 def correct_scale_rotation(obj, rotation):
     current_context = bpy.context.area.type

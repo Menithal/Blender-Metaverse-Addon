@@ -20,18 +20,17 @@
 # By Matti 'Menithal' Lahtinen
 
 import bpy
-from .hifi_utility import *
 import uuid
 import re
 import os
 import json
-from bpy.props import (StringProperty, BoolProperty)
+
 from mathutils import Quaternion
 from math import sqrt
-from bpy_extras.io_utils import ExportHelper
 from hashlib import md5, sha256
 from copy import copy, deepcopy
 
+from hifi_tools.utils.helpers import *
 
 EXPORT_VERSION = 84
 
@@ -351,140 +350,66 @@ def relative_position(parent_object):
         return parent_object.location
 
 
-class HifiJsonWriter(bpy.types.Operator, ExportHelper):
-    bl_idname ="export_scene.hifi_fbx_json"
-    bl_label = "Export HiFi Scene"
-    bl_options = {'UNDO'}
+
+def write_file(context):
+    current_scene = bpy.context.scene
+    read_scene = current_scene
+    # Creating a temp copy to do the changes in.
+    if context.clone_scene:
+        bpy.ops.scene.new(type='FULL_COPY')
+        read_scene = bpy.context.scene # sets the new scene as the new scene
+        read_scene.name = 'Hifi_Export_Scene'
     
-    directory = StringProperty()
-    filename_ext = ".hifi.json"
-    filter_glob = StringProperty(default="*.hifi.json", options={'HIDDEN'})
+    # Make sure we are in Object mode    
+    bpy.ops.object.mode_set(mode = 'OBJECT')
+    # Deselect all objects
+    bpy.ops.object.select_all(action = 'DESELECT')
 
-    atp = BoolProperty(default=False, name="Use ATP / Upload to domain", description="Use ATP instead of Marketplace / upload assets to domain")
-    use_folder = BoolProperty(default=True, name="Use Folder", description= "Upload Files as a folder instead of individually")
-   
-    url_override = StringProperty(default="", name="Marketplace / Base Url", 
-                                    description="Set Marketplace / URL Path here to override")
-    clone_scene = BoolProperty(default=False, name="Clone Scene prior to export", description="Clones the scene and performs the automated export functions on the clone instead of the original. " + 
-                                            "WARNING: instancing will not work, and ids will no longer be the same, for future features.")
-    remove_trailing = BoolProperty(default=False, name="Remove Trailing .### from names")
-
+    # Clone Scene. Then select scene. After done delete scene
+    path = os.path.dirname(os.path.realpath(context.filepath)) + '/'
     
-    def draw(self, context):
-        layout = self.layout
-        
-        layout.prop(self, "atp")
-        
-        if not self.atp:
-            layout.label("Url Override: Add Marketplace / URL to make sure that the content can be reached.")
-            layout.prop(self, "url_override")
-        else:
-            layout.prop(self, "use_folder")
-        
-        layout.label("Clone scene: Performs automated actions on a cloned scene instead of the original.")
-        layout.prop(self, "clone_scene")
-        layout.prop(self, "remove_trailing")
-        
+    ## Parse the marketplace url
+    url = ""
 
-    def execute(self, context):
-        if not self.filepath:
-            raise Exception("filepath not set")
+    if not context.atp:
+        url = context.url_override
+        if "https://highfidelity.com/marketplace/items/" in url:
             
-        if not self.url_override and not self.atp:
-            bpy.ops.hifi_error.atp_or_override_not_in_use('INVOKE_DEFAULT')
-            return {'CANCELLED'}
-           # raise Exception("You must Use ATP or Set the Marketplace / base URL to make sure that the content can be reached after you upload it. ATP currently not supported")
-        
-        current_scene = bpy.context.scene
-        read_scene = current_scene
-        # Creating a temp copy to do the changes in.
-        if self.clone_scene:
-            bpy.ops.scene.new(type='FULL_COPY')
-            read_scene = bpy.context.scene # sets the new scene as the new scene
-            read_scene.name = 'Hifi_Export_Scene'
-        
-        # Make sure we are in Object mode    
-        bpy.ops.object.mode_set(mode = 'OBJECT')
-        # Deselect all objects
-        bpy.ops.object.select_all(action = 'DESELECT')
-
-        # Clone Scene. Then select scene. After done delete scene
-        path = os.path.dirname(os.path.realpath(self.filepath)) + '/'
-        
-        ## Parse the marketplace url
-        url = ""
-
-        if not self.atp:
-            url = self.url_override
-            if "https://highfidelity.com/marketplace/items/" in url:
-                
-                marketplace_id = url.replace("https://highfidelity.com/marketplace/items/", "").replace("/edit","").replace("/","")
-                
-                url = "http://mpassets.highfidelity.com/" + marketplace_id + "-v1/"
+            marketplace_id = url.replace("https://highfidelity.com/marketplace/items/", "").replace("/edit","").replace("/","")
             
-            if not url.endswith('/'):    
-                url = url + "/"
+            url = "http://mpassets.highfidelity.com/" + marketplace_id + "-v1/"
         
-        entities = []
-
-        # Duplicate list to break reference as we may do updates to the scene
-        current_scene_objects = list(read_scene.objects)
-        for blender_object in current_scene_objects:
-            print(len(current_scene_objects))
-            parsed = parse_object(blender_object, path, self)
-            
-            if parsed:
-                entities.append(parsed)        
-
-        # Delete Cloned scene
-        #     
-        if self.clone_scene:
-            bpy.ops.scene.delete()
-        
-        hifi_scene = {
-            'Version': EXPORT_VERSION,
-            'Entities': entities
-        }
-        
-        data = json.dumps(hifi_scene, indent=4)
-        
-        file = open(self.filepath, "w")
-        
-        try: 
-            file.write(data)
-        except e:
-            print('Could not write to file.', e)
-        finally:
-            file.close()
-        
-        return {'FINISHED'}
-        
-class HifiATPReminderOperator(bpy.types.Operator):
-    bl_idname = "hifi_error.atp_or_override_not_in_use"
-    bl_label = "You must either select ATP export or override a baseURL for your host (be it marketplace or your own)"
-    bl_options = {'REGISTER', 'INTERNAL'}
-
-    @classmethod
-    def poll(cls, context):
-        return True
-
-    def invoke(self, context, even):
-        print("Invoked")
-        wm = context.window_manager
-        return wm.invoke_popup(self, width=400, height=300)
-
-    def execute(self, context):
-        return {'FINISHED'}
+        if not url.endswith('/'):    
+            url = url + "/"
     
-    def draw(self, context): 
-        layout = self.layout
+    entities = []
 
-        row = layout.row()
-        row.label(text="Warning:", icon="ERROR")
-        row = layout.row()
-        row.label("You must either select ATP export ")
-        row = layout.row()
-        row.label(" or override a baseURL for your host")
-        row = layout.row()
-        row.label(" (be it marketplace or your own)")
+    # Duplicate list to break reference as we may do updates to the scene
+    current_scene_objects = list(read_scene.objects)
+    for blender_object in current_scene_objects:
+        print(len(current_scene_objects))
+        parsed = parse_object(blender_object, path, context)
+        
+        if parsed:
+            entities.append(parsed)        
 
+    # Delete Cloned scene
+    #     
+    if context.clone_scene:
+        bpy.ops.scene.delete()
+    
+    hifi_scene = {
+        'Version': EXPORT_VERSION,
+        'Entities': entities
+    }
+    
+    data = json.dumps(hifi_scene, indent=4)
+    
+    file = open(context.filepath, "w")
+    
+    try: 
+        file.write(data)
+    except e:
+        print('Could not write to file.', e)
+    finally:
+        file.close()

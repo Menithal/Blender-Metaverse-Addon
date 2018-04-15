@@ -21,14 +21,10 @@
 
 import bpy
 import sys
-from .hifi_armature_data import structure as base_armature
-from .hifi_armature_repose import retarget_armature, correct_scale_rotation
 from mathutils import Quaternion, Vector, Euler, Matrix
 
-if "bpy" in locals():
-    import importlib
-    if "hifi_armature_repose" in locals():
-        importlib.reload(hifi_armature_repose)
+from hifi_tools.armature.skeleton import structure as base_armature
+from hifi_tools.armature.repose import retarget_armature, correct_scale_rotation
 
 def list_tuple(l):
     if len(l) == 4:

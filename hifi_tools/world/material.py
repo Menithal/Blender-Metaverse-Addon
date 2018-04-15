@@ -28,8 +28,6 @@ from bpy.props import (
     FloatProperty
 )
 
-print("Loading Hifi Material Module")
-
 
 def update_color(self, context):
     mat = context.material

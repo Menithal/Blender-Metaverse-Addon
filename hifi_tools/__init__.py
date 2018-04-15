@@ -20,7 +20,7 @@
 bl_info = {
     "name": "HiFi Blender Add-on",
     "author": "Matti 'Menithal' Lahtinen",
-    "version": (0,6,4),
+    "version": (0,8,0),
     "blender": (2,7,7),
     "location": "File > Import-Export, Materials, Armature",
     "description": "Blender tools to allow for easier Content creation for High Fidelity",
@@ -30,70 +30,56 @@ bl_info = {
     "category": "Import-Export",
 }
 
+
 import addon_utils
 import sys
-import bpy
+import logging
+
+if "bpy" in locals():
+    if bpy.app.version < (2, 71, 0):
+        import imp as importlib
+    else:
+        import importlib
+    
+    importlib.reload(utils)
+    importlib.reload(world)
+    importlib.reload(armature)
+    importlib.reload(files)
+
+else:
+    print("Load World")
+    from . import utils
+    from . import world
+    from . import armature
+
+    from .files.hifi_json.operator import *
+    
+    import bpy
+
 
 if "add_mesh_extra_objects" not in addon_utils.addons_fake_modules:
     print(" Could not find add_mesh_extra_objects, Trying to add it automatically. Otherwise install it first via Blender Add Ons")
     addon_utils.enable("add_mesh_extra_objects")
 
-
 def reload_module(name): 
     if name in sys.modules: 
         del sys.modules[name]
 
-
-if "bpy" in locals():
-    import importlib
-    if "hifi_scene_import" in locals():
-        importlib.reload(hifi_scene_import)
-    if "bpy_util" in locals():
-        importlib.reload(bpy_util)
-    if "hifi_primitives" in locals():
-        importlib.reload(hifi_primitives)
-    if "hifi_json_loader" in locals():
-        importlib.reload(hifi_json_loader)
-    if "hifi_material_ui" in locals():
-        importlib.reload(hifi_material_ui)
-    if "hifi_utility" in locals():
-        importlib.reload(hifi_utility)
-    if "hifi_json_writer" in locals():
-        importlib.reload(hifi_json_writer)
-    if "hifi_armature_ui" in locals():
-        importlib.reload(hifi_armature_ui)
-    
-
-from .hifi_json_loader import *
-from .hifi_json_writer import *
-from .hifi_armature_ui import *
-from .hifi_material_ui import register as material_ui_register, unregister as material_ui_unregister
-
-    
 def menu_func_import(self, context):
-    self.layout.operator(HifiJsonOperator.bl_idname, text="HiFi Metaverse Scene JSON (.json)")
+    self.layout.operator(JSONLoaderOperator.bl_idname, text="HiFi Metaverse Scene JSON (.json)")
    
 def menu_func_export(self,context):
-    self.layout.operator(HifiJsonWriter.bl_idname, text="HiFi Metaverse Scene JSON / FBX (.json/.fbx)")
+    self.layout.operator(JSONWriterOperator.bl_idname, text="HiFi Metaverse Scene JSON / FBX (.json/.fbx)")
 
 def register():
-    bpy.utils.register_class(HifiJsonOperator)
-    bpy.utils.register_class(HifiJsonWriter)
-    bpy.utils.register_class(HifiATPReminderOperator)
+    bpy.utils.register_module(__name__) #Magic Function!
     bpy.types.INFO_MT_file_import.append(menu_func_import)
     bpy.types.INFO_MT_file_export.append(menu_func_export)
-    material_ui_register()
-    armature_ui_register()
- 
+
 def unregister():
-    bpy.utils.unregister_class(HifiJsonOperator)
-    bpy.utils.unregister_class(HifiJsonWriter)
-    bpy.utils.unregister_class(HifiATPReminderOperator)
+    bpy.utils.unregister_module(__name__)
     bpy.types.INFO_MT_file_import.remove(menu_func_import)
     bpy.types.INFO_MT_file_export.remove(menu_func_export)
-    material_ui_unregister()
-    armature_ui_unregister()
-
  
 if __name__ == "__main__":
     register()

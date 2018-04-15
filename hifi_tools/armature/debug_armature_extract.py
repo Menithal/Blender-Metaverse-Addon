@@ -22,7 +22,6 @@
 import json
 import bpy
 
-
 def matrix4_to_dict(m):
     return [vec4_to_list(m[0]),
         vec4_to_list(m[1]),

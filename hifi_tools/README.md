@@ -1,24 +1,19 @@
 # Blender Hifi AddOn
 
-This add On project ("Hermes") a plugin for Blender to allow for easier content creation and importing for the High Fidelity Metaverse Platform
+This add On project ("Hermes") a plugin for blender to allow for easier content creation for the High Fidelity Metaverse.
+
 
 # Installation Guide
 
-## Simple
-Open the Github page, Go to releases and download the `hifi_tools.zip` zip file.
+Open the Github page, and press `Clone or download` and download as zip.
 
 In Blender. Goto `User Preferences`, and `Add-ons`. From there `Install Add-on from File` and select the Zip file that we downloaded.
 
 Enable the plugin under `Import-Export: Hifi Blender Add-On`
 
-## If you downloaded the download repository:
-
-Copy `hifi_tools` folder to your Blender Addons Directory. 
-
-On Windows this is under `%APPDATA%/Blender Foundation/Blender/<BlenderVersion>/addons`
-
 
 # Use
+
 
 ## Importing from Hifi:
 The add-on allows you to import primitive entities from High Fidelity. In High Fidelity,  select the entities you want to export and press export. 
