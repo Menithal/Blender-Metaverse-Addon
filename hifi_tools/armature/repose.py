@@ -86,42 +86,13 @@ def retarget_armature(options):
         if options['apply']:
             bpy.ops.object.mode_set(mode='OBJECT')
             correct_scale_rotation(armature, True)
-            print("Scale")
-            bpy.ops.object.mode_set(mode='POSE')
 
-            print("Now Fix Armature for all")
             for child in armature.children:
-                armature_modifier = False
-            
-                for modifier in child.modifiers:
-                    if modifier.type == "ARMATURE" and modifier.object == armature:
-                        name = modifier.name
-                        # COPY OTHER SETTINGs
-                        print("Apply", name, " to ", child.name)
-
-                        bpy.context.scene.objects.active = child
-                        armature_modifier = True
-                        print(armature_modifier)
-                        bpy.ops.object.modifier_apply(
-                            apply_as='DATA', modifier=modifier.name)
-                                
-                print("READY FOR NEXT ")
-
-                if armature_modifier:
-                    print("Creating new modifier",
-                          name, "_fix for ", child.name)
-                    new_modifier = child.modifiers.new(
-                        name + "_fix", "ARMATURE")
-                    new_modifier.object = armature
-
                 correct_scale_rotation(child, False)
 
             print("Set", armature, " active")
             bpy.context.scene.objects.active = armature
 
-            bpy.ops.object.mode_set(mode='POSE')
-            print("Apply Armature")
-            bpy.ops.pose.armature_apply()
         bpy.ops.object.mode_set(mode='OBJECT')
 
     else:
