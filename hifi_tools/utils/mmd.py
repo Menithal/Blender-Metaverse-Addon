@@ -40,7 +40,8 @@ bones_to_remove = [
     "Eyes",
     "Dummy",
     "Root",
-    "Base"
+    "Base",
+    "ControlNode"
 ]
 
 contains_to_remove = [
@@ -50,7 +51,16 @@ contains_to_remove = [
     "Dummy",
     "Top",
     "Tip",
-    "Twist"
+    "Twist",
+    "ShoulderP",
+    "ShoulderC",
+    "LegD",
+    "FootD",
+    "mmd_edge",
+    "mmd_vertex",
+    "Node",
+    "Center"
+    
 ]
 
 bones_to_correct = [
@@ -75,6 +85,30 @@ bones_to_correct_rolls = [
     -180
 ]
 
+parent_structure = {
+    #Bone : Parent
+    "LeftToe": "LeftFoot",
+    "RightToe": "RightFoot",
+    "LeftFoot": "LeftLeg",
+    "RightFoot": "RightLeg",
+    "LeftLeg": "LeftUpLeg",
+    "RightLeg": "RightUpLeg",
+    "LeftUpLeg": "Hips",
+    "RightUpLeg": "Hips",
+    "Spine1": "Spine",
+    "Spine2": "Spine1",
+    "Spine": "Hips",
+    "Neck": "Spine2",
+    "Head": "Neck",
+    "LeftShoulder": "Spine2",
+    "RightShoulder": "Spine2",
+    "LeftArm": "LeftShoulder",
+    "RightArm": "RightShoulder",
+    "LeftForeArm": "LeftArm",
+    "RightForeArm": "RightArm",
+    "LeftHand": "LeftForeArm",
+    "RightHand": "RightForeArm"
+}
 
 # Simplified Translator based on powroupi MMDTranslation
 class MMDTranslator:
@@ -136,8 +170,12 @@ class MMDTranslator:
 
 
 def purge_string(string):
-    str_bytes = os.fsencode(string)
-    return str_bytes.decode("utf-8", "replace")
+    try:
+        str_bytes = os.fsencode(string)
+        return str_bytes.decode("utf-8", "replace")
+    except UnicodeEncodeError:
+        print("Could not purge string", string)
+        return string
 
 
 def delete_self_and_children(me):
@@ -160,6 +198,9 @@ def delete_self_and_children(me):
     
 
 
+#####################################################
+# Armature Fixes:
+
 def translate_bones(Translator, bones):
     for idx, bone in enumerate(bones):
         bone.hide = False
@@ -174,6 +215,21 @@ def has_removable(val):
         if word in val:
             return True
     return False
+
+def correct_bone_parents(bones):
+    
+    keys = parent_structure.keys();
+    
+    for bone in bones:
+        if bone.name == "Hips":
+            bone.parent = None
+        else:
+            parent = parent_structure.get(bone.name)
+            if parent is not None:
+                parent_bone = bones.get(parent)
+                if parent_bone is not None:
+                    bone.parent = parent_bone
+                
 
 def correct_bone_rotations(obj):
     if "Eye" in obj.name:
@@ -252,6 +308,10 @@ def clean_up_bones(obj):
         spine = edit_bones.get("Spine2.001")
         spine.name = "Spine2"
         
+    
+    edit_bones = updated_context.data.edit_bones
+    correct_bone_parents(edit_bones)
+    
     bpy.ops.object.mode_set(mode='OBJECT')  
 
 
@@ -272,6 +332,83 @@ def has_armature_as_child(me):
     return False
 
 
+#####################################################
+# Material Fixes
+
+def clean_textures(Translator, material):
+    name = None
+    
+    for idx, texture_slot in enumerate(material.texture_slots):
+        if texture_slot is not None and texture_slot.texture is not None:
+            if "toon" in texture_slot.name:
+                material.texture_slots.clear(idx)
+            else:
+                name = Translator.translate(texture_slot.name)
+                texture_slot.texture.name = name
+    
+    return name
+    
+def merge_textures(unique_textures, materials_slots):
+      
+    for key in _unique_textures.keys():
+        print("Creating new material Texture")
+        material_list = unique_textures[key]
+        n = material_list.pop(0)
+        first_material = materials_slots.get(n)
+        
+        print(first_material)
+        root_material = key + "_material"
+        first_material.material.name = root_material
+        root_index = materials_slots.find(root_material)
+        
+        
+        bpy.ops.object.mode_set(mode='EDIT')    
+        
+        if len(material_list) > 0:
+            for material in material_list:
+                index = materials_slots.find(material)
+                if index > -1:
+                    bpy.context.object.active_material_index = index
+                    bpy.ops.object.material_slot_select()
+        
+        bpy.context.object.active_material_index = root_index
+        bpy.ops.object.material_slot_select()
+        bpy.ops.object.material_slot_assign()
+        
+        bpy.ops.object.mode_set(mode='OBJECT') 
+        
+        if len(material_list) > 0:
+            for material in material_list:
+                index = materials_slots.find(material)
+                
+                if index > -1:
+                    bpy.context.object.active_material_index = index
+                    bpy.ops.object.material_slot_remove()
+
+    
+def clean_materials(Translator, materials_slots):
+    
+    _unique_textures = {}
+    for material_slot in materials_slots:
+        if material_slot is not None and material_slot.material is not None:
+            material_slot.material.name = Translator.translate(material_slot.name)
+            texture_name = clean_textures(Translator, material_slot.material)
+            
+            if texture_name is not None and _unique_textures.get(texture_name) is None:
+                _unique_textures[texture_name] = [material_slot.material.name]
+            elif texture_name is not None:
+                _unique_textures[texture_name].append(material_slot.material.name)
+    
+    
+    print("Found", len(_unique_textures.keys()), "unique textures from", len(materials_slots), "slots")
+    
+    merge_textures(_unique_textures, materials_slots)
+    
+      
+        
+
+#####################################################
+# Mesh Fixes:
 
 def translate_shape_keys(Translator, shape_keys):
     print(" Translating shapekeys ", shape_keys.items())
@@ -296,21 +433,48 @@ def mix_weights(a,b):
     bpy.context.object.modifiers["VertexWeightMix"].mix_set = 'OR'
     bpy.ops.object.modifier_apply(apply_as='DATA', modifier="VertexWeightMix")
     
+    
 def fix_vertex_groups(obj):
     vertex_groups = obj.vertex_groups
     arm_re = re.compile("ArmTwist\d?$")
     hand_re = re.compile("HandTwist\d?$")
+    
+    shoulder_re = re.compile("ShoulderP|C$")
+    leg_re = re.compile("LegD$")
+    foot_re = re.compile("FootD$")
+    
     remove_list = []
     for vertex_group in vertex_groups:
         if "IK" in vertex_group.name:
             remove_list.append(vertex_group.name)
+            
         if "ArmTwist" in vertex_group.name:
             root = re.sub(arm_re, "Arm", vertex_group.name)
             parent = vertex_groups.get(root)
             if parent is not None:
                 mix_weights(root, vertex_group.name)
                 remove_list.append(vertex_group.name)
-            
+                
+        elif re.search(shoulder_re, vertex_group.name) != None:
+            root = re.sub(shoulder_re, "Shoulder", vertex_group.name)
+            parent = vertex_groups.get(root)
+            if parent is not None:
+                mix_weights(root, vertex_group.name)
+                remove_list.append(vertex_group.name)
+        elif re.search(leg_re, vertex_group.name) != None:
+            root = re.sub(leg_re, "Leg", vertex_group.name)
+            parent = vertex_groups.get(root)
+            if parent is not None:
+                mix_weights(root, vertex_group.name)
+                remove_list.append(vertex_group.name)
+        
+        elif re.search(foot_re, vertex_group.name) != None:
+            root = re.sub(foot_re, "Foot", vertex_group.name)
+            parent = vertex_groups.get(root)
+            if parent is not None:
+                mix_weights(root, vertex_group.name)
+                remove_list.append(vertex_group.name)
+                
         elif "HandTwist" in vertex_group.name:
             root = re.sub(hand_re, "ForeArm", vertex_group.name)
             parent = vertex_groups.get(root)
@@ -329,6 +493,7 @@ def clean_mesh(Translator, obj):
     translate_shape_keys(Translator, obj.data.shape_keys.key_blocks)
     fix_vertex_groups(obj)
 
+#### --------------------
 
 def convert_for_hifi():
     # Should Probably have a confirmation dialog when using this.
@@ -362,6 +527,8 @@ def convert_for_hifi():
                     
                 elif obj.type == 'MESH' and obj.parent is not None and obj.parent.type == 'ARMATURE':
                     clean_mesh(Translator, obj)
+                    bpy.ops.object.mode_set(mode='OBJECT')  
+                    clean_materials(Translator, obj.material_slots)
                     
             # translate armature names!
     
@@ -377,4 +544,3 @@ def convert_for_hifi():
             
     bpy.context.area.type = original_type
     
-
