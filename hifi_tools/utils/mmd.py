@@ -338,12 +338,13 @@ def has_armature_as_child(me):
 #####################################################
 # Material Fixes
 
+toon_override = re.compile("^((toon)|\w{1,2})\d*\.?\d*$")
 def clean_textures(Translator, material):
     name = None
     
     for idx, texture_slot in enumerate(material.texture_slots):
         if texture_slot is not None and texture_slot.texture is not None:
-            if "toon" in texture_slot.name:
+            if toon_override.match(texture_slot.name):
                 material.texture_slots.clear(idx)
             else:
                 name = Translator.translate(texture_slot.name)

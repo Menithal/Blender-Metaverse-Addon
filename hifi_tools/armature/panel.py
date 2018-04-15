@@ -156,6 +156,7 @@ class HifiArmatureRetargetPoseOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 
+# Remove once fst export is available
 class HifiArmaturePoseOperator(bpy.types.Operator):
     bl_idname = "armature_toolset_pose.hifi"
     bl_label = "Test Avatar Rest Pose"
@@ -210,7 +211,9 @@ class HifiMMDOperator(bpy.types.Operator):
     bl_category = "High Fidelity"
     
     def execute(self, context):
-        parse_mmd_avatar_hifi()    
+        parse_mmd_avatar_hifi()
+        # Remove once fst export is available
+        retarget_armature({'apply': True})
         return {'FINISHED'}
 
 
