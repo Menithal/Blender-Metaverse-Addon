@@ -59,7 +59,8 @@ contains_to_remove = [
     "mmd_edge",
     "mmd_vertex",
     "Node",
-    "Center"
+    "Center",
+    "Control"
     
 ]
 
@@ -119,7 +120,9 @@ class MMDTranslator:
 
         print(__file__)
         try:
-            with open('mmd_hifi_dict.csv', 'r', encoding='utf-8', errors='ignore') as f:
+            local = os.path.dirname(os.path.abspath(__file__))
+            filename = os.path.join(local, 'mmd_hifi_dict.csv')
+            with open(filename, 'r', encoding='utf-8', errors='ignore') as f:
                 try:
                     stream = csv.reader(
                         f, delimiter=',', quotechar='"', skipinitialspace=True)
@@ -350,7 +353,7 @@ def clean_textures(Translator, material):
     
 def merge_textures(unique_textures, materials_slots):
       
-    for key in _unique_textures.keys():
+    for key in unique_textures.keys():
         print("Creating new material Texture")
         material_list = unique_textures[key]
         n = material_list.pop(0)
@@ -385,7 +388,15 @@ def merge_textures(unique_textures, materials_slots):
                     bpy.context.object.active_material_index = index
                     bpy.ops.object.material_slot_remove()
 
-    
+def make_materials_fullbright(materials_slots):
+	for material_slot in materials_slots:
+		print(material_slot)
+		material = material_slot.material
+		material.specular_shader = 'WARDISO'
+		material.use_shadeless = True
+		material.specular_color = (0,0,0)
+	
+
 def clean_materials(Translator, materials_slots):
     
     _unique_textures = {}
@@ -403,9 +414,7 @@ def clean_materials(Translator, materials_slots):
     print("Found", len(_unique_textures.keys()), "unique textures from", len(materials_slots), "slots")
     
     merge_textures(_unique_textures, materials_slots)
-    
-      
-        
+    # make_materials_fullbright(materials_slots)
 
 #####################################################
 # Mesh Fixes:
@@ -495,7 +504,7 @@ def clean_mesh(Translator, obj):
 
 #### --------------------
 
-def convert_for_hifi():
+def parse_mmd_avatar_hifi():
     # Should Probably have a confirmation dialog when using this.
     original_type = bpy.context.area.type
     bpy.context.area.type = 'VIEW_3D'
@@ -543,4 +552,3 @@ def convert_for_hifi():
         delete_self_and_children(deletion)
             
     bpy.context.area.type = original_type
-    

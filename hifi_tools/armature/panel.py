@@ -25,6 +25,7 @@ from mathutils import Quaternion, Vector, Euler, Matrix
 
 from hifi_tools.armature.skeleton import structure as base_armature
 from hifi_tools.armature.repose import retarget_armature, correct_scale_rotation
+from hifi_tools.utils.mmd import parse_mmd_avatar_hifi
 
 def list_tuple(l):
     if len(l) == 4:
@@ -119,6 +120,7 @@ class HifiArmaturePanel(bpy.types.Panel):
         layout = self.layout
         layout.operator(HifiArmatureCreateOperator.bl_idname)
         layout.operator(HifiArmaturePoseOperator.bl_idname)
+        layout.operator(HifiMMDOperator.bl_idname)
         layout.operator(HifiArmatureRetargetPoseOperator.bl_idname)
         return None
 
@@ -199,11 +201,25 @@ class HifiReminderOperator(bpy.types.Operator):
 
 
 
+class HifiMMDOperator(bpy.types.Operator):
+    bl_idname = "armature_toolset_fix_mmd_avatar.hifi"
+    bl_label = "Fix MMD Avatar"
+    
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "TOOLS"
+    bl_category = "High Fidelity"
+    
+    def execute(self, context):
+        parse_mmd_avatar_hifi()    
+        return {'FINISHED'}
+
+
 classes = [
     HifiArmaturePanel,
     HifiArmatureCreateOperator,
     HifiArmatureRetargetPoseOperator,
     HifiArmaturePoseOperator,
+    HifiMMDOperator,
     HifiReminderOperator
 ]
 
