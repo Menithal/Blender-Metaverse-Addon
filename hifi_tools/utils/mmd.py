@@ -108,7 +108,9 @@ parent_structure = {
     "LeftForeArm": "LeftArm",
     "RightForeArm": "RightArm",
     "LeftHand": "LeftForeArm",
-    "RightHand": "RightForeArm"
+    "RightHand": "RightForeArm",
+    "RightEye": "Head",
+    "LeftEye": "Head"
 }
 
 # Simplified Translator based on powroupi MMDTranslation
