@@ -212,8 +212,6 @@ class HifiMMDOperator(bpy.types.Operator):
     
     def execute(self, context):
         parse_mmd_avatar_hifi()
-        # Remove once fst export is available
-        retarget_armature({'apply': True})
         return {'FINISHED'}
 
 

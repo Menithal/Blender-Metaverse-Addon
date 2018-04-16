@@ -340,18 +340,21 @@ def has_armature_as_child(me):
 #####################################################
 # Material Fixes
 
-texture_override = re.compile("^((toon)|[a-zA-Z]{1,2})\d*\.?\d*$")
+texture_override = re.compile("^((toon-?)|[a-zA-Z]{1,2})\d*\.?\d*$")
 sphere_test = re.compile("Sphere")
+spa_file_test = re.compile("(/spa|h/)|(.spa|h$)")
+toon_file_test = re.compile("/toon/")
 def clean_textures(Translator, material):
     name = []
     
     for idx, texture_slot in enumerate(material.texture_slots):
-        if texture_slot is not None and texture_slot.texture is not None:
+        if texture_slot is not None and texture_slot.texture is not None and texture_slot.texture.image is not None:
             translated_name = Translator.translate(texture_slot.name)
             print( "# Checking", translated_name)
-            if texture_override.match(translated_name) or sphere_test.search(translated_name) is not None:
-                print(" - Removing Texture", translated_name)
-                
+            image = texture_slot.texture.image.filepath_raw
+            if not texture_slot.use or texture_override.match(translated_name) or sphere_test.search(translated_name) is not None or spa_file_test.search(image) is not None or toon_file_test.search(image) is not None:
+                print(" - Removing Texture", translated_name, image)
+               
                 try:
                     bpy.data.textures.remove(texture_slot.texture)
                 except (RuntimeError, TypeError): # catch exception if there are remaining texture users or texture is None
@@ -375,13 +378,15 @@ def merge_textures(unique_textures, materials_slots):
         print("Creating new material Texture", key)
         n = material_list.pop(0)
         first_material = materials_slots.get(n)
-        
-        print(first_material)
+        if first_material is None:
+            print("Could not find", first_material)
+            continue
         root_material = key + "_material"
         first_material.material.name = root_material
         root_index = materials_slots.find(root_material)
-        
-        
+              
+       
+
         bpy.ops.object.mode_set(mode='EDIT')   
         bpy.ops.mesh.select_all(action='DESELECT') 
         if len(material_list) > 0:
@@ -423,26 +428,28 @@ def make_materials_fullbright(materials_slots):
 	
 
 def clean_materials(Translator, materials_slots):
-    
-    print("#######################################")
-    print("Cleaning Materials")
+    try:
+        print("#######################################")
+        print("Cleaning Materials")
 
-    _unique_textures = {}
-    for material_slot in materials_slots:
-        if material_slot is not None and material_slot.material is not None:
-            material_slot.material.name = Translator.translate(material_slot.name)
-            texture_names = clean_textures(Translator, material_slot.material)
+        _unique_textures = {}
+        for material_slot in materials_slots:
+            if material_slot is not None and material_slot.material is not None:
+                material_slot.material.name = Translator.translate(material_slot.name)
+                texture_names = clean_textures(Translator, material_slot.material)
 
-            for texture_name in texture_names:
-                if texture_name is not None and _unique_textures.get(texture_name) is None:
-                    _unique_textures[texture_name] = [material_slot.material.name]
-                elif texture_name is not None:
-                    _unique_textures[texture_name].append(material_slot.material.name)
+                for texture_name in texture_names:
+                    if texture_name is not None and _unique_textures.get(texture_name) is None:
+                        _unique_textures[texture_name] = [material_slot.material.name]
+                    elif texture_name is not None:
+                        _unique_textures[texture_name].append(material_slot.material.name)
+            
         
-    
-    print("Found", len(_unique_textures.keys()), "unique textures from", len(materials_slots), "slots")
-    
-    merge_textures(_unique_textures, materials_slots)
+        print("Found", len(_unique_textures.keys()), "unique textures from", len(materials_slots), "slots")
+        
+        merge_textures(_unique_textures, materials_slots)
+    except Exception as args:
+        print("ERROR OCCURRED WHILE TRYING TO PROCESS TEXTURES", args)
     # make_materials_fullbright(materials_slots) # enable this only if fullbright avatars every become supported
 
 #####################################################
@@ -485,8 +492,12 @@ def fix_vertex_groups(obj):
     for vertex_group in vertex_groups:
         if "IK" in vertex_group.name:
             remove_list.append(vertex_group.name)
-            
-        if "ArmTwist" in vertex_group.name:
+        
+        if "Eyes" == vertex_group.name:
+            mix_weights("Head", "Eyes")
+            remove_list.append(vertex_group.name)
+
+        elif "ArmTwist" in vertex_group.name:
             root = re.sub(arm_re, "Arm", vertex_group.name)
             parent = vertex_groups.get(root)
             if parent is not None:
