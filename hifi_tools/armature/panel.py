@@ -204,7 +204,7 @@ class HifiReminderOperator(bpy.types.Operator):
 
 class HifiMMDOperator(bpy.types.Operator):
     bl_idname = "armature_toolset_fix_mmd_avatar.hifi"
-    bl_label = "Fix MMD Avatar"
+    bl_label = "Convert MMD Avatar"
     
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
