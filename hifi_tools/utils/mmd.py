@@ -116,6 +116,21 @@ parent_structure = {
     "LeftEye": "Head"
 }
 
+
+
+finger_correction = {
+    "RightThumb0": "RightHandThumb1",
+    "RightThumb1": "RightHandThumb2",
+    "RightThumb2": "RightHandThumb3",
+
+    "LeftThumb0": "LeftHandThumb1",
+    "LeftThumb1": "LeftHandThumb2",
+    "LeftThumb2": "LeftHandThumb3",
+    "IndexFinger": "HandIndex",
+    "MiddleFinger": "HandMiddle",
+    "RingFinger": "HandRing",
+    "LittleFinger": "HandPinky"
+}
 # Simplified Translator based on powroupi MMDTranslation
 
 
@@ -225,10 +240,11 @@ def has_removable(val):
             return True
     return False
 
-
+hand_re = re.compile("(?:(?:Left)|(?:Right)Hand[A-Za-z]+)(\d)")
 def correct_bone_parents(bones):
 
     keys = parent_structure.keys()
+    finger_keys = finger_correction.keys()
 
     for bone in bones:
         if bone.name == "Hips":
@@ -239,6 +255,17 @@ def correct_bone_parents(bones):
                 parent_bone = bones.get(parent)
                 if parent_bone is not None:
                     bone.parent = parent_bone
+        
+        if "Finger" in bone.name or "Thumb" in bone.name:
+            newname = bone.name
+
+            for finger in finger_keys:
+                newname = newname.replace(finger, finger_correction.get(finger))
+
+            m = hand_re.search(newname)
+            if m is not None:
+                number = m.group(1)
+                bone.name = newname.replace(number, str(int(number)+1))
 
 
 def correct_bone_rotations(obj):
