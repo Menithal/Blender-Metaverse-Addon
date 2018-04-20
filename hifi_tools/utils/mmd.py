@@ -240,7 +240,7 @@ def has_removable(val):
             return True
     return False
 
-hand_re = re.compile("(?:(?:Left)|(?:Right)Hand[A-Za-z]+)(\d)")
+hand_re = re.compile("(?:(?:Left)|(?:Right))Hand[A-Za-z]+(\d)")
 def correct_bone_parents(bones):
 
     keys = parent_structure.keys()
