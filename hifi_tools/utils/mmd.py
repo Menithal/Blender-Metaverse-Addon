@@ -7,6 +7,7 @@ import os
 from math import pi
 import copy
 from mathutils import Vector
+import hifi_tools.utils.bones
 # Based on powroupi the MMD Translation script combined with a Hogarth-MMD Translation csv that has been modified to select names as close as possible
 # This instead uses a predefined list that is Hifi Compatable.
 
@@ -225,6 +226,7 @@ def delete_self_and_children(me):
 #####################################################
 # Armature Fixes:
 
+
 def translate_bones(Translator, bones):
     for idx, bone in enumerate(bones):
         bone.hide = False
@@ -233,12 +235,6 @@ def translate_bones(Translator, bones):
         translated = Translator.translate(bone.name)
         bone.name = translated
 
-
-def has_removable(val):
-    for word in contains_to_remove:
-        if word in val:
-            return True
-    return False
 
 hand_re = re.compile("(?:(?:Left)|(?:Right))Hand[A-Za-z]+(\d)")
 def correct_bone_parents(bones):
@@ -270,10 +266,11 @@ def correct_bone_parents(bones):
 
 def correct_bone_rotations(obj):
     if "Eye" in obj.name:
-        print("   ", obj.name)
         bone_head = Vector(obj.head)
         bone_head.z += 0.05
         obj.tail = bone_head
+        obj.roll = 0
+        
     elif "Hips" == obj.name:
         bone_head = Vector(obj.head)
         bone_tail = Vector(obj.tail)
@@ -289,6 +286,12 @@ def correct_bone_rotations(obj):
                       bones_to_correct_rolls[idx], "current", obj.roll)
                 obj.roll = bones_to_correct_rolls[idx] * (pi/180)
 
+
+def has_removable(val):
+    for word in contains_to_remove:
+        if word in val:
+            return True
+    return False
 
 def clean_up_bones(obj):
     _to_remove = []
@@ -365,14 +368,6 @@ def convert_bones(Translator, obj):
     print("Cleaning Up Bones")
     clean_up_bones(obj)
 
-
-
-
-def has_armature_as_child(me):
-    for child in me.children:
-        if child.type == "ARMATURE":
-            return True
-    return False
 
 
 #####################################################
