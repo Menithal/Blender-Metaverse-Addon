@@ -31,6 +31,28 @@ def get_textures_for_slot(texture_slots, texture_type="ALL"):
     return texture_list
 
 
+def clean_textures(material):
+    textures = []
+    for idx, texture_slot in enumerate(material.texture_slots):
+        if texture_slot is not None and texture_slot.texture is not None and texture_slot.texture.image is not None:
+            image_path = texture_slot.texture.image.filepath_raw
+            texture_name = texture_slot.name
+            print("# Checking", texture_name, image_path)
+            if (not texture_slot.use or texture_slot.texture_coords != "UV"):
+                print(" - Removing Texture", texture_name, image_path)
+                try:
+                    bpy.data.textures.remove(texture_slot.texture)
+                # catch exception if there are remaining texture users or texture is None
+                except (RuntimeError, TypeError):
+                    pass
+
+                material.texture_slots.clear(idx)
+            else:
+                textures.append(texture_slot.texture)
+    return textures
+
+
+
 def merge_textures(materials_slots, unique_textures=None):
     if unique_textures is None:
         unique_textures = {}
@@ -39,34 +61,41 @@ def merge_textures(materials_slots, unique_textures=None):
             if len ( textures) > 0:
                 unique_textures[textures[0].name] = textures
 
+    print( "Processing", unique_textures)
     for key in unique_textures.keys():
         material_list = unique_textures[key]
 
         if material_list is None:
             continue
 
-        print("Creating new material Texture", key)
-        n = material_list.pop(0)
-        first_material = materials_slots.get(n)
+        print("Creating new material Texture", key, material_list)
+        first_material = material_list.pop(0)
+        print("First material", first_material)
         if first_material is None:
             print("Could not find", first_material)
             continue
+
+
         root_material = key + "_material"
-        first_material.material.name = root_material
+        first_material.name = root_material
+
         root_index = materials_slots.find(root_material)
 
         bpy.ops.object.mode_set(mode='EDIT')
         bpy.ops.mesh.select_all(action='DESELECT')
-        if len(material_list) > 0:
-
+    
+        print("Deselected objects, now continueing")
+        if len(material_list) > 0:  
             for material in material_list:
-                index = materials_slots.find(material)
+                print(material, materials_slots)
+                index = materials_slots.find(material.name)
+                print("First Index issue")
                 if index > -1:
-                    print("  + Selecting", key, material)
+                    print("  + Selecting", key, material.name)
                     bpy.context.object.active_material_index = index
-                    bpy.ops.object.material_slot_select()
+                    bpy.ops.object.material_slot_select()      
 
-        print("  + Selecting", key)
+        print("  + Selecting", key, root_index)
         bpy.context.object.active_material_index = root_index
         bpy.ops.object.material_slot_select()
 
@@ -77,9 +106,40 @@ def merge_textures(materials_slots, unique_textures=None):
         print(" - Clean up", key)
         if len(material_list) > 0:
             for material in material_list:
-                index = materials_slots.find(material)
+                index = materials_slots.find(material.name)
+                print("Second Index issue")
 
                 if index > -1:
                     print("  - Deleting", material)
                     bpy.context.object.active_material_index = index
                     bpy.ops.object.material_slot_remove()
+
+
+def clean_materials(materials_slots):
+    try:
+        print("#######################################")
+        print("Cleaning Materials")
+
+        _unique_textures = {}
+        for material_slot in materials_slots:
+            if material_slot is not None and material_slot.material is not None:
+                textures = clean_textures(material_slot.material)
+
+                for texture in textures:
+                    if texture is not None:
+                        if _unique_textures.get(texture.name) is None:
+                            print("Creating new", texture.name)
+                            _unique_textures[texture.name] = [
+                                material_slot.material]
+                        else:
+                            print("Appending to", texture.name)
+                            _unique_textures[texture.name].append(
+                                material_slot.material)
+
+        print("Found", len(_unique_textures.keys()),
+              "unique textures from", len(materials_slots), "slots")
+
+        merge_textures(materials_slots, _unique_textures)
+    except Exception as args:
+        print("ERROR OCCURRED WHILE TRYING TO PROCESS TEXTURES", args)
+    # make_materials_fullbright(materials_slots) # enable this only if fullbright avatars every become supported

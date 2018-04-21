@@ -1,3 +1,92 @@
+import bpy
+import re
+from math import pi
+from mathutils import Vector
+
+
+corrected_axis = {
+    "GLOBAL_NEG_Z": ["Shoulder", "Arm", "Hand", "Thumb"],
+    "GLOBAL_NEG_Y": ["Spine", "Head", "Hips", "Leg", "Foot", "Toe", "Eye"]
+}
+
+bone_parent_structure = {
+    #Bone : Parent
+    "LeftToe": "LeftFoot",
+    "RightToe": "RightFoot",
+    "LeftFoot": "LeftLeg",
+    "RightFoot": "RightLeg",
+    "LeftLeg": "LeftUpLeg",
+    "RightLeg": "RightUpLeg",
+    "LeftUpLeg": "Hips",
+    "RightUpLeg": "Hips",
+    "Spine1": "Spine",
+    "Spine2": "Spine1",
+    "Spine": "Hips",
+    "Neck": "Spine2",
+    "Head": "Neck",
+    "LeftShoulder": "Spine2",
+    "RightShoulder": "Spine2",
+    "LeftArm": "LeftShoulder",
+    "RightArm": "RightShoulder",
+    "LeftForeArm": "LeftArm",
+    "RightForeArm": "RightArm",
+    "LeftHand": "LeftForeArm",
+    "RightHand": "RightForeArm",
+    "RightEye": "Head",
+    "LeftEye": "Head"
+}
+
+def correct_bone_parents(bones):
+    keys = bone_parent_structure.keys()
+    for bone in bones:
+        if bone.name == "Hips":
+            bone.parent = None
+        else:
+            parent = bone_parent_structure.get(bone.name)
+            if parent is not None:
+                parent_bone = bones.get(parent)
+                if parent_bone is not None:
+                    bone.parent = parent_bone
+
+
+def correct_bone_rotations(obj):
+    name = obj.name
+    if "Eye" in name:
+        bone_head = Vector(obj.head)
+        bone_head.z += 0.05
+        obj.tail = bone_head
+        obj.roll = 0
+
+    elif "Hips" == name:
+        bone_head = Vector(obj.head)
+        bone_tail = Vector(obj.tail)
+        if bone_head.z > bone_tail.z:
+            obj.head = bone_tail
+            obj.tail = bone_head
+        else:
+            print("Hips already correct")
+    else:
+        axises = corrected_axis.keys()
+
+        correction = None
+        for axis in axises:
+            for axis_name in axis:
+                if axis_name in name:
+                    correction = axis
+                    break
+            if correction is not None:
+                break
+        
+        if correction is not None:
+            
+            bpy.ops.object.mode_set(mode='EDIT')
+
+            bpy.ops.armature.select_all(action="DESELECT")
+            obj.select = True
+            bpy.ops.armature.calculate_roll(type=axis)
+            bpy.ops.armature.select_all(action="DESELECT")
+
+
 def has_armature_as_child(me):
     for child in me.children:
         if child.type == "ARMATURE":
