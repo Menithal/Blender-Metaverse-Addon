@@ -36,6 +36,7 @@ bone_parent_structure = {
     "LeftEye": "Head"
 }
 
+
 def correct_bone_parents(bones):
     keys = bone_parent_structure.keys()
     for bone in bones:
@@ -69,22 +70,22 @@ def correct_bone_rotations(obj):
         axises = corrected_axis.keys()
 
         correction = None
+        found = False
         for axis in axises:
-            for axis_name in axis:
-                if axis_name in name:
-                    correction = axis
-                    break
-            if correction is not None:
-                break
-        
-        if correction is not None:
-            
-            bpy.ops.object.mode_set(mode='EDIT')
+            corrections = corrected_axis.get(axis)
+            for correction in corrections:
+                if correction in name:
+                    print("Found correction", name, axis)
+                    bpy.ops.object.mode_set(mode='EDIT')
 
-            bpy.ops.armature.select_all(action="DESELECT")
-            obj.select = True
-            bpy.ops.armature.calculate_roll(type=axis)
-            bpy.ops.armature.select_all(action="DESELECT")
+                    bpy.ops.armature.select_all(action="DESELECT")
+                    obj.select = True
+                    bpy.ops.armature.calculate_roll(type=axis)
+                    bpy.ops.armature.select_all(action="DESELECT")
+                    found = True
+                    break
+            if found:
+                break
 
 
 def has_armature_as_child(me):

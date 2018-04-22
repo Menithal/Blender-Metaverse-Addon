@@ -383,6 +383,13 @@ def translate_list(Translator, list_to_translate):
 
 
 def parse_mmd_avatar_hifi():
+
+    if not bpy.data.is_saved or bpy.data.is_dirty:
+        print("Select a Directory")
+        bpy.ops.hifi_error.save_file('INVOKE_DEFAULT')
+        return
+
+    bpy.ops.wm.console_toggle()
     # Should Probably have a confirmation dialog when using this.
     original_type = bpy.context.area.type
     bpy.context.area.type = 'VIEW_3D'
@@ -434,4 +441,7 @@ def parse_mmd_avatar_hifi():
     for deletion in marked_for_purge:
         delete_self_and_children(deletion)
 
+    materials.pack_images(bpy.data.images)
+    materials.convert_images_to_mask(bpy.data.images)
     bpy.context.area.type = original_type
+    bpy.ops.wm.console_toggle()

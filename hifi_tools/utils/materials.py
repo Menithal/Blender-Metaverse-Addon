@@ -1,5 +1,67 @@
-
+import copy
 import bpy
+
+def pack_images(images):
+    mode = bpy.context.area.type
+    print("Storing mode")
+    bpy.context.area.type = 'IMAGE_EDITOR'
+    print("Packing Images")
+
+    for image in images:
+        pixel_count = len(image.pixels)
+        if image.users > 0 and pixel_count > 0:
+            image.name = image.name.replace(".tga", ".png")
+            
+            bpy.context.area.spaces.active.image = image
+            bpy.ops.image.pack(as_png=True)
+            
+            image.packed_files[0].filepath = image.packed_files[0].filepath.replace(".tga", ".png")
+            print("+ Packing", image.name, image.filepath)
+
+        else:
+            bpy.data.images.remove(image)
+
+    bpy.context.area.type = mode
+
+
+def convert_image_to_mask(image, threshold):
+    print("Copying image to memory", image.name)
+    
+    mode = bpy.context.area.type
+    bpy.context.area.type = 'IMAGE_EDITOR'
+    pixels = list(image.pixels)
+    size = len(pixels)
+
+    if size == 0:
+        return
+
+    pxs = range(0, int(size/4))
+
+    print(" Starting Mask pass")
+    for pixel_index in pxs:
+        index = pixel_index*4 + 3
+        if pixels[index] > threshold:
+            pixels[index] = 1
+        else:
+            pixels[index] = 0
+
+    print(" Applying Image")
+    image.pixels = pixels
+    
+    image.update()
+
+    image.save()
+
+    bpy.context.area.spaces.active.image = image
+    bpy.ops.image.unpack(method='WRITE_LOCAL')
+    
+    bpy.context.area.type = mode
+
+
+
+def convert_images_to_mask(images, threshold=0.3):
+    for image in images:
+        convert_image_to_mask(image, threshold)
 
 
 def make_materials_shadeless(materials_slots):
@@ -52,16 +114,15 @@ def clean_textures(material):
     return textures
 
 
-
 def merge_textures(materials_slots, unique_textures=None):
     if unique_textures is None:
         unique_textures = {}
         for slot in materials_slots:
             textures = get_textures_for_slot(slot.texture_slots)
-            if len ( textures) > 0:
+            if len(textures) > 0:
                 unique_textures[textures[0].name] = textures
 
-    print( "Processing", unique_textures)
+    print("Processing", unique_textures)
     for key in unique_textures.keys():
         material_list = unique_textures[key]
 
@@ -75,7 +136,6 @@ def merge_textures(materials_slots, unique_textures=None):
             print("Could not find", first_material)
             continue
 
-
         root_material = key + "_material"
         first_material.name = root_material
 
@@ -83,9 +143,9 @@ def merge_textures(materials_slots, unique_textures=None):
 
         bpy.ops.object.mode_set(mode='EDIT')
         bpy.ops.mesh.select_all(action='DESELECT')
-    
+
         print("Deselected objects, now continueing")
-        if len(material_list) > 0:  
+        if len(material_list) > 0:
             for material in material_list:
                 print(material, materials_slots)
                 index = materials_slots.find(material.name)
@@ -93,7 +153,7 @@ def merge_textures(materials_slots, unique_textures=None):
                 if index > -1:
                     print("  + Selecting", key, material.name)
                     bpy.context.object.active_material_index = index
-                    bpy.ops.object.material_slot_select()      
+                    bpy.ops.object.material_slot_select()
 
         print("  + Selecting", key, root_index)
         bpy.context.object.active_material_index = root_index

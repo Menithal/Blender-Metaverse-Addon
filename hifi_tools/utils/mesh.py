@@ -2,6 +2,7 @@
 import bpy
 import copy
 
+
 def mix_weights(a, b):
     print("  Mixing", a, b)
     bpy.ops.object.modifier_add(type='VERTEX_WEIGHT_MIX')
@@ -11,7 +12,6 @@ def mix_weights(a, b):
 
     bpy.context.object.modifiers["VertexWeightMix"].mix_set = 'OR'
     bpy.ops.object.modifier_apply(apply_as='DATA', modifier="VertexWeightMix")
-
 
 
 def clean_unused_vertex_groups(obj):

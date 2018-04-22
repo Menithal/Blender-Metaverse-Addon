@@ -202,6 +202,32 @@ class HifiReminderOperator(bpy.types.Operator):
 
 
 
+class HifiSaveReminderOperator(bpy.types.Operator):
+    bl_idname = "hifi_error.save_file"
+    bl_label = "You must save file first"
+    bl_options = {'REGISTER', 'INTERNAL'}
+
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def invoke(self, context, even):
+        print("Invoked")
+        wm = context.window_manager
+        return wm.invoke_popup(self, width=400, height=200)
+
+    def execute(self, context):
+        return {'FINISHED'}
+    
+    def draw(self, context): 
+        layout = self.layout
+
+        row = layout.row()
+        row.label(text="Warning:", icon="ERROR")
+        row = layout.row()
+        row.label(self.bl_label)
+
+
 class HifiMMDOperator(bpy.types.Operator):
     bl_idname = "armature_toolset_fix_mmd_avatar.hifi"
     bl_label = "Convert MMD Avatar"
@@ -221,7 +247,8 @@ classes = [
     HifiArmatureRetargetPoseOperator,
     HifiArmaturePoseOperator,
     HifiMMDOperator,
-    HifiReminderOperator
+    HifiReminderOperator,
+    HifiSaveReminderOperator
 ]
 
 def armature_create_menu_func(self,context):

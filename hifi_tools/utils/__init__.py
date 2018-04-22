@@ -4,11 +4,13 @@ if "bpy" in locals():
     importlib.reload(mesh)
     importlib.reload(bones)
     importlib.reload(mmd)
+    importlib.reload(tools)
 else:
     from . import (
         helpers,
         mesh,
         bones,
-        mmd
+        mmd,
+        tools
     )
     import bpy
