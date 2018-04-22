@@ -443,5 +443,11 @@ def parse_mmd_avatar_hifi():
 
     materials.pack_images(bpy.data.images)
     materials.convert_images_to_mask(bpy.data.images)
+
+    materials.unpack_images(bpy.data.images)
+
     bpy.context.area.type = original_type
+    
+    bpy.ops.file.make_paths_absolute()
+
     bpy.ops.wm.console_toggle()

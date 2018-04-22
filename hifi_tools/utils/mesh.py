@@ -2,7 +2,6 @@
 import bpy
 import copy
 
-
 def mix_weights(a, b):
     print("  Mixing", a, b)
     bpy.ops.object.modifier_add(type='VERTEX_WEIGHT_MIX')
