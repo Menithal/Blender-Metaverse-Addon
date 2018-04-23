@@ -66,8 +66,19 @@ def swap_nyz(vector):
 
 def swap_nzy(vector):
     return Vector((vector[0], vector[2], -vector[1]))
-    
 
+def matrix4_to_dict(m):
+    return [vec4_to_list(m[0]),
+        vec4_to_list(m[1]),
+        vec4_to_list(m[2]),
+        vec4_to_list(m[3])]
+
+def vec4_to_list(v):
+    return [v[0],v[1],v[2],v[3]]
+
+
+def vec_to_list(v):
+    return [v.x,v.y,v.z]
 
 # Utility to swap quaternion axis to -zy
 def quat_swap_nyz(q):
@@ -97,3 +108,18 @@ def quat_swap_nzy(q):
     axis.y = temp
     return Quaternion(axis, angle)
 
+
+def list_tuple(l):
+    if len(l) == 4:
+        return(l[0], l[1], l[2], l[3])
+
+    return (l[0], l[1], l[2])
+
+
+def list_vector(l):
+    t = list_tuple(l)
+    return Vector(t)
+
+
+def list_matrix(v):
+    return Matrix((v[0], v[1], v[2], v[3]))

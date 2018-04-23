@@ -3,11 +3,13 @@ if "bpy" in locals():
     
     importlib.reload(panel)
     importlib.reload(repose)
+    importlib.reload(skeleton)
 
 else:
     from . import (
         panel,
-        repose
+        repose,
+        skeleton
     )
 
     import bpy

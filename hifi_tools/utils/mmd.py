@@ -68,7 +68,6 @@ contains_to_remove = [
 
 # Simplified Translator based on powroupi MMDTranslation
 
-
 class MMDTranslator:
     def __init__(self):
         self.translation_dict = []
@@ -158,8 +157,8 @@ def delete_self_and_children(me):
 
 
 #####################################################
-# Armature Fixes:
-
+# Armature Fixes:                                   #
+#####################################################
 
 finger_name_correction = {
     "RightThumb0": "RightHandThumb1",
@@ -283,8 +282,8 @@ def convert_bones(Translator, obj):
     clean_up_bones(obj)
 
 #####################################################
-# Mesh Fixes:
-
+# Mesh Fixes:                                       #
+#####################################################
 
 def translate_shape_keys(Translator, shape_keys):
     print(" Translating shapekeys ", shape_keys.items())
@@ -382,14 +381,16 @@ def translate_list(Translator, list_to_translate):
         entry.name = Translator.translate(entry.name)
 
 
-def parse_mmd_avatar_hifi():
+def convert_mmd_avatar_hifi():
 
-    if not bpy.data.is_saved or bpy.data.is_dirty:
+    if not bpy.data.is_saved:
         print("Select a Directory")
         bpy.ops.hifi_error.save_file('INVOKE_DEFAULT')
         return
 
     bpy.ops.wm.console_toggle()
+    
+    print("Converting MMD Avatar to be Blender-High Fidelity compliant")
     # Should Probably have a confirmation dialog when using this.
     original_type = bpy.context.area.type
     bpy.context.area.type = 'VIEW_3D'
@@ -442,9 +443,9 @@ def parse_mmd_avatar_hifi():
         delete_self_and_children(deletion)
 
     materials.pack_images(bpy.data.images)
-    materials.convert_images_to_mask(bpy.data.images)
 
     materials.unpack_images(bpy.data.images)
+    materials.convert_images_to_mask(bpy.data.images)
 
     bpy.context.area.type = original_type
     

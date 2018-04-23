@@ -10,7 +10,6 @@ corrected_axis = {
 }
 
 bone_parent_structure = {
-    #Bone : Parent
     "LeftToe": "LeftFoot",
     "RightToe": "RightFoot",
     "LeftFoot": "LeftLeg",
@@ -109,3 +108,63 @@ def delete_bones(edit_bones, bones_to_remove):
         if removal_bone is not None:
             print(" Remove Bone:", removal_bone)
             edit_bones.remove(removal_bone)
+
+
+def build_armature_structure(data, current_node, parent):
+
+    name = current_node["name"]
+    bpy.ops.armature.bone_primitive_add(name=name)
+
+    current_bone_index = data.edit_bones.find(name)
+    current_bone = data.edit_bones[current_bone_index]
+
+    current_bone.parent = parent
+
+    current_bone.head = current_node["head"]
+    current_bone.tail = current_node["tail"]
+    mat = current_node['matrix']
+    current_bone.matrix = mat
+
+    if current_node["connect"]:
+        current_bone.use_connect = True
+
+    for child in current_node["children"]:
+        build_armature_structure(data, child, current_bone)
+
+    return current_bone
+
+
+def build_skeleton():
+    current_view = bpy.context.area.type
+
+    try:
+        bpy.context.area.type = 'VIEW_3D'
+        # set context to 3D View and set Cursor
+        bpy.context.space_data.cursor_location[0] = 0.0
+        bpy.context.space_data.cursor_location[1] = 0.0
+        bpy.context.space_data.cursor_location[2] = 0.0
+
+        print("----------------------")
+        print("Creating Base Armature")
+        print("----------------------")
+        # Reset mode to Object, just to be sure
+
+        if bpy.context.active_object:
+            bpy.ops.object.mode_set(mode='OBJECT')
+
+        bpy.ops.object.add(type="ARMATURE", enter_editmode=True)
+
+        current_armature = bpy.context.active_object
+
+        current_armature.name = "HifiArmature"
+
+        for root_bone in base_armature:
+            build_armature_structure(current_armature.data, root_bone, None)
+
+        correct_scale_rotation(bpy.context.active_object, True)
+
+    except Exception as detail:
+        print('Error', detail)
+
+    finally:
+        bpy.context.area.type = current_view

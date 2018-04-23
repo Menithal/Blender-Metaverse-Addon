@@ -1,23 +1,40 @@
 import copy
 import bpy
+import re
+
+
+def cleanup_unused(images):
+    for image in images:
+        pixel_count = len(image.pixels)
+        if not (image.users > 0 and pixel_count > 0):
+            bpy.data.images.remove(image)
+
 
 def pack_images(images):
     mode = bpy.context.area.type
     print("Storing mode")
     bpy.context.area.type = 'IMAGE_EDITOR'
     print("Packing Images")
+    filename_re = re.compile("\\.[a-zA-Z]{2,4}$")
 
     for image in images:
         pixel_count = len(image.pixels)
         if image.users > 0 and pixel_count > 0:
             bpy.context.area.spaces.active.image = image
             bpy.ops.image.pack(as_png=True)
-            image.name = image.name.replace(".tga", ".png").replace(".dds", ".png")
-            image.packed_files[0].filepath = image.packed_files[0].filepath.replace(".tga", ".png").replace(".dds", ".png")
+
+            image.name = filename_re.sub(".png", image.name)
+            image.packed_files[0].filepath = filename_re.sub(".png",
+                image.packed_files[0].filepath)
+                
+            bpy.context.area.spaces.active.image = image
+
+            bpy.ops.image.save()
+            bpy.ops.image.reload()
             print("+ Packing", image.name, image.filepath)
         else:
             bpy.data.images.remove(image)
-    
+
     bpy.context.area.type = mode
 
 
@@ -29,21 +46,19 @@ def unpack_images(images):
         ## ---- #
         bpy.context.area.spaces.active.image = image
         bpy.ops.image.unpack(method='WRITE_LOCAL')
-        image.save()
-        image.update()
-        print("Tests")
+        bpy.ops.image.save()
+        bpy.ops.image.reload()
 
-    bpy.ops.image.save_dirty()
+    #bpy.ops.image.save_dirty()
     ## ---- #
     bpy.context.area.type = mode
 
-        
 
 def convert_image_to_mask(image, threshold):
     print("Copying image to memory", image.name)
     pixels = list(image.pixels)
     size = len(pixels)
-    
+
     mode = bpy.context.area.type
     bpy.context.area.type = 'IMAGE_EDITOR'
     bpy.context.area.spaces.active.image = image
@@ -58,11 +73,10 @@ def convert_image_to_mask(image, threshold):
         else:
             pixels[index] = 0
     image.pixels = pixels
-    #image.save()
+    # image.save()
 
     bpy.ops.image.save()
     bpy.context.area.type = mode
-
 
 
 def convert_images_to_mask(images, threshold=0.3):
@@ -70,16 +84,36 @@ def convert_images_to_mask(images, threshold=0.3):
         convert_image_to_mask(image, threshold)
 
 
-
-def make_materials_shadeless(materials_slots):
-    for material_slot in materials_slots:
-        material = material_slot.material
+def make_material_shadeless(material):
+    if material is not None:
         material.specular_shader = 'WARDISO'
         material.use_shadeless = True
         material.specular_color = (0, 0, 0)
 
 
-# Returns all textures that match the texture_type
+def make_materials_shadeless(materials):
+    for material in materials:
+        make_material_shadeless(material)
+
+
+def make_material_shaded(material):
+    if material is not None:
+        material.specular_shader = 'PHONG'
+        material.use_shadeless = False
+
+
+def make_materials_shaded(materials):
+    for material in materials:
+        make_material_shaded(material)
+
+
+def make_materials_fullbright(materials):
+    for material in materials:
+        for texture_slot in material.texture_slots:
+            if texture_slot is not None and texture_slot.use_map_color_diffuse:
+                texture_slot.use_map_emit = True
+
+
 def get_textures_for_slot(texture_slots, texture_type="ALL"):
     texture_list = []
 

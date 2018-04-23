@@ -245,6 +245,10 @@ class HifiResetDiffuseOperator(bpy.types.Operator):
       
     
 class HifiGenericTextureOperator(bpy.types.Operator):
+
+    bl_idname = HifiMaterialOperator.bl_idname + "_generic_reset_color"
+    bl_label = "Reset Tint" 
+   
     has_operation = None
     texture_operation = None
     postfix = ""
