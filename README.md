@@ -1,27 +1,34 @@
 # Blender Hifi AddOn
 
-This add On project ("Hermes") is a community driven project started by Menithal to 
-create a plugin for blender to allow for easier content creation for the High Fidelity Metaverse.
-
+This add On project ("Hermes") a plugin for Blender to allow for easier content creation and importing for the High Fidelity Metaverse Platform
 
 # Installation Guide
 
-Open the Github page, and press `Clone or download` and download as zip.
+## Simple
+Open the Github page, Go to releases and download the `hifi_tools.zip` zip file.
 
 In Blender. Goto `User Preferences`, and `Add-ons`. From there `Install Add-on from File` and select the Zip file that we downloaded.
 
 Enable the plugin under `Import-Export: Hifi Blender Add-On`
 
+## If you downloaded the download repository:
+
+Copy `hifi_tools` folder to your Blender Addons Directory. 
+
+On Windows this is under `%APPDATA%/Blender Foundation/Blender/<BlenderVersion>/addons`
 
 
 # Use
 
-For now, the add-on allows you to import primitive entities from High Fidelity. In High Fidelity,  select the entities you want to export and press export. 
+## Importing from Hifi:
+The add-on allows you to import primitive entities from High Fidelity. In High Fidelity,  select the entities you want to export and press export. 
 
 In Blender, You can then import these entities with `File > Import > HiFi Metaverse Scene JSON`
 
-You can then set materials to the objects via the material panel, modify the mesh, do uv mapping corrections, then export it, ready for marketplace. 
+You can then set materials to the objects via the material panel, modify the mesh, do uv mapping corrections.
 
+
+## Exporting for Hifi
 You can then export the entities with `File > Export > HiFi Metaverse Scene JSON/FBX`
 
 Prior to pressing export, get the path to the server the files will be hosted on, or create an item in the marketplace, and copy the edit link path and paste it into the export url override.
