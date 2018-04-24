@@ -22,19 +22,6 @@
 import json
 import bpy
 
-def matrix4_to_dict(m):
-    return [vec4_to_list(m[0]),
-        vec4_to_list(m[1]),
-        vec4_to_list(m[2]),
-        vec4_to_list(m[3])]
-
-def vec4_to_list(v):
-    return [v[0],v[1],v[2],v[3]]
-
-
-def vec_to_list(v):
-    return [v.x,v.y,v.z]
-
 def build_armature(bone, bones, tree): 
     
     regular_bone = bones[bone.name] 

@@ -2,6 +2,17 @@
 import bpy
 import copy
 
+
+def get_mesh_from(selected):
+    meshes = []
+    
+    for select in selected:
+        if select.type == "MESH":
+            meshes.append(select)
+
+    return meshes
+
+
 def mix_weights(a, b):
     print("  Mixing", a, b)
     bpy.ops.object.modifier_add(type='VERTEX_WEIGHT_MIX')
@@ -15,7 +26,6 @@ def mix_weights(a, b):
 
 def clean_unused_vertex_groups(obj):
     # This part is generic:
-
     bpy.ops.object.mode_set(mode='OBJECT')
     vertex_groups = copy.copy(obj.vertex_groups.values())
 

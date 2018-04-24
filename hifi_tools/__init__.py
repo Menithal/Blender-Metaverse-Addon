@@ -20,7 +20,7 @@
 bl_info = {
     "name": "HiFi Blender Add-on",
     "author": "Matti 'Menithal' Lahtinen",
-    "version": (0,8,13),
+    "version": (0,9,0),
     "blender": (2,7,7),
     "location": "File > Import-Export, Materials, Armature",
     "description": "Blender tools to allow for easier Content creation for High Fidelity",
@@ -29,7 +29,6 @@ bl_info = {
     "support": "COMMUNITY",
     "category": "Import-Export",
 }
-
 
 import addon_utils
 import sys
@@ -41,18 +40,25 @@ if "bpy" in locals():
     else:
         import importlib
     
+    importlib.reload(armature)
     importlib.reload(utils)
     importlib.reload(world)
-    importlib.reload(armature)
     importlib.reload(files)
-
+    importlib.reload(FSTWriterOperator)
+    importlib.reload(JSONLoaderOperator)
+    
 else:
-    print("Load World")
-    from . import utils
-    from . import world
+    print("Load Armature")
     from . import armature
+    print("Load Utils")
+    from . import utils
+    print("Load World")
+    from . import world
+    print("Load Files")
+    from . import files
 
     from .files.hifi_json.operator import *
+    from .files.fst.operator import *
     
     import bpy
 
@@ -69,6 +75,7 @@ def menu_func_import(self, context):
     self.layout.operator(JSONLoaderOperator.bl_idname, text="HiFi Metaverse Scene JSON (.json)")
    
 def menu_func_export(self,context):
+    self.layout.operator(FSTWriterOperator.bl_idname, text="HiFi Avatar FST (.fst)")
     self.layout.operator(JSONWriterOperator.bl_idname, text="HiFi Metaverse Scene JSON / FBX (.json/.fbx)")
 
 def register():

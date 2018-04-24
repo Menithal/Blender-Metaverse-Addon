@@ -37,7 +37,7 @@ EXPORT_VERSION = 84
 def center_all(blender_object):
     for child in blender_object.children:
         select(child)
-                
+            
     blender_object.select = True
     bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY', center='BOUNDS')
     
@@ -172,7 +172,6 @@ def parse_object(blender_object, path, options):
             blender_object = clone
 
             clone.select = True
-            
 
         #temp_dimensions = Vector(blender_object.dimensions)
         dimensions = swap_yz(blender_object.dimensions)
@@ -354,6 +353,7 @@ def relative_position(parent_object):
 def write_file(context):
     current_scene = bpy.context.scene
     read_scene = current_scene
+
     # Creating a temp copy to do the changes in.
     if context.clone_scene:
         bpy.ops.scene.new(type='FULL_COPY')
@@ -362,6 +362,7 @@ def write_file(context):
     
     # Make sure we are in Object mode    
     bpy.ops.object.mode_set(mode = 'OBJECT')
+    
     # Deselect all objects
     bpy.ops.object.select_all(action = 'DESELECT')
 

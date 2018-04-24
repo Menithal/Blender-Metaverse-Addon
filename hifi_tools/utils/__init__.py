@@ -8,6 +8,7 @@ if "bpy" in locals():
     importlib.reload(materials)
     importlib.reload(mixamo)
     importlib.reload(tools)
+    
 else:
     from . import (
         helpers,

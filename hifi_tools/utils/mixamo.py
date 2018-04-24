@@ -24,11 +24,10 @@ def convert_mixamo_avatar_hifi():
             mesh.clean_unused_vertex_groups(obj)
 
     print("Texture pass")
-    materials.pack_images(bpy.data.images)
-    materials.unpack_images(bpy.data.images)
-    
+    materials.convert_to_png(bpy.data.images)
     materials.convert_images_to_mask(bpy.data.images)
                 
+    materials.cleanup_alpha(bpy.data.materials)
     bpy.ops.file.make_paths_absolute()
 
     bpy.ops.wm.console_toggle()

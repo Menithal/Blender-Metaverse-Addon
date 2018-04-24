@@ -3,6 +3,30 @@ import bpy
 import re
 
 
+def get_images_from(meshes):
+    images = []
+    for mesh in meshes:
+        for material_slot in mesh.material_slots:
+            print("Iterating material", material_slot)
+            if material_slot is not None:
+                material = material_slot.material
+                for texture_slot in material.texture_slots:
+                    print("Iterating texture slot", texture_slot)
+                    if texture_slot is not None and texture_slot.texture is not None and texture_slot.texture.image is not None:
+                        images.append(texture_slot.texture.image)
+
+    return images
+
+
+def cleanup_alpha(materials):
+    for material in materials:
+        if material.alpha > 0.9:
+            material.alpha = 1
+
+        if material.specular_alpha > 0.9:
+            material.specular_alpha = 1
+
+
 def cleanup_unused(images):
     for image in images:
         pixel_count = len(image.pixels)
@@ -10,11 +34,19 @@ def cleanup_unused(images):
             bpy.data.images.remove(image)
 
 
+def convert_to_png(images):
+    if not bpy.data.is_saved:
+        print("Select a Directory")
+        bpy.ops.hifi_error.save_file('INVOKE_DEFAULT')
+        return
+
+    pack_images(images)
+    unpack_images(images)
+
+
 def pack_images(images):
     mode = bpy.context.area.type
-    print("Storing mode")
     bpy.context.area.type = 'IMAGE_EDITOR'
-    print("Packing Images")
     filename_re = re.compile("\\.[a-zA-Z]{2,4}$")
 
     for image in images:
@@ -25,8 +57,8 @@ def pack_images(images):
 
             image.name = filename_re.sub(".png", image.name)
             image.packed_files[0].filepath = filename_re.sub(".png",
-                image.packed_files[0].filepath)
-                
+                                                             image.packed_files[0].filepath)
+
             bpy.context.area.spaces.active.image = image
 
             bpy.ops.image.save()
@@ -39,17 +71,17 @@ def pack_images(images):
 
 
 def unpack_images(images):
-
+    print("#########")
+    print(" Unpacking Images ")
     mode = bpy.context.area.type
     bpy.context.area.type = 'IMAGE_EDITOR'
     for image in images:
-        ## ---- #
         bpy.context.area.spaces.active.image = image
         bpy.ops.image.unpack(method='WRITE_LOCAL')
         bpy.ops.image.save()
         bpy.ops.image.reload()
 
-    #bpy.ops.image.save_dirty()
+    # bpy.ops.image.save_dirty()
     ## ---- #
     bpy.context.area.type = mode
 

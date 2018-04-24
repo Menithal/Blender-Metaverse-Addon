@@ -23,12 +23,12 @@ import bpy
 import sys
 from mathutils import Quaternion, Vector, Euler, Matrix
 
+from hifi_tools.utils.bones import build_skeleton, retarget_armature, correct_scale_rotation, set_selected_bones_physical, remove_selected_bones_physical
 from hifi_tools.armature.skeleton import structure as base_armature
-from hifi_tools.armature.repose import retarget_armature, correct_scale_rotation
 from hifi_tools.utils.mmd import convert_mmd_avatar_hifi
 from hifi_tools.utils.mixamo import convert_mixamo_avatar_hifi
-from hifi_tools.utils.bones import build_skeleton
-from hifi_tools.utils.materials import make_materials_fullbright, make_materials_shadeless
+from hifi_tools.utils.materials import make_materials_fullbright, make_materials_shadeless, convert_to_png, convert_images_to_mask
+
 
 class HifiArmaturePanel(bpy.types.Panel):
     bl_idname = "armature_toolset.hifi"
@@ -46,7 +46,26 @@ class HifiArmaturePanel(bpy.types.Panel):
         layout = self.layout
         layout.operator(HifiArmatureCreateOperator.bl_idname)
         layout.operator(HifiArmaturePoseOperator.bl_idname)
-        layout.operator(HifiArmatureRetargetPoseOperator.bl_idname)
+        #layout.operator(HifiArmatureRetargetPoseOperator.bl_idname)
+        return None
+
+
+class HifiBonePanel(bpy.types.Panel):
+    bl_idname = "bones_toolset.hifi"
+    bl_label = "Bones Tools"
+
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "TOOLS"
+    bl_category = "High Fidelity"
+
+    @classmethod
+    def poll(self, context):
+        return context.mode == "EDIT_ARMATURE"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator(HifiSetBonePhysicalOperator.bl_idname)
+        layout.operator(HifiRemoveBonePhysicalOperator.bl_idname)
         return None
 
 
@@ -68,6 +87,7 @@ class HifiAvatarPanel(bpy.types.Panel):
         layout.operator(HifiMixamoOperator.bl_idname)
         return None
 
+
 class HifiMaterialsPanel(bpy.types.Panel):
     bl_idname = "material_toolset.hifi"
     bl_label = "Material Tools"
@@ -84,6 +104,10 @@ class HifiMaterialsPanel(bpy.types.Panel):
         layout = self.layout
         layout.operator(HifiMaterialFullbrightOperator.bl_idname)
         layout.operator(HifiMaterialShadelessOperator.bl_idname)
+
+        layout.operator(HifiTexturesConvertToPngOperator.bl_idname)
+        layout.operator(HifiTexturesMakeMaskOperator.bl_idname)
+
         return None
 
 
@@ -98,29 +122,10 @@ class HifiArmatureCreateOperator(bpy.types.Operator):
     @classmethod
     def poll(self, context):
         return context.mode == "OBJECT"
-        
+
     def execute(self, context):
         build_skeleton()
         return {'FINISHED'}
-
-
-class HifiArmatureRetargetPoseOperator(bpy.types.Operator):
-    bl_idname = "armature_toolset_retarget.hifi"
-    bl_label = "Retarget Avatar Pose / Fix Avatar Scale / Rotation"
-
-    bl_space_type = "VIEW_3D"
-    bl_region_type = "TOOLS"
-    bl_category = "High Fidelity"
-
-    def execute(self, context):
-        try:
-            retarget_armature({'apply': True})
-        except Exception:
-            bpy.ops.hifi_error.armature_not_selected('INVOKE_DEFAULT')
-            return {'CANCELLED'}
-
-        return {'FINISHED'}
-
 
 # Remove once fst export is available
 class HifiArmaturePoseOperator(bpy.types.Operator):
@@ -132,12 +137,45 @@ class HifiArmaturePoseOperator(bpy.types.Operator):
     bl_category = "High Fidelity"
 
     def execute(self, context):
-        try:
-            retarget_armature({'apply': False})
-        except Exception:
-            bpy.ops.hifi_error.armature_not_selected('INVOKE_DEFAULT')
-            return {'CANCELLED'}
+        retarget_armature({'apply': False}, bpy.data.objects)
 
+        return {'FINISHED'}
+
+
+# Remove once fst export is available
+class HifiSetBonePhysicalOperator(bpy.types.Operator):
+    bl_idname = "bone_set_physical.hifi"
+    bl_label = "Set Bone Physical"
+
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "TOOLS"
+    bl_category = "High Fidelity"
+
+    @classmethod
+    def poll(self, context):
+        return len(context.selected_bones) > 0
+
+    def execute(self, context):
+        set_selected_bones_physical(context.selected_bones)
+        return {'FINISHED'}
+
+# Remove once fst export is available
+
+
+class HifiRemoveBonePhysicalOperator(bpy.types.Operator):
+    bl_idname = "bone_remove_physical.hifi"
+    bl_label = "Remove Bone Physical"
+
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "TOOLS"
+    bl_category = "High Fidelity"
+
+    @classmethod
+    def poll(self, context):
+        return len(context.selected_bones) > 0
+
+    def execute(self, context):
+        remove_selected_bones_physical(context.selected_bones)
         return {'FINISHED'}
 
 
@@ -169,7 +207,7 @@ class HifiMixamoOperator(bpy.types.Operator):
 
 class HifiMaterialFullbrightOperator(bpy.types.Operator):
     bl_idname = "materials_toolset_fullbright.hifi"
-    bl_label = "Make Fullbright"
+    bl_label = "Make All Fullbright"
 
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
@@ -179,9 +217,10 @@ class HifiMaterialFullbrightOperator(bpy.types.Operator):
         make_materials_fullbright(bpy.data.materials)
         return {'FINISHED'}
 
+
 class HifiMaterialShadelessOperator(bpy.types.Operator):
     bl_idname = "materials_toolset_shadeless.hifi"
-    bl_label = "Make Shadeless"
+    bl_label = "Make All Shadeless"
 
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
@@ -191,6 +230,31 @@ class HifiMaterialShadelessOperator(bpy.types.Operator):
         make_materials_shadeless(bpy.data.materials)
         return {'FINISHED'}
 
+
+class HifiTexturesConvertToPngOperator(bpy.types.Operator):
+    bl_idname = "textures_toolset_png_convert.hifi"
+    bl_label = "Textures to PNG"
+
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "TOOLS"
+    bl_category = "High Fidelity"
+
+    def execute(self, context):
+        convert_to_png(bpy.data.images)
+        return {'FINISHED'}
+
+
+class HifiTexturesMakeMaskOperator(bpy.types.Operator):
+    bl_idname = "textures_toolset_mask_convert.hifi"
+    bl_label = "Textures to Masked"
+
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "TOOLS"
+    bl_category = "High Fidelity"
+
+    def execute(self, context):
+        convert_images_to_mask(bpy.data.images)
+        return {'FINISHED'}
 
 
 class HifiReminderOperator(bpy.types.Operator):
@@ -252,11 +316,14 @@ classes = [
     HifiMaterialsPanel,
     HifiAvatarPanel,
     HifiArmatureCreateOperator,
-    HifiArmatureRetargetPoseOperator,
     HifiArmaturePoseOperator,
+    HifiSetBonePhysicalOperator,
+    HifiRemoveBonePhysicalOperator,
 
     HifiMaterialFullbrightOperator,
     HifiMaterialShadelessOperator,
+    HifiTexturesConvertToPngOperator,
+    HifiTexturesMakeMaskOperator,
 
     HifiMMDOperator,
     HifiMixamoOperator,

@@ -6,7 +6,7 @@ import re
 import os
 import copy
 from mathutils import Vector
-from hifi_tools.utils import materials, bones, mesh
+from hifi_tools.utils import materials, mesh, bones
 # Based on powroupi the MMD Translation script combined with a Hogarth-MMD Translation csv that has been modified to select names as close as possible
 # This instead uses a predefined list that is Hifi Compatable.
 
@@ -51,7 +51,6 @@ contains_to_remove = [
     "_shadow_",
     "IK",
     "Dummy",
-    "Top",
     "Tip",
     "Twist",
     "ShoulderP",
@@ -67,6 +66,7 @@ contains_to_remove = [
 ]
 
 # Simplified Translator based on powroupi MMDTranslation
+
 
 class MMDTranslator:
     def __init__(self):
@@ -120,12 +120,16 @@ class MMDTranslator:
         return True
 
     def translate(self, name):
-        full_name = self.half_to_full(name)  # First Updates short hand to full
+        if not self.is_translated(name):
+            # First Updates short hand to full
+            full_name = self.half_to_full(name)
 
-        translated_name = self.replace_from_tuples(
-            full_name, self.translation_dict)
+            translated_name = self.replace_from_tuples(
+                full_name, self.translation_dict)
 
-        return purge_string(translated_name)
+            return purge_string(translated_name)
+
+        return name
 
 
 def purge_string(string):
@@ -173,8 +177,9 @@ finger_name_correction = {
     "LittleFinger": "HandPinky"
 }
 
+
 def translate_bones(Translator, bones):
-    
+
     finger_keys = finger_name_correction.keys()
     hand_re = re.compile("(?:(?:Left)|(?:Right))Hand[A-Za-z]+(\d)")
 
@@ -198,7 +203,6 @@ def translate_bones(Translator, bones):
                 bone.name = newname.replace(number, str(int(number)+1))
 
 
-
 def has_removable(val):
     for word in contains_to_remove:
         if word in val:
@@ -214,7 +218,7 @@ def clean_up_bones(obj):
     bpy.ops.object.mode_set(mode='EDIT')
     updated_context = bpy.data.objects[obj.name]
     edit_bones = updated_context.data.edit_bones
-
+    print("Cleaning up Bones")
     bpy.ops.object.mode_set(mode='OBJECT')
     for bone in obj.data.bones:
         pose_bone = pose_bones.get(bone.name)
@@ -255,6 +259,18 @@ def clean_up_bones(obj):
     edit_bones = updated_context.data.edit_bones
 
     print("Manipulating", obj.name)
+
+    if edit_bones.get("Spine1") is None and edit_bones.get("Spine2") is None:
+        print("Couldnt Detect Spine1, Creating Out of Spine2")
+        spine = edit_bones.get("Spine")
+        spine.select = True
+        bpy.ops.armature.subdivide()
+        spine.name = "Spine"
+        spine.select = False
+        spine = edit_bones.get("Spine.001")
+        spine.select = True
+        spine.name = "Spine2"
+
     if edit_bones.get("Spine1") is None:
         print("Couldnt Detect Spine1, Creating Out of Spine2")
         spine = edit_bones.get("Spine2")
@@ -263,6 +279,7 @@ def clean_up_bones(obj):
         spine.name = "Spine1"
         spine = edit_bones.get("Spine2.001")
         spine.name = "Spine2"
+        spine.select = False
 
     edit_bones = updated_context.data.edit_bones
     bones.correct_bone_parents(edit_bones)
@@ -284,6 +301,7 @@ def convert_bones(Translator, obj):
 #####################################################
 # Mesh Fixes:                                       #
 #####################################################
+
 
 def translate_shape_keys(Translator, shape_keys):
     print(" Translating shapekeys ", shape_keys.items())
@@ -366,15 +384,16 @@ def fix_vertex_groups(obj):
         vertex_groups.remove(group)
 
 
-
 def clean_mesh(Translator, obj):
     bpy.ops.object.mode_set(mode='OBJECT')
     print(" Converting", obj.name, "Mesh")
     translate_shape_keys(Translator, obj.data.shape_keys.key_blocks)
     fix_vertex_groups(obj)
+    print(" Removing unused vertex groups")
     mesh.clean_unused_vertex_groups(obj)
 
 # --------------------
+
 
 def translate_list(Translator, list_to_translate):
     for entry in list_to_translate:
@@ -389,7 +408,7 @@ def convert_mmd_avatar_hifi():
         return
 
     bpy.ops.wm.console_toggle()
-    
+
     print("Converting MMD Avatar to be Blender-High Fidelity compliant")
     # Should Probably have a confirmation dialog when using this.
     original_type = bpy.context.area.type
@@ -398,10 +417,14 @@ def convert_mmd_avatar_hifi():
     Translator = MMDTranslator()
     # Change mode to object mode
 
-    translate_list(Translator, bpy.data.materials)
-    translate_list(Translator, bpy.data.textures)
-    translate_list(Translator, bpy.data.meshes)
-    translate_list(Translator, bpy.data.images)
+    print("Translating Materials", len(bpy.data.materials))
+    translate_list(Translator, list(bpy.data.materials))
+    print("Translating Textures", len(bpy.data.textures))
+    translate_list(Translator, list(bpy.data.textures))
+    print("Translating Meshes", len(bpy.data.meshes))
+    translate_list(Translator, list(bpy.data.meshes))
+    print("Translating Meshes", len(bpy.data.meshes))
+    translate_list(Translator, list(bpy.data.meshes))
 
     marked_for_purge = []
     marked_for_deletion = []
@@ -428,6 +451,7 @@ def convert_mmd_avatar_hifi():
                 elif obj.type == 'MESH' and obj.parent is not None and obj.parent.type == 'ARMATURE':
                     clean_mesh(Translator, obj)
                     bpy.ops.object.mode_set(mode='OBJECT')
+                    print(" Cleaning up Materials now. May take a while ")
                     materials.clean_materials(obj.material_slots)
 
             # translate armature names!
@@ -442,13 +466,12 @@ def convert_mmd_avatar_hifi():
     for deletion in marked_for_purge:
         delete_self_and_children(deletion)
 
-    materials.pack_images(bpy.data.images)
-
-    materials.unpack_images(bpy.data.images)
+    materials.convert_to_png(bpy.data.images)
     materials.convert_images_to_mask(bpy.data.images)
+    materials.cleanup_alpha(bpy.data.materials)
 
     bpy.context.area.type = original_type
-    
+
     bpy.ops.file.make_paths_absolute()
 
     bpy.ops.wm.console_toggle()
