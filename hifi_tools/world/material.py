@@ -28,8 +28,6 @@ from bpy.props import (
     FloatProperty
 )
 
-print("Loading Hifi Material Module")
-
 
 def update_color(self, context):
     mat = context.material
@@ -204,7 +202,6 @@ def build_texture_ui(context, layout, operator, float_widget = None):
     material = context.material
     texture_slot = find_first_texture_in(lambda slot: operator.has_operation(None, slot))
      
-    print('Rendering ', operator); 
     if texture_slot and texture_slot.texture.type != 'NONE':
         layout.label(text = operator.bl_label)
         split = layout.split(0.9)
@@ -248,6 +245,10 @@ class HifiResetDiffuseOperator(bpy.types.Operator):
       
     
 class HifiGenericTextureOperator(bpy.types.Operator):
+
+    bl_idname = HifiMaterialOperator.bl_idname + "_generic_reset_color"
+    bl_label = "Reset Tint" 
+   
     has_operation = None
     texture_operation = None
     postfix = ""

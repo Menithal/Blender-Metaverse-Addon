@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+# Avatar Skeleton based on High Fidelity Skeleton
+
 from mathutils import Matrix, Vector, Euler
 
 structure = [{'name': 'Hips', 'matrix': Matrix(((1.0, 0.0, 0.0, -9.678368542154203e-07),
@@ -391,3 +394,5 @@ structure = [{'name': 'Hips', 'matrix': Matrix(((1.0, 0.0, 0.0, -9.6783685421542
         (-0.0, -4.570161493688829e-08, -0.9999999403953552, 0.01087239570915699),
         (0.0, 0.9999999403953552, 5.960464477539063e-08, 0.9391523003578186),
         (0.0, 0.0, 0.0, 1.0))), 'tail': Vector((-9.678368542154203e-07, 0.010872388258576393, 1.102178931236267)), 'connect': False}]
+
+# Add Position for Eyes, 
