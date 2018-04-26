@@ -1,3 +1,23 @@
+# -*- coding: utf-8 -*-
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
+# Created by Matti 'Menithal' Lahtinen
+
 import bpy
 import re
 from math import pi
@@ -40,6 +60,27 @@ physical_re = re.compile("^sim")
 
 
 # TODO: Fix Naming Convention!
+def scale_helper(obj):
+    if obj.dimensions.y > 2.4:
+        print("Avatar too large > 2.4m, maybe incorrect? setting height to 1.9m. You can scale avatar inworld, instead")
+        
+        bpy.ops.object.mode_set(mode='OBJECT')
+        scale = 1.9/obj.dimensions.y
+        obj.dimensions = obj.dimensions * scale
+        bpy.context.scene.objects.active = obj
+        bpy.ops.object.transform_apply(
+            location=False, rotation=False, scale=True)
+        
+        bpy.ops.object.mode_set(mode='POSE')
+        bpy.ops.pose.select_all(action='SELECT')
+        bpy.ops.pose.transforms_clear()
+        
+        bpy.ops.object.mode_set(mode='OBJECT')
+
+
+def remove_all_actions():
+    for action in bpy.data.actions:
+        bpy.data.actions.remove(action)
 
 def find_armature(selection):
     for selected in selection:

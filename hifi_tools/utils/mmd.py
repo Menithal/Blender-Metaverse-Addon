@@ -1,4 +1,23 @@
 # -*- coding: utf-8 -*-
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
+# Created by Matti 'Menithal' Lahtinen
+# 'MDD Converter Commissioned by High Fidelity
 
 import csv
 import bpy
@@ -7,7 +26,7 @@ import os
 import copy
 from mathutils import Vector
 from hifi_tools.utils import materials, mesh, bones
-# Based on powroupi the MMD Translation script combined with a Hogarth-MMD Translation csv that has been modified to select names as close as possible
+# This part is Based on powroupi the MMD Translation script combined with a Hogarth-MMD Translation csv that has been modified to select names as close as possible
 # This instead uses a predefined list that is Hifi Compatable.
 
 # Clone of shorthand to full
@@ -447,6 +466,7 @@ def convert_mmd_avatar_hifi():
 
                 elif obj.type == 'ARMATURE':
                     convert_bones(Translator, obj)
+                    bones.scale_helper(obj)
 
                 elif obj.type == 'MESH' and obj.parent is not None and obj.parent.type == 'ARMATURE':
                     clean_mesh(Translator, obj)

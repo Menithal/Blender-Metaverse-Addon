@@ -1,10 +1,31 @@
+# -*- coding: utf-8 -*-
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
+# Created by Matti 'Menithal' Lahtinen
+
 import bpy
 import os
 import uuid
-
+import hifi_tools
 from hifi_tools.utils.bones import find_armature, retarget_armature
 from hifi_tools.utils.mesh import get_mesh_from
 from hifi_tools.utils.materials import get_images_from
+from hifi_tools.utils.bake_tool import bake_fbx
 
 prefix_joint_maps = {
     "Hips": "jointRoot",
@@ -69,7 +90,7 @@ def fst_export(context, selected):
         if not context.embed:
             f.write(prefix_texdir.replace('$', scene_id + '.fbm/'))
         f.write(prefix_filename.replace('$', avatar_file))
-
+        
         # Writing these in separate loops because they need to done in order.
         for bone in armature.data.bones:
             if bone.name in joint_maps:
@@ -94,6 +115,17 @@ def fst_export(context, selected):
 
         bpy.ops.export_scene.fbx(filepath=avatar_filepath, version='BIN7400', embed_textures=context.embed, path_mode='COPY',
                                  use_selection=True, axis_forward='-Z', axis_up='Y')
+
+        images = []
+        if not context.embed:
+            images = get_images_from(selected)
+        
+        
+        preferences = bpy.context.user_preferences.addons[hifi_tools.__name__].preferences
+
+
+        if preferences.oventool is not None and context.bake:
+            bake_fbx(preferences.oventool, avatar_filepath)
 
     except Exception as e:
         print('Could not write to file.', e)

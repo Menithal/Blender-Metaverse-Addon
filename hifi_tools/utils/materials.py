@@ -1,3 +1,23 @@
+# -*- coding: utf-8 -*-
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
+# Created by Matti 'Menithal' Lahtinen
+
 import copy
 import bpy
 import re
@@ -6,14 +26,15 @@ import re
 def get_images_from(meshes):
     images = []
     for mesh in meshes:
-        for material_slot in mesh.material_slots:
-            print("Iterating material", material_slot)
-            if material_slot is not None:
-                material = material_slot.material
-                for texture_slot in material.texture_slots:
-                    print("Iterating texture slot", texture_slot)
-                    if texture_slot is not None and texture_slot.texture is not None and texture_slot.texture.image is not None:
-                        images.append(texture_slot.texture.image)
+        if(mesh.type == "MESH"):
+            for material_slot in mesh.material_slots:
+                print("Iterating material", material_slot)
+                if material_slot is not None:
+                    material = material_slot.material
+                    for texture_slot in material.texture_slots:
+                        print("Iterating texture slot", texture_slot)
+                        if texture_slot is not None and texture_slot.texture is not None and texture_slot.texture.image is not None:
+                            images.append(texture_slot.texture.image)
 
     return images
 

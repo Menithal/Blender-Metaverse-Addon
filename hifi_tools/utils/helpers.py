@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # ##### BEGIN GPL LICENSE BLOCK #####
 #
 #  This program is free software; you can redistribute it and/or
@@ -29,6 +30,7 @@ ZERO_VECTOR = (0,0,0)
 PIVOT_VECTOR = (0.5,0.5,0.5)
 'w,x,y,z'
 ZERO_QUAT = (1,0,0,0)
+
 
 # Utility to round to nearest digit. Hifi exports some times so fairly erroronious floats, so truncating them can help
 ## TODO: Allow scene to set to what digit should everything be rouded to

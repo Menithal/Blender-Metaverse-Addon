@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+# Avatar Skeleton based on High Fidelity Skeleton
+
 from mathutils import Matrix, Vector, Euler
 
 structure = [{'name': 'Hips', 'matrix': Matrix(((1.0, 0.0, 0.0, -9.678368542154203e-07),

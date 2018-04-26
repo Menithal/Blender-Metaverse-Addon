@@ -20,7 +20,7 @@
 bl_info = {
     "name": "HiFi Blender Add-on",
     "author": "Matti 'Menithal' Lahtinen",
-    "version": (0,9,0),
+    "version": (0,9,9),
     "blender": (2,7,7),
     "location": "File > Import-Export, Materials, Armature",
     "description": "Blender tools to allow for easier Content creation for High Fidelity",
@@ -61,6 +61,20 @@ else:
     from .files.fst.operator import *
     
     import bpy
+
+from bpy.types import AddonPreferences
+
+
+class HifiAddOnPreferences(AddonPreferences):
+    bl_idname = __name__
+    oventool = StringProperty(name="Oven Tool path (EXPERIMENTAL)",
+                                   description="Point this to the High Fidelity Oven tool",
+                                   subtype="FILE_PATH")
+
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, "oventool")
+    
 
 
 if "add_mesh_extra_objects" not in addon_utils.addons_fake_modules:
