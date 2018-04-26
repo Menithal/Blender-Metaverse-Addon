@@ -63,24 +63,25 @@ physical_re = re.compile("^sim")
 def scale_helper(obj):
     if obj.dimensions.y > 2.4:
         print("Avatar too large > 2.4m, maybe incorrect? setting height to 1.9m. You can scale avatar inworld, instead")
-        
+
         bpy.ops.object.mode_set(mode='OBJECT')
         scale = 1.9/obj.dimensions.y
         obj.dimensions = obj.dimensions * scale
         bpy.context.scene.objects.active = obj
         bpy.ops.object.transform_apply(
             location=False, rotation=False, scale=True)
-        
+
         bpy.ops.object.mode_set(mode='POSE')
         bpy.ops.pose.select_all(action='SELECT')
         bpy.ops.pose.transforms_clear()
-        
+
         bpy.ops.object.mode_set(mode='OBJECT')
 
 
 def remove_all_actions():
     for action in bpy.data.actions:
         bpy.data.actions.remove(action)
+
 
 def find_armature(selection):
     for selected in selection:
@@ -131,6 +132,10 @@ def correct_bone_rotations(obj):
             obj.tail = bone_head
         else:
             print("Hips already correct")
+    elif "RightHandThumb" in name:
+        obj.roll = 70 * pi/180
+    elif "LeftHandThumb" in name:
+        obj.roll = -70 * pi/180
     else:
         axises = corrected_axis.keys()
         correction = None
@@ -296,11 +301,11 @@ def retarget_armature(options, selected):
         print(bpy.context.mode, armature)
         if bpy.context.mode != 'OBJECT':
             bpy.ops.object.mode_set(mode='OBJECT')
-        
+
         print("Deselect all")
         bpy.ops.object.select_all(action='DESELECT')
         print("Selected")
-        
+
         bpy.context.scene.objects.active = armature
         armature.select = True
         # Make sure to reset the bones first.
