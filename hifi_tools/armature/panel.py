@@ -21,6 +21,7 @@
 
 import bpy
 import sys
+
 from mathutils import Quaternion, Vector, Euler, Matrix
 
 from hifi_tools.utils.bones import build_skeleton, retarget_armature, correct_scale_rotation, set_selected_bones_physical, remove_selected_bones_physical
@@ -29,6 +30,8 @@ from hifi_tools.utils.mmd import convert_mmd_avatar_hifi
 from hifi_tools.utils.mixamo import convert_mixamo_avatar_hifi
 from hifi_tools.utils.makehuman import convert_makehuman_avatar_hifi
 from hifi_tools.utils.materials import make_materials_fullbright, make_materials_shadeless, convert_to_png, convert_images_to_mask
+
+from bpy.props import StringProperty
 
 
 class HifiArmaturePanel(bpy.types.Panel):
@@ -47,7 +50,7 @@ class HifiArmaturePanel(bpy.types.Panel):
         layout = self.layout
         layout.operator(HifiArmatureCreateOperator.bl_idname)
         layout.operator(HifiArmaturePoseOperator.bl_idname)
-        #layout.operator(HifiArmatureRetargetPoseOperator.bl_idname)
+        # layout.operator(HifiArmatureRetargetPoseOperator.bl_idname)
         return None
 
 
@@ -130,6 +133,8 @@ class HifiArmatureCreateOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 # Remove once fst export is available
+
+
 class HifiArmaturePoseOperator(bpy.types.Operator):
     bl_idname = "armature_toolset_pose.hifi"
     bl_label = "Test Avatar Rest Pose"
@@ -325,6 +330,8 @@ class HifiSaveReminderOperator(bpy.types.Operator):
         row.label(self.bl_label)
 
 
+
+
 classes = [
     HifiArmaturePanel,
     HifiMaterialsPanel,
@@ -342,7 +349,6 @@ classes = [
     HifiMMDOperator,
     HifiMixamoOperator,
 	HifiMakeHumanOperator,
-
     HifiReminderOperator,
     HifiSaveReminderOperator
 ]

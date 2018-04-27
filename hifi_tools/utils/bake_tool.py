@@ -18,25 +18,31 @@
 # ##### END GPL LICENSE BLOCK #####
 # Created by Matti 'Menithal' Lahtinen
 
+import bpy
+import os
+from shutil import move as movefile
+import subprocess
 
-if "bpy" in locals():
-    import importlib
-    importlib.reload(helpers)
-    importlib.reload(mesh)
-    importlib.reload(bones)
-    importlib.reload(mmd)
-    importlib.reload(materials)
-    importlib.reload(mixamo)
-    importlib.reload(bake_tool)
+
+def bake_fbx(baker_path, fbx, images = []):
+    bpy.ops.wm.console_toggle()
+
+    if baker_path is None:
+        print("Please set the Bake tool path")
+        return {"CANCELLED"}
+
+    print(os.path.isfile(baker_path), baker_path)
+    if not os.path.isfile(baker_path) and "oven" in baker_path:
+        print("Please set and select the baker tool exe")
+        return {"CANCELLED"}
+
+    path = os.path.dirname(os.path.realpath(fbx))
+    print("Now Baking Files", path, fbx)
     
-else:
-    from . import (
-        helpers,
-        mesh,
-        bones,
-        mmd,
-        mixamo,
-        materials,
-        bake_tool
-    )
-    import bpy
+    subprocess.call([baker_path, "-i" + fbx, "-o" + path, "-tfbx"])
+
+    bpy.ops.wm.console_toggle()
+
+    #Delete Originals
+
+    return {"FINISHED"}
