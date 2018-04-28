@@ -48,11 +48,7 @@ def convert_mixamo_avatar_hifi():
             mesh.clean_unused_vertex_groups(obj)
 
     for material in bpy.data.materials:
-        material.specular_color = (0, 0, 0)
-        for texture in material.texture_slots:
-            if texture is not None and texture.use_map_color_spec:
-                texture.use_map_color_spec = False
-                texture.use_map_hardness = True
+        materials.flip_material_specular(material)
 
     print("Texture pass")
     materials.convert_to_png(bpy.data.images)

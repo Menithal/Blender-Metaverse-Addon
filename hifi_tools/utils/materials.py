@@ -267,7 +267,6 @@ def merge_textures(materials_slots, unique_textures=None):
                     bpy.context.object.active_material_index = index
                     bpy.ops.object.material_slot_remove()
 
-
 def clean_materials(materials_slots):
     try:
         print("#######################################")
@@ -296,3 +295,11 @@ def clean_materials(materials_slots):
     except Exception as args:
         print("ERROR OCCURRED WHILE TRYING TO PROCESS TEXTURES", args)
     # make_materials_fullbright(materials_slots) # enable this only if fullbright avatars every become supported
+
+def flip_material_specular(material):
+    material.specular_color = (0, 0, 0)
+    for texture in material.texture_slots:
+        if texture is not None and texture.use_map_color_spec:
+            texture.use_map_color_spec = False
+            texture.use_map_hardness = True
+
