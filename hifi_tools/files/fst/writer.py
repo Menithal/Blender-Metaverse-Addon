@@ -114,7 +114,7 @@ def fst_export(context, selected):
             select.select = True
 
         bpy.ops.export_scene.fbx(filepath=avatar_filepath, version='BIN7400', embed_textures=context.embed, path_mode='COPY',
-                                 use_selection=True, axis_forward='-Z', axis_up='Y')
+                                 use_selection=True, add_leaf_bones=False,  axis_forward='-Z', axis_up='Y')
 
         images = []
         if not context.embed:

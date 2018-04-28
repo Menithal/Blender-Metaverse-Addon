@@ -24,7 +24,7 @@ import sys
 
 from mathutils import Quaternion, Vector, Euler, Matrix
 
-from hifi_tools.utils.bones import build_skeleton, retarget_armature, correct_scale_rotation, set_selected_bones_physical, remove_selected_bones_physical
+from hifi_tools.utils.bones import combine_bones, build_skeleton, retarget_armature, correct_scale_rotation, set_selected_bones_physical, remove_selected_bones_physical
 from hifi_tools.armature.skeleton import structure as base_armature
 from hifi_tools.utils.mmd import convert_mmd_avatar_hifi
 from hifi_tools.utils.mixamo import convert_mixamo_avatar_hifi
@@ -70,8 +70,9 @@ class HifiBonePanel(bpy.types.Panel):
         layout = self.layout
         layout.operator(HifiSetBonePhysicalOperator.bl_idname)
         layout.operator(HifiRemoveBonePhysicalOperator.bl_idname)
+        layout.operator(HifiCombineBonesOperator.bl_idname)
         return None
-
+    
 
 class HifiAvatarPanel(bpy.types.Panel):
     bl_idname = "avatar_toolset.hifi"
@@ -186,6 +187,23 @@ class HifiRemoveBonePhysicalOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class HifiCombineBonesOperator(bpy.types.Operator):
+    bl_idname = "bone_combine.hifi"
+    bl_label = "Combine Bones"
+
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "TOOLS"
+    bl_category = "High Fidelity"
+
+    @classmethod
+    def poll(self, context):
+        return len(context.selected_bones) > 1
+
+    def execute(self, context):
+        combine_bones(list(context.selected_bones), context.active_bone, context.active_object)
+        return {'FINISHED'}
+
+
 class HifiMMDOperator(bpy.types.Operator):
     bl_idname = "armature_toolset_fix_mmd_avatar.hifi"
     bl_label = "MMD Avatar"
@@ -275,32 +293,6 @@ class HifiTexturesMakeMaskOperator(bpy.types.Operator):
         convert_images_to_mask(bpy.data.images)
         return {'FINISHED'}
 
-
-class HifiReminderOperator(bpy.types.Operator):
-    bl_idname = "hifi_error.armature_not_selected"
-    bl_label = "You must select an armature first prior to pressing the button"
-    bl_options = {'REGISTER', 'INTERNAL'}
-
-    @classmethod
-    def poll(cls, context):
-        return True
-
-    def invoke(self, context, even):
-        print("Invoked")
-        wm = context.window_manager
-        return wm.invoke_popup(self, width=400, height=200)
-
-    def execute(self, context):
-        return {'FINISHED'}
-
-    def draw(self, context):
-        layout = self.layout
-
-        row = layout.row()
-        row.label(text="Warning:", icon="ERROR")
-        row = layout.row()
-        row.label(self.bl_label)
-
 # -----
 
 
@@ -331,7 +323,6 @@ class HifiSaveReminderOperator(bpy.types.Operator):
 
 
 
-
 classes = [
     HifiArmaturePanel,
     HifiMaterialsPanel,
@@ -340,16 +331,14 @@ classes = [
     HifiArmaturePoseOperator,
     HifiSetBonePhysicalOperator,
     HifiRemoveBonePhysicalOperator,
-
+    HifiCombineBonesOperator,
     HifiMaterialFullbrightOperator,
     HifiMaterialShadelessOperator,
     HifiTexturesConvertToPngOperator,
     HifiTexturesMakeMaskOperator,
-
     HifiMMDOperator,
     HifiMixamoOperator,
 	HifiMakeHumanOperator,
-    HifiReminderOperator,
     HifiSaveReminderOperator
 ]
 
