@@ -28,6 +28,7 @@ from hifi_tools.utils.bones import combine_bones, build_skeleton, retarget_armat
 from hifi_tools.armature.skeleton import structure as base_armature
 from hifi_tools.utils.mmd import convert_mmd_avatar_hifi
 from hifi_tools.utils.mixamo import convert_mixamo_avatar_hifi
+from hifi_tools.utils.makehuman import convert_makehuman_avatar_hifi
 from hifi_tools.utils.materials import make_materials_fullbright, make_materials_shadeless, convert_to_png, convert_images_to_mask
 
 from bpy.props import StringProperty
@@ -89,6 +90,7 @@ class HifiAvatarPanel(bpy.types.Panel):
         layout = self.layout
         layout.operator(HifiMMDOperator.bl_idname)
         layout.operator(HifiMixamoOperator.bl_idname)
+        layout.operator(HifiMakeHumanOperator.bl_idname)
         return None
 
 
@@ -227,6 +229,18 @@ class HifiMixamoOperator(bpy.types.Operator):
         convert_mixamo_avatar_hifi()
         return {'FINISHED'}
 
+class HifiMakeHumanOperator(bpy.types.Operator):
+    bl_idname = "armature_toolset_fix_makehuman_avatar.hifi"
+    bl_label = "MakeHuman Avatar"
+
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "TOOLS"
+    bl_category = "High Fidelity"
+
+    def execute(self, context):
+        convert_makehuman_avatar_hifi()
+        retarget_armature({'apply': True}, bpy.data.objects)
+        return {'FINISHED'}
 
 class HifiMaterialFullbrightOperator(bpy.types.Operator):
     bl_idname = "materials_toolset_fullbright.hifi"
@@ -318,14 +332,13 @@ classes = [
     HifiSetBonePhysicalOperator,
     HifiRemoveBonePhysicalOperator,
     HifiCombineBonesOperator,
-
     HifiMaterialFullbrightOperator,
     HifiMaterialShadelessOperator,
     HifiTexturesConvertToPngOperator,
     HifiTexturesMakeMaskOperator,
-
     HifiMMDOperator,
     HifiMixamoOperator,
+	HifiMakeHumanOperator,
     HifiSaveReminderOperator
 ]
 
