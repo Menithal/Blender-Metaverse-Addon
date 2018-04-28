@@ -49,21 +49,6 @@ finger_correction = {
 
 
 def correct_toe_rotations(obj):
-    #if "Eye" in obj.name:
-    #    print("   ", obj.name)
-    #    bone_head = Vector(obj.head)
-    #    bone_head.z += 0.12
-    #    obj.tail = bone_head
-    #    obj.roll = 0
-    #elif "Hips" == obj.name:
-    #    bone_head = Vector(obj.head)
-    #    bone_tail = Vector(obj.tail)
-    #    if bone_head.z > bone_tail.z:
-    #        obj.head = bone_tail
-    #        obj.tail = bone_head
-    #    else:
-    #        print("Hips already correct")
-    #else:
     for idx, name in enumerate(bones_to_correct):
         if name in obj.name:
             print("   Updating Roll of", obj.name, "with",
