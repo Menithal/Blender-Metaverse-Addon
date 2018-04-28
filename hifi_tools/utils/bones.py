@@ -20,8 +20,11 @@
 
 import bpy
 import re
+
 from math import pi
 from mathutils import Quaternion, Matrix, Vector, Euler
+from hifi_tools.utils import mesh
+
 from hifi_tools.armature.skeleton import structure as base_armature
 
 corrected_axis = {
@@ -57,6 +60,40 @@ bone_parent_structure = {
 
 
 physical_re = re.compile("^sim")
+
+
+def combine_bones(selected_bones, active_bone, active_object):
+    print("----------------------")
+    print("Combining Bones", len(selected_bones),
+          "-", active_bone, "-", active_object)
+    edit_bones = list(active_object.data.edit_bones)
+    meshes = mesh.get_mesh_from(active_object.children)
+    names_to_combine = []
+
+    print("Removing Selected Bones first:")
+    for bone in selected_bones:
+        if bone.name != active_bone.name:
+            print("Now Removing ", bone.name)
+            children = list(bone.children)
+            names_to_combine.append(bone.name)
+
+            active_object.data.edit_bones.remove(
+                bone)  # TODO: REmoval is broken :(
+            for child in children:
+                child.use_connect = True
+
+    print("Combining weights.")
+    bpy.ops.object.mode_set(mode='OBJECT')
+    for name in names_to_combine:
+        if name != active_bone.name:
+            for me in meshes:
+                bpy.context.scene.objects.active = me
+                mesh.mix_weights(active_bone.name, name)
+                me.vertex_groups.remove(me.vertex_groups.get(name))
+
+    bpy.context.scene.objects.active = active_object
+    bpy.ops.object.mode_set(mode='EDIT')
+    print("Done")
 
 
 # TODO: Fix Naming Convention!

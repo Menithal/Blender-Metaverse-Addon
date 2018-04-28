@@ -20,7 +20,6 @@
 
 import bpy
 import os
-import hifi_tools.utils.bones as bones
 import hifi_tools
 
 from bpy_extras.io_utils import (
@@ -35,6 +34,93 @@ from bpy.props import (
     EnumProperty
 )
 import hifi_tools.files.fst.writer as FSTWriter
+
+from hifi_tools.utils.bones import find_armature
+
+
+class HifiBoneOperator(bpy.types.Operator):
+    bl_idname = "hifi_warn.bone_count"
+    bl_label = ""
+    bl_options = {'REGISTER', 'INTERNAL'}
+
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def invoke(self, context, even):
+        print("Invoked")
+        wm = context.window_manager
+        return wm.invoke_popup(self, width=400, height=600)
+
+    def execute(self, context):
+        return {'FINISHED'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        row = layout.row()
+        row.label("Avatar Successfully Exported: ")
+        row = layout.row()
+        row.label(text="Warning:", icon="QUESTION")
+        row = layout.row()
+        row.label(
+            "You may have issues with the avatars pose not being streamed with")
+        row = layout.row()
+        row.label("So many bones.")
+        row = layout.row()
+        row.label("Try combining some if you have issues in HiFi.")
+
+
+class HifiExportErrorOperator(bpy.types.Operator):
+    bl_idname = "hifi_error.export"
+    bl_label = ""
+    bl_options = {'REGISTER', 'INTERNAL'}
+
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def invoke(self, context, even):
+        print("Invoked")
+        wm = context.window_manager
+        return wm.invoke_popup(self, width=400, height=600)
+
+    def execute(self, context):
+        return {'FINISHED'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        row = layout.row()
+        row.label(text="Warning:", icon="ERROR")
+        row = layout.row()
+        row.label("Avatar Export Failed. Please Check the console logs")
+
+
+class HifiExportSucccessOperator(bpy.types.Operator):
+    bl_idname = "hifi_success.export"
+    bl_label = ""
+    bl_options = {'REGISTER', 'INTERNAL'}
+
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def invoke(self, context, even):
+        print("Invoked")
+        wm = context.window_manager
+        return wm.invoke_popup(self, width=400, height=600)
+
+    def execute(self, context):
+        return {'FINISHED'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        row = layout.row()
+        row.label(text="Success:", icon="FILE_TICK")
+        row = layout.row()
+        row.label("Avatar Export Successful.")
 
 
 class FSTWriterOperator(bpy.types.Operator, ExportHelper):
@@ -60,10 +146,9 @@ class FSTWriterOperator(bpy.types.Operator, ExportHelper):
         layout.prop(self, "selected_only")
         layout.prop(self, "embed")
         oven_tool = context.user_preferences.addons[hifi_tools.__name__].preferences.oventool
-    
+
         if(oven_tool is not None and "oven" in oven_tool):
             layout.prop(self, "bake")
-
 
     def execute(self, context):
         if not self.filepath:
@@ -75,8 +160,6 @@ class FSTWriterOperator(bpy.types.Operator, ExportHelper):
             raise Exception(
                 "Please set the oven path for the plugin. eg <pathToHighFidelity>/oven.exe")
 
-    
-
         to_export = None
 
         if self.selected_only:
@@ -86,6 +169,16 @@ class FSTWriterOperator(bpy.types.Operator, ExportHelper):
 
         self.scale = 1  # Add scene scale here
 
-        FSTWriter.fst_export(self, to_export)
+        armature = find_armature(to_export)
 
-        return {'FINISHED'}
+        val = FSTWriter.fst_export(self, to_export)
+        print(val)
+        if val == {'FINISHED'}:
+            if len(armature.data.edit_bones) > 100:
+                bpy.ops.hifi_warn.bone_count('INVOKE_DEFAULT')
+            else:
+                bpy.ops.hifi_success.export('INVOKE_DEFAULT')
+            return {'FINISHED'}
+        else:
+            bpy.ops.hifi_error.export('INVOKE_DEFAULT')
+            return val
