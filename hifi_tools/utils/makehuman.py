@@ -131,6 +131,11 @@ def has_armature_as_child(me):
 #####################################################
 # Mesh Fixes:
 
+def remove_modifier_by_type(obj, modifierType):
+    for m in obj.modifiers:
+        if m.type == modifierType:
+            print("Removing modifier: %s" % m.type)
+            obj.modifiers.remove(m)
 
 # --------------------
 
@@ -170,6 +175,8 @@ def convert_makehuman_avatar_hifi():
                     for material_slot in obj.material_slots:
                         material_slot.material.specular_intensity = 0
                         material_slot.material.specular_hardness = 1
+                        
+                    remove_modifier_by_type(obj, "SUBSURF")
 
 
     bpy.ops.object.select_all(action='DESELECT')
