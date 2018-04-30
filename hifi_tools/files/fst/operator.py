@@ -35,7 +35,7 @@ from bpy.props import (
 )
 import hifi_tools.files.fst.writer as FSTWriter
 
-from hifi_tools.utils.bones import find_armature
+from hifi_tools.utils.bones import find_armatures
 
 
 class HifiBoneOperator(bpy.types.Operator):
@@ -95,6 +95,33 @@ class HifiExportErrorOperator(bpy.types.Operator):
         row.label(text="Warning:", icon="ERROR")
         row = layout.row()
         row.label("Avatar Export Failed. Please Check the console logs")
+
+
+class HifiExportErrorNoArmatureOperator(bpy.types.Operator):
+    bl_idname = "hifi_error_no_armature.export"
+    bl_label = ""
+    bl_options = {'REGISTER', 'INTERNAL'}
+
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def invoke(self, context, even):
+        print("Invoked")
+        wm = context.window_manager
+        return wm.invoke_popup(self, width=400, height=600)
+
+    def execute(self, context):
+        return {'FINISHED'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        row = layout.row()
+        row.label(text="Warning:", icon="ERROR")
+        row = layout.row()
+        row.label("Avatar Export Failed. Please have 1 armature on selected")
+
 
 
 class HifiExportSucccessOperator(bpy.types.Operator):
@@ -169,12 +196,16 @@ class FSTWriterOperator(bpy.types.Operator, ExportHelper):
 
         self.scale = 1  # Add scene scale here
 
-        armature = find_armature(to_export)
+        armatures = find_armatures(to_export)
+       # armature = find_armature(to_export)
+        if len(armatures) > 1 or len(armatures) == 0:
+            bpy.ops.hifi_error_no_armature.export('INVOKE_DEFAULT')
+            return {'CANCELLED'}
 
         val = FSTWriter.fst_export(self, to_export)
         print(val)
         if val == {'FINISHED'}:
-            if len(armature.data.edit_bones) > 100:
+            if len(armatures[0].data.edit_bones) > 100:
                 bpy.ops.hifi_warn.bone_count('INVOKE_DEFAULT')
             else:
                 bpy.ops.hifi_success.export('INVOKE_DEFAULT')
