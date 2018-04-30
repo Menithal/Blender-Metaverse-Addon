@@ -120,6 +120,15 @@ def remove_all_actions():
         bpy.data.actions.remove(action)
 
 
+def find_armatures(selection):
+    armatures = []
+    for selected in selection:
+        if selected.type == "ARMATURE":
+            armatures.append(selected)
+            
+    return armatures
+
+
 def find_armature(selection):
     for selected in selection:
         if selected.type == "ARMATURE":

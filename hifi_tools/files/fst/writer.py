@@ -33,8 +33,8 @@ prefix_joint_maps = {
     "RightHand": "jointRightHand",
     "LeftHand": "jointLeftHand",
     "Neck": "jointNeck",
-    "LeftEye": "jointLeftEye",
-    "RightEye": "jointRightEye",
+    "LeftEye": "jointEyeLeft",
+    "RightEye": "jointEyeRight",
     "Spine": "jointLean"
 }
 
@@ -55,7 +55,7 @@ prefix_filename = "filename = $\n"
 def fst_export(context, selected):
 
     # file = open
-    uuid_gen = uuid.uuid5(uuid.NAMESPACE_DNS, context.name)
+    uuid_gen = uuid.uuid5(uuid.NAMESPACE_DNS, context.filepath)
     scene_id = str(uuid_gen)
 
     print("Exporting file to filepath", context.filepath)
