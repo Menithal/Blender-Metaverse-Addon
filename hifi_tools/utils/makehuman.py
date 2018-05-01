@@ -43,6 +43,14 @@ finger_correction = {
 
 }
 
+material_corrections = [
+     # regex name, specular, hardness
+    (r'.*High\-poly.*', 1.0, (1,1,1), 1.0, 400, (0, 0, 0)),   # high poly eye
+    (r'.*Low\-poly.*', 1.0, (1,1,1), 1.0, 400, (0, 0, 0)),    # low poly eye
+    (r'.*Teeth.*', 1.0, (1,1,1), 1.0, 10, (0, 0, 0)),
+    (r'.*Tongue.*', 1.0, (0.6,0.6,0.6), 0.5, 10, (0, 0, 0)),
+	(r'.*', 1.0, (1,1,1), 0, 1, (0, 0, 0))
+]
 
 #####################################################
 # Armature Fixes:
@@ -119,8 +127,6 @@ def convert_bones(obj):
     clean_up_bones(obj)
 
 
-
-
 def has_armature_as_child(me):
     for child in me.children:
         if child.type == "ARMATURE":
@@ -136,6 +142,19 @@ def remove_modifier_by_type(obj, modifierType):
         if m.type == modifierType:
             print("Removing modifier: %s" % m.type)
             obj.modifiers.remove(m)
+
+
+def set_material_properties(obj):
+    for correction in material_corrections:
+        a = re.compile(correction[0])
+        if(re.match(a, obj.name)):            
+            for material_slot in obj.material_slots:
+                material_slot.material.diffuse_intensity = correction[1]
+                material_slot.material.diffuse_color = correction[2]
+                material_slot.material.specular_intensity = correction[3]
+                material_slot.material.specular_hardness = correction[4]
+                material_slot.material.specular_color = correction[5]
+            break
 
 # --------------------
 
@@ -172,10 +191,7 @@ def convert_makehuman_avatar_hifi():
                     bpy.ops.object.mode_set(mode='OBJECT')
                     print(" Cleaning up Materials now. May take a while ")
                     materials.clean_materials(obj.material_slots)
-                    for material_slot in obj.material_slots:
-                        material_slot.material.specular_intensity = 0
-                        material_slot.material.specular_hardness = 1
-                        
+                    set_material_properties(obj)                        
                     remove_modifier_by_type(obj, "SUBSURF")
 
 
