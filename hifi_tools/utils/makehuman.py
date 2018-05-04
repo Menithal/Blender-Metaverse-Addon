@@ -27,6 +27,10 @@ bones_to_correct_position = [
     ("Spine1",     "tail"),
     ("Spine2",     "head"),
     ("Spine2",     "tail"),
+	("Neck",       "head"),
+	("Neck",       "tail"),
+	("Head",       "head"),
+	("Head",       "tail"),
     ("RightUpLeg", "head"),
     ("RightUpLeg", "tail"),
     ("LeftUpLeg",  "head"),
@@ -72,7 +76,6 @@ def correct_bone_positions(bones):
         dest = bones.get(dest_name)
         dest_head = Vector(dest.head)
         dest_tail = Vector(dest.tail)
-        print(end)
         if end == "head":
             print("Set head")
             dest_head.y = root.y
