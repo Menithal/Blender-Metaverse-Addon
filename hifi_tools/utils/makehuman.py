@@ -5,19 +5,10 @@ import bpy
 import re
 import os
 from math import pi
+import math
 import copy
 from mathutils import Vector
 from hifi_tools.utils import materials, mesh, bones
-
-bones_to_correct = [
-	"LeftToeBase",
-	"RightToeBase"
-]
-
-bones_to_correct_rolls = [
-	30,
-	-30
-]
 
 bones_to_correct_position = [
     ("Hips",       "tail"),
@@ -42,10 +33,6 @@ bones_to_correct_position = [
     ("LeftFoot",   "head"),
     ("RightFoot",  "head")
 ]
-
-finger_correction = {
-
-}
 
 material_corrections = [
      # regex name, specular, hardness
@@ -91,7 +78,6 @@ def correct_bone_positions(bones):
     rightToeTail.x = rightToeHead.x
     rightToeTail.z = rightToeHead.z
     rightToe.tail = rightToeTail
-
 
 
 def clean_up_bones(obj):
@@ -167,6 +153,69 @@ def set_material_properties(obj):
                 material_slot.material.specular_color = correction[5]
             break
 
+
+def create_blink_shapes(shapekey, armature1, armature2):
+
+    armature = None
+    old_meshes = {}
+    meshes = {}
+
+    # duplicate avatar
+    bpy.ops.object.mode_set(mode='OBJECT')
+    bpy.ops.object.select_all(action='DESELECT')
+    for scene in bpy.data.scenes:
+        for obj in scene.objects:
+            if obj is not None:
+                if obj.type == 'ARMATURE':
+                    obj.select = True
+                elif obj.type == 'MESH':
+                    obj.select = True
+                    old_meshes[obj.name+".001"] = obj
+    bpy.ops.object.duplicate()
+
+    # pose eyelids
+    for obj in bpy.context.selected_objects:
+        if obj.type == 'ARMATURE':
+            armature = obj
+            bpy.context.scene.objects.active = obj
+            bpy.ops.object.mode_set(mode='POSE')
+            pose_bones = obj.pose.bones
+            bone_1 = pose_bones.get(armature1)
+            bone_2 = pose_bones.get(armature2)
+            bone_1.rotation_mode = 'XYZ'
+            bone_1.rotation_euler.rotate_axis('X', math.radians(-33))
+            bone_2.rotation_mode = 'XYZ'
+            bone_2.rotation_euler.rotate_axis('X', math.radians(33))
+        elif obj.type == 'MESH':
+            meshes[obj.name] = obj
+
+	# apply armature as shape and transfer to initial avatar
+    for name in meshes:
+        obj = meshes[name]
+        bpy.context.scene.objects.active = obj
+        bpy.ops.object.mode_set(mode='OBJECT')
+        bpy.ops.object.select_all(action='DESELECT')
+        obj.select = True
+        bpy.ops.object.modifier_apply(apply_as='SHAPE', modifier='ARMATURE')
+        index = 0
+        for key in bpy.data.shape_keys:
+            for keyblock in key.key_blocks:
+                if keyblock.name == 'ARMATURE':
+                    keyblock.name = shapekey
+                    index = len(obj.data.shape_keys.key_blocks)-1
+                    obj.active_shape_key_index = index
+
+        old_meshes[name].select = True
+        bpy.context.scene.objects.active = old_meshes[name]
+        bpy.ops.object.shape_key_transfer()
+
+	 #delete temporary avatar
+    bpy.ops.object.select_all(action='DESELECT')
+    for name in meshes:
+        meshes[name].select = True
+    armature.select = True
+    bpy.ops.object.delete()
+
 # --------------------
 
 def convert_makehuman_avatar_hifi():
@@ -206,7 +255,9 @@ def convert_makehuman_avatar_hifi():
                     remove_modifier_by_type(obj, "SUBSURF")
 
 
-    bpy.ops.object.select_all(action='DESELECT')
+    create_blink_shapes("EyeBlink_L", "orbicularis03.L", "orbicularis04.L")
+    create_blink_shapes("EyeBlink_R", "orbicularis03.R", "orbicularis04.R")
+
     for deletion in marked_for_deletion:
         deletion.select = True
         bpy.context.scene.objects.active = deletion
