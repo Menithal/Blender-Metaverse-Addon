@@ -59,14 +59,6 @@ material_corrections = [
 #####################################################
 # Armature Fixes:
 
-
-def correct_toe_rotations(obj):
-    for idx, name in enumerate(bones_to_correct):
-        if name in obj.name:
-            print("   Updating Roll of", obj.name, "with",
-                  bones_to_correct_rolls[idx], "current", obj.roll)
-            obj.roll = bones_to_correct_rolls[idx] * (pi/180)
-
 def correct_bone_positions(bones):
 
     hips = bones.get("Hips")
@@ -85,6 +77,23 @@ def correct_bone_positions(bones):
             dest_tail.y = root.y
             dest.tail = dest_tail
 
+    # now do toes
+    leftToe = bones.get("LeftToeBase")
+    leftToeHead = Vector(leftToe.head)
+    leftToeTail = Vector(leftToe.tail)
+    leftToeTail.x = leftToeHead.x
+    leftToeTail.z = leftToeHead.z
+    leftToe.tail = leftToeTail
+
+    rightToe = bones.get("RightToeBase")
+    rightToeHead = Vector(rightToe.head)
+    rightToeTail = Vector(rightToe.tail)
+    rightToeTail.x = rightToeHead.x
+    rightToeTail.z = rightToeHead.z
+    rightToe.tail = rightToeTail
+
+
+
 def clean_up_bones(obj):
     _to_remove = []
 
@@ -93,6 +102,9 @@ def clean_up_bones(obj):
     bpy.ops.object.mode_set(mode='EDIT')
     updated_context = bpy.data.objects[obj.name]
     edit_bones = updated_context.data.edit_bones
+
+    bpy.ops.object.mode_set(mode='EDIT')
+    correct_bone_positions(updated_context.data.edit_bones)
 
     bpy.ops.object.mode_set(mode='OBJECT')
     for bone in obj.data.bones:
@@ -113,11 +125,7 @@ def clean_up_bones(obj):
             
             print(" # Check Rotations")
             bones.correct_bone_rotations(edit_bone)
-            correct_toe_rotations(edit_bone)
 
-    bpy.ops.object.mode_set(mode='EDIT')
-    correct_bone_positions(updated_context.data.edit_bones)
-	
     bpy.ops.object.mode_set(mode='OBJECT')
 
     return _to_remove
