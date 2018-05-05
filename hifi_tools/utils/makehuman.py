@@ -31,7 +31,9 @@ bones_to_correct_spine_position = [
     ("LeftLeg",    "head", "Hips", "head", "y"),
     ("LeftLeg",    "tail", "Hips", "head", "y"),
     ("LeftFoot",   "head", "Hips", "head", "y"),
-    ("RightFoot",  "head", "Hips", "head", "y")
+    ("RightFoot",  "head", "Hips", "head", "y"),
+    ("LeftShoulder",  "head", "LeftShoulder", "tail", "z"),
+    ("RightShoulder",  "head", "RightShoulder", "tail", "z")
 ]
 
 
