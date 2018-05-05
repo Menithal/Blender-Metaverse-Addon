@@ -10,29 +10,30 @@ import copy
 from mathutils import Vector
 from hifi_tools.utils import materials, mesh, bones
 
-bones_to_correct_position = [
-    ("Hips",       "tail"),
-    ("Spine",      "head"),
-    ("Spine",      "tail"),
-    ("Spine1",     "head"),
-    ("Spine1",     "tail"),
-    ("Spine2",     "head"),
-    ("Spine2",     "tail"),
-	("Neck",       "head"),
-	("Neck",       "tail"),
-	("Head",       "head"),
-	("Head",       "tail"),
-    ("RightUpLeg", "head"),
-    ("RightUpLeg", "tail"),
-    ("LeftUpLeg",  "head"),
-    ("LeftUpLeg",  "tail"),
-    ("RightLeg",   "head"),
-    ("RightLeg",   "tail"),
-    ("LeftLeg",    "head"),
-    ("LeftLeg",    "tail"),
-    ("LeftFoot",   "head"),
-    ("RightFoot",  "head")
+bones_to_correct_spine_position = [
+    ("Hips",       "tail", "Hips", "head", "y"),
+    ("Spine",      "head", "Hips", "head", "y"),
+    ("Spine",      "tail", "Hips", "head", "y"),
+    ("Spine1",     "head", "Hips", "head", "y"),
+    ("Spine1",     "tail", "Hips", "head", "y"),
+    ("Spine2",     "head", "Hips", "head", "y"),
+    ("Spine2",     "tail", "Hips", "head", "y"),
+    ("Neck",       "head", "Hips", "head", "y"),
+    ("Neck",       "tail", "Hips", "head", "y"),
+    ("Head",       "head", "Hips", "head", "y"),
+    ("Head",       "tail", "Hips", "head", "y"),
+    ("RightUpLeg", "head", "Hips", "head", "y"),
+    ("RightUpLeg", "tail", "Hips", "head", "y"),
+    ("LeftUpLeg",  "head", "Hips", "head", "y"),
+    ("LeftUpLeg",  "tail", "Hips", "head", "y"),
+    ("RightLeg",   "head", "Hips", "head", "y"),
+    ("RightLeg",   "tail", "Hips", "head", "y"),
+    ("LeftLeg",    "head", "Hips", "head", "y"),
+    ("LeftLeg",    "tail", "Hips", "head", "y"),
+    ("LeftFoot",   "head", "Hips", "head", "y"),
+    ("RightFoot",  "head", "Hips", "head", "y")
 ]
+
 
 material_corrections = [
      # regex name, specular, hardness
@@ -48,20 +49,18 @@ material_corrections = [
 
 def correct_bone_positions(bones):
 
-    hips = bones.get("Hips")
-    root = Vector(hips.head)
-	
-    for dest_name, end in bones_to_correct_position:
+    for dest_name, end, root_name, root_end, axis in bones_to_correct_spine_position:
+        root_bone = bones.get(root_name)
+        root = Vector(getattr(root_bone, root_end))
         dest = bones.get(dest_name)
         dest_head = Vector(dest.head)
         dest_tail = Vector(dest.tail)
         if end == "head":
-            print("Set head")
-            dest_head.y = root.y
+            setattr(dest_head, axis, getattr(root, axis))
             dest.head = dest_head
         elif end == "tail":
             print("set tail")
-            dest_tail.y = root.y
+            setattr(dest_tail, axis, getattr(root, axis))
             dest.tail = dest_tail
 
     # now do toes
@@ -108,9 +107,16 @@ def clean_up_bones(obj):
             print(" - Removing Constraints from", pose_bone.name)
             for constraint in pose_bone.constraints:
             	pose_bone.constraints.remove(constraint)
-            
+
             print(" # Check Rotations")
             bones.correct_bone_rotations(edit_bone)
+
+            if "Thumb" in edit_bone.name:
+                bpy.ops.object.mode_set(mode='EDIT')
+                bpy.ops.armature.select_all(action="DESELECT")
+                edit_bone.select = True
+                bpy.ops.armature.calculate_roll(type="GLOBAL_NEG_Z")
+                bpy.ops.armature.select_all(action="DESELECT")
 
     bpy.ops.object.mode_set(mode='OBJECT')
 
@@ -209,7 +215,7 @@ def create_blink_shapes(shapekey, armature1, armature2):
         bpy.context.scene.objects.active = old_meshes[name]
         bpy.ops.object.shape_key_transfer()
 
-	 #delete temporary avatar
+    #delete temporary avatar
     bpy.ops.object.select_all(action='DESELECT')
     for name in meshes:
         meshes[name].select = True
