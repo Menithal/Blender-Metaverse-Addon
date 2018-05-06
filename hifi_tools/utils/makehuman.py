@@ -5,89 +5,81 @@ import bpy
 import re
 import os
 from math import pi
+import math
 import copy
 from mathutils import Vector
 from hifi_tools.utils import materials, mesh, bones
 
-bones_to_correct = [
-	"LeftToeBase",
-	"RightToeBase"
+bones_to_correct_spine_position = [
+    ("Hips",       "tail", "Hips", "head", "y"),
+    ("Spine",      "head", "Hips", "head", "y"),
+    ("Spine",      "tail", "Hips", "head", "y"),
+    ("Spine1",     "head", "Hips", "head", "y"),
+    ("Spine1",     "tail", "Hips", "head", "y"),
+    ("Spine2",     "head", "Hips", "head", "y"),
+    ("Spine2",     "tail", "Hips", "head", "y"),
+    ("Neck",       "head", "Hips", "head", "y"),
+    ("Neck",       "tail", "Hips", "head", "y"),
+    ("Head",       "head", "Hips", "head", "y"),
+    ("Head",       "tail", "Hips", "head", "y"),
+    ("RightUpLeg", "head", "Hips", "head", "y"),
+    ("RightUpLeg", "tail", "Hips", "head", "y"),
+    ("LeftUpLeg",  "head", "Hips", "head", "y"),
+    ("LeftUpLeg",  "tail", "Hips", "head", "y"),
+    ("RightLeg",   "head", "Hips", "head", "y"),
+    ("RightLeg",   "tail", "Hips", "head", "y"),
+    ("LeftLeg",    "head", "Hips", "head", "y"),
+    ("LeftLeg",    "tail", "Hips", "head", "y"),
+    ("LeftFoot",   "head", "Hips", "head", "y"),
+    ("RightFoot",  "head", "Hips", "head", "y"),
+    ("LeftShoulder",  "head", "LeftShoulder", "tail", "z"),
+    ("RightShoulder",  "head", "RightShoulder", "tail", "z")
 ]
 
-bones_to_correct_rolls = [
-	30,
-	-30
+
+material_corrections = [
+     # regex name, specular, hardness
+    (r'.*High\-poly.*', 1.0, (1,1,1), 1.0, 400, (0, 0, 0)),   # high poly eye
+    (r'.*Low\-poly.*', 1.0, (1,1,1), 1.0, 400, (0, 0, 0)),    # low poly eye
+    (r'.*Teeth.*', 1.0, (1,1,1), 1.0, 10, (0, 0, 0)),
+    (r'.*Tongue.*', 1.0, (0.6,0.6,0.6), 0.5, 10, (0, 0, 0)),
+	(r'.*', 1.0, (1,1,1), 0, 1, (0, 0, 0))
 ]
-
-bones_to_correct_position = [
-    ("Hips",       "tail"),
-    ("Spine",      "head"),
-    ("Spine",      "tail"),
-    ("Spine1",     "head"),
-    ("Spine1",     "tail"),
-    ("Spine2",     "head"),
-    ("Spine2",     "tail"),
-    ("RightUpLeg", "head"),
-    ("RightUpLeg", "tail"),
-    ("LeftUpLeg",  "head"),
-    ("LeftUpLeg",  "tail"),
-    ("RightLeg",   "head"),
-    ("RightLeg",   "tail"),
-    ("LeftLeg",    "head"),
-    ("LeftLeg",    "tail"),
-    ("LeftFoot",   "head"),
-    ("RightFoot",  "head")
-]
-
-finger_correction = {
-
-}
-
 
 #####################################################
 # Armature Fixes:
 
-
-def correct_toe_rotations(obj):
-    #if "Eye" in obj.name:
-    #    print("   ", obj.name)
-    #    bone_head = Vector(obj.head)
-    #    bone_head.z += 0.12
-    #    obj.tail = bone_head
-    #    obj.roll = 0
-    #elif "Hips" == obj.name:
-    #    bone_head = Vector(obj.head)
-    #    bone_tail = Vector(obj.tail)
-    #    if bone_head.z > bone_tail.z:
-    #        obj.head = bone_tail
-    #        obj.tail = bone_head
-    #    else:
-    #        print("Hips already correct")
-    #else:
-    for idx, name in enumerate(bones_to_correct):
-        if name in obj.name:
-            print("   Updating Roll of", obj.name, "with",
-                  bones_to_correct_rolls[idx], "current", obj.roll)
-            obj.roll = bones_to_correct_rolls[idx] * (pi/180)
-
 def correct_bone_positions(bones):
 
-    hips = bones.get("Hips")
-    root = Vector(hips.head)
-	
-    for dest_name, end in bones_to_correct_position:
+    for dest_name, end, root_name, root_end, axis in bones_to_correct_spine_position:
+        root_bone = bones.get(root_name)
+        root = Vector(getattr(root_bone, root_end))
         dest = bones.get(dest_name)
         dest_head = Vector(dest.head)
         dest_tail = Vector(dest.tail)
-        print(end)
         if end == "head":
-            print("Set head")
-            dest_head.y = root.y
+            setattr(dest_head, axis, getattr(root, axis))
             dest.head = dest_head
         elif end == "tail":
             print("set tail")
-            dest_tail.y = root.y
+            setattr(dest_tail, axis, getattr(root, axis))
             dest.tail = dest_tail
+
+    # now do toes
+    leftToe = bones.get("LeftToeBase")
+    leftToeHead = Vector(leftToe.head)
+    leftToeTail = Vector(leftToe.tail)
+    leftToeTail.x = leftToeHead.x
+    leftToeTail.z = leftToeHead.z
+    leftToe.tail = leftToeTail
+
+    rightToe = bones.get("RightToeBase")
+    rightToeHead = Vector(rightToe.head)
+    rightToeTail = Vector(rightToe.tail)
+    rightToeTail.x = rightToeHead.x
+    rightToeTail.z = rightToeHead.z
+    rightToe.tail = rightToeTail
+
 
 def clean_up_bones(obj):
     _to_remove = []
@@ -97,6 +89,9 @@ def clean_up_bones(obj):
     bpy.ops.object.mode_set(mode='EDIT')
     updated_context = bpy.data.objects[obj.name]
     edit_bones = updated_context.data.edit_bones
+
+    bpy.ops.object.mode_set(mode='EDIT')
+    correct_bone_positions(updated_context.data.edit_bones)
 
     bpy.ops.object.mode_set(mode='OBJECT')
     for bone in obj.data.bones:
@@ -114,14 +109,17 @@ def clean_up_bones(obj):
             print(" - Removing Constraints from", pose_bone.name)
             for constraint in pose_bone.constraints:
             	pose_bone.constraints.remove(constraint)
-            
+
             print(" # Check Rotations")
             bones.correct_bone_rotations(edit_bone)
-            correct_toe_rotations(edit_bone)
 
-    bpy.ops.object.mode_set(mode='EDIT')
-    correct_bone_positions(updated_context.data.edit_bones)
-	
+            if "Thumb" in edit_bone.name:
+                bpy.ops.object.mode_set(mode='EDIT')
+                bpy.ops.armature.select_all(action="DESELECT")
+                edit_bone.select = True
+                bpy.ops.armature.calculate_roll(type="GLOBAL_NEG_Z")
+                bpy.ops.armature.select_all(action="DESELECT")
+
     bpy.ops.object.mode_set(mode='OBJECT')
 
     return _to_remove
@@ -134,8 +132,6 @@ def convert_bones(obj):
     clean_up_bones(obj)
 
 
-
-
 def has_armature_as_child(me):
     for child in me.children:
         if child.type == "ARMATURE":
@@ -146,6 +142,87 @@ def has_armature_as_child(me):
 #####################################################
 # Mesh Fixes:
 
+def remove_modifier_by_type(obj, modifierType):
+    for m in obj.modifiers:
+        if m.type == modifierType:
+            print("Removing modifier: %s" % m.type)
+            obj.modifiers.remove(m)
+
+
+def set_material_properties(obj):
+    for correction in material_corrections:
+        a = re.compile(correction[0])
+        if(re.match(a, obj.name)):            
+            for material_slot in obj.material_slots:
+                material_slot.material.diffuse_intensity = correction[1]
+                material_slot.material.diffuse_color = correction[2]
+                material_slot.material.specular_intensity = correction[3]
+                material_slot.material.specular_hardness = correction[4]
+                material_slot.material.specular_color = correction[5]
+            break
+
+
+def create_blink_shapes(shapekey, armature1, armature2):
+
+    armature = None
+    old_meshes = {}
+    meshes = {}
+
+    # duplicate avatar
+    bpy.ops.object.mode_set(mode='OBJECT')
+    bpy.ops.object.select_all(action='DESELECT')
+    for scene in bpy.data.scenes:
+        for obj in scene.objects:
+            if obj is not None:
+                if obj.type == 'ARMATURE':
+                    obj.select = True
+                elif obj.type == 'MESH':
+                    obj.select = True
+                    old_meshes[obj.name+".001"] = obj
+    bpy.ops.object.duplicate()
+
+    # pose eyelids
+    for obj in bpy.context.selected_objects:
+        if obj.type == 'ARMATURE':
+            armature = obj
+            bpy.context.scene.objects.active = obj
+            bpy.ops.object.mode_set(mode='POSE')
+            pose_bones = obj.pose.bones
+            bone_1 = pose_bones.get(armature1)
+            bone_2 = pose_bones.get(armature2)
+            bone_1.rotation_mode = 'XYZ'
+            bone_1.rotation_euler.rotate_axis('X', math.radians(-33))
+            bone_2.rotation_mode = 'XYZ'
+            bone_2.rotation_euler.rotate_axis('X', math.radians(33))
+        elif obj.type == 'MESH':
+            meshes[obj.name] = obj
+
+	# apply armature as shape and transfer to initial avatar
+    for name in meshes:
+        obj = meshes[name]
+        bpy.context.scene.objects.active = obj
+        bpy.ops.object.mode_set(mode='OBJECT')
+        bpy.ops.object.select_all(action='DESELECT')
+        obj.select = True
+        bpy.ops.object.modifier_apply(apply_as='SHAPE', modifier='ARMATURE')
+        index = 0
+        for key in bpy.data.shape_keys:
+            for keyblock in key.key_blocks:
+                if keyblock.name == 'ARMATURE':
+                    keyblock.name = shapekey
+                    index = len(obj.data.shape_keys.key_blocks)-1
+                    obj.active_shape_key_index = index
+
+        old_meshes[name].select = True
+        bpy.context.scene.objects.active = old_meshes[name]
+        bpy.ops.object.shape_key_transfer()
+
+    #delete temporary avatar
+    bpy.ops.object.select_all(action='DESELECT')
+    for name in meshes:
+        meshes[name].select = True
+    armature.select = True
+    bpy.ops.object.delete()
 
 # --------------------
 
@@ -182,12 +259,13 @@ def convert_makehuman_avatar_hifi():
                     bpy.ops.object.mode_set(mode='OBJECT')
                     print(" Cleaning up Materials now. May take a while ")
                     materials.clean_materials(obj.material_slots)
-                    for material_slot in obj.material_slots:
-                        material_slot.material.specular_intensity = 0
-                        material_slot.material.specular_hardness = 1
+                    set_material_properties(obj)                        
+                    remove_modifier_by_type(obj, "SUBSURF")
 
 
-    bpy.ops.object.select_all(action='DESELECT')
+    create_blink_shapes("EyeBlink_L", "orbicularis03.L", "orbicularis04.L")
+    create_blink_shapes("EyeBlink_R", "orbicularis03.R", "orbicularis04.R")
+
     for deletion in marked_for_deletion:
         deletion.select = True
         bpy.context.scene.objects.active = deletion
