@@ -51,6 +51,9 @@ prefix_scale = "scale = $\n"
 prefix_texdir = "texdir = $\n"
 prefix_filename = "filename = $\n"
 
+prefix_script = "script = $\n"
+prefix_anim_graph_url = "animGraphUrl = $\n"
+
 
 def fst_export(context, selected):
 
@@ -91,6 +94,12 @@ def fst_export(context, selected):
             f.write(prefix_texdir.replace('$', scene_id + '.fbm/'))
         f.write(prefix_filename.replace('$', avatar_file))
         
+        f.write(prefix_script.replace('$', context.script))
+        f.write(prefix_anim_graph_url.replace('$', context.anim_graph_url))
+
+        if context.flow:
+            print("Add Script")
+
         # Writing these in separate loops because they need to done in order.
         for bone in armature.data.bones:
             if bone.name in joint_maps:

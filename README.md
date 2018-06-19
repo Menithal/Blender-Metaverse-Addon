@@ -30,7 +30,7 @@ On Windows this is under `%APPDATA%/Blender Foundation/Blender/<BlenderVersion>/
     - `Set Bone Physical` - (Armature Edit mode only) Adds a prefix to selected bones for Scripts in High fidelity for physical simulation
     - `Remove Bone Physical` - (Armature Edit mode only) Removes prefix from selected bones for Scripts in High fidelity for physical simulation
 - Avatar Converters
-    - `MMD Avatar` - Translates and fixes MMD models and their materials for them to work in High Fidelity. Full MMD Avatar import guide [here](MMD.md)
+    - `MMD Avatar` - Translates and fixes MMD models and their materials for them to work in High Fidelity. [Full MMD Avatar import tutorial here](https://www.youtube.com/watch?v=tJX8VUPZLKQ)
     - `Mixamo Avatar` - Translates and fixes mixamo models and their materials for them to work in High Fidelity
 - Material Tools
     - `Make All Fullbright` - Sets ALL materials fullbright
