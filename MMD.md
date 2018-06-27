@@ -1,5 +1,8 @@
 ## MMD to High Fidelity Guide
 
+### Suggested Watching
+
+https://www.youtube.com/watch?v=tJX8VUPZLKQ
 
 ## Requirements
 

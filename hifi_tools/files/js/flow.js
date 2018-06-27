@@ -72,33 +72,7 @@ Script.include(Script.resolvePath("VectorMath.js"));
     
     // CUSTOM DATA STARTS HERE
     
-    // |||***PYTHONFILL***||| //
-
-    /*
-    CUSTOM_FLOW_DATA = {
-        "hair": {
-            "active": true,
-            "stiffness": 0.0,
-            "radius": 0.04,
-            "gravity": -0.035,
-            "damping": 0.8,
-            "inertia": 0.8,
-            "delta": 0.35
-        }
-    };
-
-    CUSTOM_COLLISION_DATA = {
-        "Spine2": {
-            "type": "sphere",
-            "radius": 0.14,
-            "offset": {
-                "x": 0,
-                "y": 0.2,
-                "z": 0
-            }
-        }
-    };
-    */
+    //__PYTHONFILL__CUSTOM_SETS__//
 
     // CUSTOM DATA ENDS HERE
     

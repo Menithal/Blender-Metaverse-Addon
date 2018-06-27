@@ -51,9 +51,23 @@ prefix_scale = "scale = $\n"
 prefix_texdir = "texdir = $\n"
 prefix_filename = "filename = $\n"
 
+prefix_blendshape = "bs = $\n"
+
+prefix_joint = "joint = ¤ = $\n"
+prefix_free_joint = "freeJoint = $\n"
+
 prefix_script = "script = $\n"
 prefix_anim_graph_url = "animGraphUrl = $\n"
 
+
+def default_blend_shape(selected):
+    print("Blend Shakes")
+
+    for obj in selected:
+        if obj.type == "MESH":
+            print("Searching Blend Shapes")
+            # TODO: Make a map of common blendshape names
+            #  if something does not already exist in model
 
 def fst_export(context, selected):
 
@@ -94,23 +108,28 @@ def fst_export(context, selected):
             f.write(prefix_texdir.replace('$', scene_id + '.fbm/'))
         f.write(prefix_filename.replace('$', avatar_file))
         
-        f.write(prefix_script.replace('$', context.script))
-        f.write(prefix_anim_graph_url.replace('$', context.anim_graph_url))
-
+        if len(context.script) > 0:
+            f.write(prefix_script.replace('$', context.script))
+    
         if context.flow:
-            print("Add Script")
+            print("Add Flow Script")
+
+        
+        if len(context.anim_graph_url) > 0:
+            f.write(prefix_anim_graph_url.replace('$', context.anim_graph_url))
+
 
         # Writing these in separate loops because they need to done in order.
         for bone in armature.data.bones:
             if bone.name in joint_maps:
                 print("Writing joint map",
                       prefix_joint_maps[bone.name] + " = " + bone.name)
-                f.write("joint = " + prefix_joint_maps[bone.name] + " = " + bone.name + "\n")
+                f.write(prefix_joint.replace('¤',prefix_joint_maps[bone.name]).replace('$', bone.name))
 
         for bone in armature.data.bones:
             if bone.name in prefix_free_joints:
                 print("Writing joint index", "freeJoint = " + bone.name + "\n")
-                f.write("freeJoint = " + bone.name + "\n")
+                f.write(prefix_free_joint.replace('$', bone.name))
                 
         retarget_armature({"apply": True}, selected)
 

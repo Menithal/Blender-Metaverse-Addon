@@ -34,9 +34,7 @@ from bpy.props import (
     EnumProperty
 )
 import hifi_tools.files.fst.writer as FSTWriter
-
 from hifi_tools.utils.bones import find_armatures
-
 
 class HifiBoneOperator(bpy.types.Operator):
     bl_idname = "hifi_warn.bone_count"
@@ -162,7 +160,7 @@ class FSTWriterOperator(bpy.types.Operator, ExportHelper):
     selected_only = BoolProperty(
         default=False, name="Selected Only", description="Selected Only")
 
-    anim_url = StringProperty(default="", name="Animation JSON Url",
+    anim_graph_url = StringProperty(default="", name="Animation JSON Url",
                             description="Avatar Animation JSON url")
 
     script = StringProperty(default="", name="Avatar Script Path",
@@ -171,26 +169,37 @@ class FSTWriterOperator(bpy.types.Operator, ExportHelper):
 
     flow = BoolProperty(default=True, name="Add Flow Script", 
                             description="Adds flow script template as an additional Avatar script")
-    
 
     embed = BoolProperty(default=False, name="Embed Textures",
                          description="Embed Textures to Exported Model")
 
     bake = BoolProperty(default=False, name="Oven Bake (Experimental)",
                         description="Use the HiFi Oven Tool to bake")
+                        
+    ipfs = BoolProperty(default=False, name="IPFS",
+                            description="Upload files to the \n InterPlanetary File System Blockchain")
+
+    ipfs_server = StringProperty(default="", name="IPFS Server Url",
+                            description="")
+
 
     def draw(self, context):
         layout = self.layout
         layout.prop(self, "selected_only")
-        layout.prop(self, "anim_url")
+        layout.prop(self, "anim_graph_url")
         layout.prop(self, "script")
         #layout.prop(self, "flow")
         layout.prop(self, "embed")
 
         oven_tool = context.user_preferences.addons[hifi_tools.__name__].preferences.oventool
 
-        if(oven_tool is not None and "oven" in oven_tool):
+        if (oven_tool is not None and "oven" in oven_tool):
             layout.prop(self, "bake")
+                
+        #layout.prop(self, "ipfs")
+        #if (self.ipfs):
+            #layout.prop(self, "ipfs_server")
+        
 
     def execute(self, context):
         if not self.filepath:

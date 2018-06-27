@@ -6,6 +6,12 @@ Plugin ("Project Hermes") is a plugin for Blender to allow for easier content cr
 
 ----
 
+
+# Dependencies Included with source
+
+- py-ipfs-api is from https://github.com/ipfs/py-ipfs-api under MIT license. This is used to export avatars directly to be hosted online of ipfs, a distributed web.
+
+
 # Installation Guide
 
 ## Simple
@@ -70,3 +76,4 @@ You can then set materials to the objects via the material panel, modify the mes
 If Entity is not Child of another entity, no Join is done. Only Children are merged with their Parents
 
 Note that Boolean operations work differently, and some may not keep the UV Unwrapping correctly in some situations. Use at your own risk
+

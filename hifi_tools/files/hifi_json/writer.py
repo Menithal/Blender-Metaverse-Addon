@@ -129,6 +129,32 @@ def apply_all_modifiers(modifiers):
         if modifier.type != 'ARMATURE':
             bpy.ops.object.modifier_apply(apply_as='DATA', modifier=modifier.name)
 
+def set_relative_to_parent(blender_object, json_data):
+    if blender_object.parent:
+        parent = blender_object.parent
+        
+        parent_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, parent.name)
+        
+        parent_orientation = quat_swap_nzy(relative_rotation(blender_object))
+        parent_position = swap_nzy(relative_position(blender_object))
+        
+        json_data["position"] = {
+            'x': parent_position.x,
+            'y': parent_position.y,
+            'z': parent_position.z
+        }
+        
+        json_data["rotation"] = {
+            'x': parent_orientation.x,
+            'y': parent_orientation.y,
+            'z': parent_orientation.z,
+            'w': parent_orientation.w
+        }
+        
+        json_data["parentID"] = str(parent_uuid)
+
+    return json_data
+        
 
 def parse_object(blender_object, path, options):  
     # Store existing rotation mode, just in case.
@@ -143,7 +169,6 @@ def parse_object(blender_object, path, options):
     uuid_gen = uuid.uuid5(uuid.NAMESPACE_DNS, blender_object.name)
     scene_id = str(uuid_gen)
     
-    reference_name = blender_object.data.name
     bo_type = blender_object.type
     
     stored_rotation_mode = str(blender_object.rotation_mode)
@@ -155,6 +180,10 @@ def parse_object(blender_object, path, options):
         original_object = None
         blender_object.select = True      
         uid = ""
+        reference_name = blender_object.data.name
+        
+        # TODO: If Child of armature, skip logic
+
         # Here comes the fun part: Apply all modifiers prior to using them in the instance
         if len(blender_object.modifiers) > 0: 
             # Lets do a LOW-LEVEL duplicate, too much automation in duplicate         
@@ -187,7 +216,6 @@ def parse_object(blender_object, path, options):
 
         # TODO: Option to also export via gltf instead of fbx
         # TODO: Add Option to not embedtextures / copy paths
-
         file_path = path + reference_name + uid + ".fbx"
 
         atp_enabled = options.atp
@@ -239,35 +267,11 @@ def parse_object(blender_object, path, options):
             'userData': '{"blender_export":"' + scene_id +'"}, "grabbable_key":["grabbable":false]}'
         }         
         
- 
-        if blender_object.parent:
-            parent = blender_object.parent
-            
-            parent_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, parent.name)
-            
-            parent_orientation = quat_swap_nzy(relative_rotation(blender_object))
-            parent_position = swap_nzy(relative_position(blender_object))
-            
-            json_data["position"] = {
-                'x': parent_position.x,
-                'y': parent_position.y,
-                'z': parent_position.z
-            }
-            
-            json_data["rotation"] = {
-                'x': parent_orientation.x,
-                'y': parent_orientation.y,
-                'z': parent_orientation.z,
-                'w': parent_orientation.w
-            }
-            
-            json_data["parentID"] = str(parent_uuid)
+        json_data = set_relative_to_parent(blender_object, json_data)
 
         if original_object:
-            print("removing duplicate")
             bpy.ops.object.delete()
             blender_object = original_object
-            print("new set", blender_object)
             blender_object.select = True
             
     elif bo_type == 'LAMP':
@@ -315,8 +319,40 @@ def parse_object(blender_object, path, options):
         
         # TODO: Spot Lights require rotation by 90 degrees to get pointing in the right direction        
     elif bo_type == 'ARMATURE': # Same as Mesh actually.
-        print(name, 'is armature')
-    
+        # Get all children export as a single file.
+        print(name, 'is armature. Not Supported as of the moment')
+
+    elif bo_type == 'EMPTY':
+        print(name, 'Adding an Empty')
+
+        json_data = { 
+            'id': scene_id,
+            'visible': False,
+            'collisionless': True,
+            'ignoreForCollisions': True,
+            'position': {
+                'x': position.x,
+                'y': position.y,
+                'z': position.z
+            },
+            'dimensions':{
+                'x': 1,
+                'y': 1,
+                'z': 1,
+            },
+            'name': 'EMPTY-' + name,
+            "color": {
+                "blue": 128,
+                "green": 0,
+                "red": 255
+            },
+            "shape": "Cube",
+            "type": "Box",
+            'userData': '{"blender_export":"' + scene_id +'", "grabbableKey":{"grabbable":false,"ignoreIK":false}}',
+        }
+
+        json_data = set_relative_to_parent(blender_object, json_data)
+
     else:
         print('Skipping unsupported feature', name, bo_type)
     
