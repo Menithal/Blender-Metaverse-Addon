@@ -36,6 +36,7 @@ from bpy.props import (
 import hifi_tools.files.fst.writer as FSTWriter
 from hifi_tools.utils.bones import find_armatures
 
+
 class HifiBoneOperator(bpy.types.Operator):
     bl_idname = "hifi_warn.bone_count"
     bl_label = ""
@@ -121,7 +122,6 @@ class HifiExportErrorNoArmatureOperator(bpy.types.Operator):
         row.label("Avatar Export Failed. Please have 1 armature on selected")
 
 
-
 class HifiExportSucccessOperator(bpy.types.Operator):
     bl_idname = "hifi_success.export"
     bl_label = ""
@@ -155,52 +155,49 @@ class FSTWriterOperator(bpy.types.Operator, ExportHelper):
 
     directory = StringProperty()
     filename_ext = ".fst"
+    
+    # TODO: instead create a new directory instead of a file.
 
     filter_glob = StringProperty(default="*.fst", options={'HIDDEN'})
     selected_only = BoolProperty(
         default=False, name="Selected Only", description="Selected Only")
 
     anim_graph_url = StringProperty(default="", name="Animation JSON Url",
-                            description="Avatar Animation JSON url")
+                                    description="Avatar Animation JSON url")
 
     script = StringProperty(default="", name="Avatar Script Path",
                             description="Avatar Script, Script that is run on avatar")
 
-
-    flow = BoolProperty(default=True, name="Add Flow Script", 
-                            description="Adds flow script template as an additional Avatar script")
+    flow = BoolProperty(default=True, name="Add Flow Script",
+                        description="Adds flow script template as an additional Avatar script")
 
     embed = BoolProperty(default=False, name="Embed Textures",
                          description="Embed Textures to Exported Model")
 
     bake = BoolProperty(default=False, name="Oven Bake (Experimental)",
                         description="Use the HiFi Oven Tool to bake")
-                        
-    ipfs = BoolProperty(default=False, name="IPFS",
-                            description="Upload files to the \n InterPlanetary File System Blockchain")
 
-    ipfs_server = StringProperty(default="", name="IPFS Server Url",
-                            description="")
-
+    ipfs = BoolProperty(default=False, name="Upload to IPFS",
+                        description="Upload files to the \n InterPlanetary File System Blockchain via a Gateway")
 
     def draw(self, context):
         layout = self.layout
         layout.prop(self, "selected_only")
         layout.prop(self, "anim_graph_url")
         layout.prop(self, "script")
-        #layout.prop(self, "flow")
+        layout.prop(self, "flow")
         layout.prop(self, "embed")
 
         oven_tool = context.user_preferences.addons[hifi_tools.__name__].preferences.oventool
-
+        enabled_ipfs = len(context.user_preferences.addons[hifi_tools.__name__].preferences.gateway_token) > 0
+        
+        print (enabled_ipfs, " IPDS")
         if (oven_tool is not None and "oven" in oven_tool):
             layout.prop(self, "bake")
-                
-        #layout.prop(self, "ipfs")
-        #if (self.ipfs):
-            #layout.prop(self, "ipfs_server")
-        
 
+        if enabled_ipfs:
+            layout.prop(self, "ipfs")
+    
     def execute(self, context):
         if not self.filepath:
             raise Exception("filepath not set")
@@ -227,7 +224,7 @@ class FSTWriterOperator(bpy.types.Operator, ExportHelper):
             return {'CANCELLED'}
 
         val = FSTWriter.fst_export(self, to_export)
-        
+
         if val == {'FINISHED'}:
             if len(armatures[0].data.edit_bones) > 100:
                 bpy.ops.hifi_warn.bone_count('INVOKE_DEFAULT')

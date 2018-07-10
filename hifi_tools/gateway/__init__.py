@@ -18,13 +18,4 @@
 # ##### END GPL LICENSE BLOCK #####
 # Created by Matti 'Menithal' Lahtinen
 
-from . import (
-    helpers,
-    mesh,
-    bones,
-    mmd,
-    mixamo,
-    materials,
-    bake_tool
-)
-import bpy
+from . import client

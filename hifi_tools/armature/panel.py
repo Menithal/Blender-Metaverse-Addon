@@ -24,6 +24,9 @@ import sys
 
 from mathutils import Quaternion, Vector, Euler, Matrix
 
+from urllib.parse import urlencode
+import hifi_tools
+import webbrowser
 from hifi_tools.utils.bones import combine_bones, build_skeleton, retarget_armature, correct_scale_rotation, set_selected_bones_physical, remove_selected_bones_physical
 from hifi_tools.armature.skeleton import structure as base_armature
 from hifi_tools.utils.mmd import convert_mmd_avatar_hifi
@@ -31,7 +34,10 @@ from hifi_tools.utils.mixamo import convert_mixamo_avatar_hifi
 from hifi_tools.utils.makehuman import convert_makehuman_avatar_hifi
 from hifi_tools.utils.materials import make_materials_fullbright, make_materials_shadeless, convert_to_png, convert_images_to_mask
 
+from hifi_tools.gateway import client as GatewayClient
 from bpy.props import StringProperty
+
+# TODO: Move somewhere more sensible, this contains alot of other UI stuff not just armature
 
 
 class HifiArmaturePanel(bpy.types.Panel):
@@ -72,7 +78,7 @@ class HifiBonePanel(bpy.types.Panel):
         layout.operator(HifiRemoveBonePhysicalOperator.bl_idname)
         layout.operator(HifiCombineBonesOperator.bl_idname)
         return None
-    
+
 
 class HifiAvatarPanel(bpy.types.Panel):
     bl_idname = "avatar_toolset.hifi"
@@ -115,6 +121,60 @@ class HifiMaterialsPanel(bpy.types.Panel):
         layout.operator(HifiTexturesMakeMaskOperator.bl_idname)
 
         return None
+
+
+class HifiAssetsPanel(bpy.types.Panel):
+    bl_idname = "assets.hifi"
+    bl_label = "Assets"
+
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "TOOLS"
+    bl_category = "High Fidelity"
+
+    @classmethod
+    def poll(self, context):
+        user_preferences = context.user_preferences
+        addon_prefs = user_preferences.addons[hifi_tools.__name__].preferences
+
+        return len(addon_prefs["gateway_token"]) > 0
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator(HifiIPFSCheckAssetsOperator.bl_idname)
+
+        return None
+
+
+class HifiIPFSCheckAssetsOperator(bpy.types.Operator):
+    bl_idname = "asset_toolset.hifi"
+    bl_label = "IPFS Uploads"
+
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "TOOLS"
+    bl_category = "High Fidelity"
+
+    def execute(self, context):
+        print("START WEBPAGE")
+        user_preferences = context.user_preferences
+        addon_prefs = user_preferences.addons[hifi_tools.__name__].preferences
+        server = addon_prefs["gateway_server"]
+
+        browsers = webbrowser._browsers
+        # Better way would be to use jwt, but this is just a proto
+        routes = GatewayClient.routes(server)
+        # TODO On failure this should return something else.
+        print(routes)
+        print(routes["uploads"])
+
+        path = routes["uploads"] + "?" + urlencode({'token': addon_prefs["gateway_token"],
+                                                          'username': addon_prefs["gateway_username"]})
+        if "windows-default" in browsers:
+            print("Windows detected")
+            webbrowser.get("windows-default").open(server + path)
+        else:
+            webbrowser.open(server + path)
+
+        return {'FINISHED'}
 
 
 class HifiArmatureCreateOperator(bpy.types.Operator):
@@ -200,7 +260,8 @@ class HifiCombineBonesOperator(bpy.types.Operator):
         return len(context.selected_bones) > 1
 
     def execute(self, context):
-        combine_bones(list(context.selected_bones), context.active_bone, context.active_object)
+        combine_bones(list(context.selected_bones),
+                      context.active_bone, context.active_object)
         return {'FINISHED'}
 
 
@@ -229,6 +290,7 @@ class HifiMixamoOperator(bpy.types.Operator):
         convert_mixamo_avatar_hifi()
         return {'FINISHED'}
 
+
 class HifiMakeHumanOperator(bpy.types.Operator):
     bl_idname = "armature_toolset_fix_makehuman_avatar.hifi"
     bl_label = "MakeHuman Avatar"
@@ -241,6 +303,7 @@ class HifiMakeHumanOperator(bpy.types.Operator):
         convert_makehuman_avatar_hifi()
         retarget_armature({'apply': True}, bpy.data.objects)
         return {'FINISHED'}
+
 
 class HifiMaterialFullbrightOperator(bpy.types.Operator):
     bl_idname = "materials_toolset_fullbright.hifi"
@@ -322,11 +385,11 @@ class HifiSaveReminderOperator(bpy.types.Operator):
         row.label(self.bl_label)
 
 
-
 classes = [
     HifiArmaturePanel,
     HifiMaterialsPanel,
     HifiAvatarPanel,
+    HifiAssetsPanel,
     HifiArmatureCreateOperator,
     HifiArmaturePoseOperator,
     HifiSetBonePhysicalOperator,
@@ -338,8 +401,9 @@ classes = [
     HifiTexturesMakeMaskOperator,
     HifiMMDOperator,
     HifiMixamoOperator,
-	HifiMakeHumanOperator,
-    HifiSaveReminderOperator
+    HifiMakeHumanOperator,
+    HifiSaveReminderOperator,
+    HifiIPFSCheckAssetsOperator
 ]
 
 
