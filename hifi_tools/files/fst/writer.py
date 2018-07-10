@@ -86,10 +86,15 @@ def fst_export(context, selected):
 
     print("Exporting file to filepath", context.filepath)
 
-    directory = os.path.dirname(os.path.realpath(context.filepath))
+    filename = ntpath.basename(context.filepath).replace('.fst', "")
+    directory = ntpath.join(os.path.dirname(
+        os.path.realpath(context.filepath)), filename)
+    
+    os.mkdir(directory)
 
+    filepath = ntpath.join(directory, filename + ".fst")
     avatar_file = scene_id + ".fbx"
-    avatar_filepath = directory + '/' + avatar_file
+    avatar_filepath = ntpath.join(directory, avatar_file)
 
     joint_maps = prefix_joint_maps.keys()
     print(joint_maps, selected)
@@ -99,7 +104,7 @@ def fst_export(context, selected):
         print(" Could not find Armature in selection or scene")
         return {"CANCELLED"}
 
-    f = open(context.filepath, "w")
+    f = open(filepath, "w")
 
     mode = bpy.context.area.type
     try:

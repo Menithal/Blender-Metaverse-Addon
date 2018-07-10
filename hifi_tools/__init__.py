@@ -48,7 +48,7 @@ import bpy
 
 from bpy.types import AddonPreferences
 
-default_gateway_server="http://10.0.0.200"
+default_gateway_server="http://theden.dyndns-home.com/"
                                      # default="http://theden.dyndns-home.com:8070"
 class HifiAddOnPreferences(AddonPreferences):
     bl_idname = __name__
