@@ -1,4 +1,5 @@
 import http.client
+import bpy
 import json
 from urllib.parse import urlencode
 from http.client import HTTPException
@@ -30,7 +31,7 @@ def multipart_encoder(params, files):
         lines.extend(['', val])
 
     for key, uri in files.items():
-        name = os.path.basename(uri)
+        name = bpy.path.basename(uri)
         mime = mimetypes.guess_type(uri)[0] or 'application/octet-stream'
 
         lines.append('--' + boundry)

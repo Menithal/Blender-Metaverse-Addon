@@ -23,6 +23,7 @@ import os
 import uuid
 import hifi_tools
 import ntpath
+import shutil
 
 from hifi_tools.utils.bones import find_armature, retarget_armature
 from hifi_tools.utils.mesh import get_mesh_from
@@ -89,15 +90,16 @@ def fst_export(context, selected):
     filename = ntpath.basename(context.filepath).replace('.fst', "")
     directory = ntpath.join(os.path.dirname(
         os.path.realpath(context.filepath)), filename)
-    
-    os.mkdir(directory)
+
+    if os.path.isdir(directory) is False:
+        os.mkdir(directory)
 
     filepath = ntpath.join(directory, filename + ".fst")
     avatar_file = scene_id + ".fbx"
     avatar_filepath = ntpath.join(directory, avatar_file)
 
     joint_maps = prefix_joint_maps.keys()
-    print(joint_maps, selected)
+
     armature = find_armature(selected)
 
     if armature is None:
@@ -114,9 +116,11 @@ def fst_export(context, selected):
         f.write(prefix_name.replace('$', context.name))
         f.write(prefix_type)
         f.write(prefix_scale.replace('$', str(context.scale)))
-        if not context.embed:
-            f.write(prefix_texdir.replace('$', scene_id + '.fbm/'))
+
         f.write(prefix_filename.replace('$', avatar_file))
+        # Fix Directory here.
+        if not context.embed:
+            f.write(prefix_texdir.replace('$', 'textures'))
 
         if len(context.script) > 0:
             f.write(prefix_script.replace('$', context.script))
@@ -150,12 +154,36 @@ def fst_export(context, selected):
         for select in selected:
             select.select = True
 
-        bpy.ops.export_scene.fbx(filepath=avatar_filepath, version='BIN7400', embed_textures=context.embed, path_mode='COPY',
+        if context.embed:
+            path_mode = 'COPY'
+        else:
+            path_mode = 'AUTO'
+
+        bpy.ops.export_scene.fbx(filepath=avatar_filepath, version='BIN7400', embed_textures=context.embed, path_mode=path_mode,
                                  use_selection=True, add_leaf_bones=False,  axis_forward='-Z', axis_up='Y')
 
-        images = []
         if not context.embed:
-            images = get_images_from(selected)
+            texture_dir = ntpath.join(directory, "textures")
+
+            # If textures already exists in the folder we will put (overiding old)
+            # Remove it.
+            if os.path.isdir(texture_dir):
+                shutil.rmtree(texture_dir)
+            os.mkdir(texture_dir)
+            # This is where things get interesting. if COPY mode is used when not embedding,
+            # Blender doesnt export the rest of the information, so the behavior is strange.
+
+            images = get_images_from(get_mesh_from(selected))
+
+            print(images)
+
+            for image in images:
+                current_path = bpy.path.abspath(image.filepath)
+                print(bpy.path.basename(image.filepath))
+                shutil.copy(current_path, ntpath.join(texture_dir, ntpath.basename(current_path)))
+
+            # rename_folder = ntpath.join(directory, scene_id + '.fbm')
+            # os.rename(rename_folder, texture_dir)
 
         if preferences.oventool is not None and context.bake:
             bake_fbx(preferences.oventool, avatar_filepath)
@@ -164,38 +192,38 @@ def fst_export(context, selected):
         print('Could not write to file.', e)
 
         f.close()
-        bpy.context.area.type = mode
+        bpy.context.area.type=mode
         return {"CANCELLED"}
 
     f.close()
 
     if context.ipfs:
-        token = preferences.gateway_token
-        username = preferences.gateway_username
-        server = preferences.gateway_server
+        token=preferences.gateway_token
+        username=preferences.gateway_username
+        server=preferences.gateway_server
 
-        filename = ntpath.basename(context.filepath).replace('.fst', "")
+        filename=ntpath.basename(context.filepath).replace('.fst', "")
 
-        zip_file = directory + "/../" + filename  # context.filepath
+        zip_file=directory + "/../" + filename  # context.filepath
 
-        archive_name = shutil.make_archive(
+        archive_name=shutil.make_archive(
             zip_file, 'zip', root_dir=directory)
 
-        response = json.loads(GatewayClient.upload(
+        response=json.loads(GatewayClient.upload(
             server, username, token, filename, archive_name))
 
         if isinstance(response,  list):
-            stored_hash = None
-
-            gateway_default = "https://gateway.ipfs.io/ipfs/"
+            stored_hash=None
+            # Choose from multiple?
+            gateway_default="https://gateway.ipfs.io/ipfs/"
 
             for item in response:
                 if item["Name"] == filename+".zip":
-                    stored_hash = item["Hash"]
+                    stored_hash=item["Hash"]
                     break
 
             if stored_hash is not None:
-                browsers = webbrowser._browsers
+                browsers=webbrowser._browsers
                 if "windows-default" in browsers:
                     print("Windows detected")
                     webbrowser.get(
@@ -205,7 +233,7 @@ def fst_export(context, selected):
         else:
             print("ERROR")
 
-    bpy.context.area.type = mode
+    bpy.context.area.type=mode
 
     return {"FINISHED"}
     # FST Exporter

@@ -489,6 +489,7 @@ def convert_mmd_avatar_hifi():
     materials.convert_to_png(bpy.data.images)
     materials.convert_images_to_mask(bpy.data.images)
     materials.cleanup_alpha(bpy.data.materials)
+    materials.remove_materials_metallic(bpy.data.materials)
 
     bpy.context.area.type = original_type
 

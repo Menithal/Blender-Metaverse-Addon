@@ -155,7 +155,7 @@ class FSTWriterOperator(bpy.types.Operator, ExportHelper):
 
     directory = StringProperty()
     filename_ext = ".fst"
-    
+
     # TODO: instead create a new directory instead of a file.
 
     filter_glob = StringProperty(default="*.fst", options={'HIDDEN'})
@@ -163,41 +163,58 @@ class FSTWriterOperator(bpy.types.Operator, ExportHelper):
         default=False, name="Selected Only", description="Selected Only")
 
     anim_graph_url = StringProperty(default="", name="Animation JSON Url",
-                                    description="Avatar Animation JSON url")
+                                    description="Avatar Animation JSON absolute url path")
 
     script = StringProperty(default="", name="Avatar Script Path",
-                            description="Avatar Script, Script that is run on avatar")
+                            description="Avatar Script absolute url path, Script that is run on avatar")
 
-    flow = BoolProperty(default=True, name="Add Flow Script",
+    flow = BoolProperty(default=False, name="Add Flow Script",
                         description="Adds flow script template as an additional Avatar script")
 
     embed = BoolProperty(default=False, name="Embed Textures",
-                         description="Embed Textures to Exported Model")
+                         description="Embed Textures to Exported Model. Turn this off if you are having issues of Textures  not showing correctly in elsewhere.")
 
     bake = BoolProperty(default=False, name="Oven Bake (Experimental)",
                         description="Use the HiFi Oven Tool to bake")
 
-    ipfs = BoolProperty(default=False, name="Upload to IPFS",
+    ipfs = BoolProperty(default=False, name="Yes, Upload to IPFS",
                         description="Upload files to the \n InterPlanetary File System Blockchain via a Gateway")
 
     def draw(self, context):
         layout = self.layout
         layout.prop(self, "selected_only")
-        layout.prop(self, "anim_graph_url")
-        layout.prop(self, "script")
-        layout.prop(self, "flow")
+       #layout.prop(self, "flow")
         layout.prop(self, "embed")
 
         oven_tool = context.user_preferences.addons[hifi_tools.__name__].preferences.oventool
-        enabled_ipfs = len(context.user_preferences.addons[hifi_tools.__name__].preferences.gateway_token) > 0
-        
-        print (enabled_ipfs, " IPDS")
+        enabled_ipfs = len(
+            context.user_preferences.addons[hifi_tools.__name__].preferences.gateway_token) > 0
+
         if (oven_tool is not None and "oven" in oven_tool):
             layout.prop(self, "bake")
 
         if enabled_ipfs:
+            
+            row = layout.row()
+            row = layout.row()
+            row = layout.row()
+            row = layout.row()
+            row.label(
+                text="Warning: Anything you put into the ipfs is public for anyone", icon="ERROR")
+
+            row = layout.row()
+            row.label(
+                "with the url to see / download and will be impossible to remove after ")
+
+            row = layout.row()
+            row.label("being distributed to ipfs, unless links of it are forgotten.")
+
+            row = layout.row()
+            row.label(
+                "Do you want to upload assets to IPFS? ")
+
             layout.prop(self, "ipfs")
-    
+
     def execute(self, context):
         if not self.filepath:
             raise Exception("filepath not set")

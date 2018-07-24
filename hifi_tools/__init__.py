@@ -18,9 +18,9 @@
 
 
 bl_info = {
-    "name": "HiFi Blender Add-on (gateway IPFS Integration)",
+    "name": "HiFi Blender Add-on",
     "author": "Matti 'Menithal' Lahtinen",
-    "version": (1, 1, 1),
+    "version": (1, 1, 2),
     "blender": (2, 7, 7),
     "location": "File > Import-Export, Materials, Armature",
     "description": "Blender tools to allow for easier Content creation for High Fidelity",
@@ -48,31 +48,112 @@ import bpy
 
 from bpy.types import AddonPreferences
 
-default_gateway_server="http://theden.dyndns-home.com"
-                                     # default="http://theden.dyndns-home.com:8070"
+default_gateway_server = "http://fox.menithal.com"
+
+
+class TermsOperator (bpy.types.Operator):
+    bl_idname = "ipfs_feature_agreement.confirm"
+
+    bl_label = "Enable IPFS"
+    bl_options = {'REGISTER', 'INTERNAL'}
+
+    agree = BoolProperty(
+        name="I Agree", description="I agree when using ipfs upload in fst export, that my file is uploaded to the ifps via a Gateway.", default=False)
+
+    def draw(self, context):
+        layout = self.layout
+
+        row = layout.row()
+        row.label(
+            "IPFS is Interplanetary File System, https://ipfs.io is a public, ")
+
+        row = layout.row()
+        row.label(
+            " distributed file network.")
+
+        row = layout.row()
+        row.label(
+            "The Hifi-Blender plugins allows to use an experimental service to upload")
+
+        row = layout.row()
+
+        row.label(
+            "files to the ipfs.")
+
+        row = layout.row()
+
+        row.label(
+            text="Warning: Anything you put into the ipfs is public for anyone", icon="ERROR")
+
+        row = layout.row()
+        row.label(
+            "with the url to see and will be nearly impossible to remove after ")
+
+        row = layout.row()
+        row.label("being distributed.")
+
+        row = layout.row()
+        row.label(
+            "Are you sure you want to enable the choice to upload on Export? ")
+        row = layout.row()
+        row.label(
+            "(Currently supports avatars only)")
+
+        row = layout.row()
+
+        row.prop(self, "agree")
+
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self, width=600, height=400)
+
+    def execute(self, context):
+        user_preferences = context.user_preferences
+        addon_prefs = user_preferences.addons[__name__].preferences
+        if self.agree:
+            addon_prefs["ipfs"] = True
+        else:
+            addon_prefs["ipfs"] = False
+
+        return {'FINISHED'}
+
+
 class HifiAddOnPreferences(AddonPreferences):
     bl_idname = __name__
     oventool = StringProperty(name="Oven Tool path (EXPERIMENTAL)",
                                    description="Point this to the High Fidelity Oven tool",
                                    subtype="FILE_PATH")
-    gateway_server = StringProperty(name="gateway Server",
-                                     description="API to upload files",
-                                     default=default_gateway_server
-                                     )
-    gateway_username = StringProperty(name="gateway IPFS Username",
-                                       description="Username to API")
-    gateway_token = StringProperty(name="gateway IPFS Token",
-                                    description="login to API")
+
+    ipfs = BoolProperty(name="IPFS (EXPERIMENTAL)", description="Enabled IPFS")
+    
+    upload_to_ipfs = BoolProperty()
+
+    gateway_server = StringProperty(name="Gateway Server",
+                                    description="API to upload files",
+                                    default=default_gateway_server
+                                    )
+    gateway_username = StringProperty(name="Gateway IPFS Username",
+                                      description="Enter a random Username for  API")
+    gateway_token = StringProperty(name="Gateway IPFS Token",
+                                   description="login to API")
 
     def draw(self, context):
         layout = self.layout
         layout.prop(self, "oventool")
-        layout.prop(self, "gateway_server")
-        layout.prop(self, "gateway_username")
-        layout.prop(self, "gateway_token")
-    
-        if len(self.gateway_token) == 0:
-            layout.operator(GatewayGenerateToken.bl_idname)
+
+        if self.ipfs:
+            layout.prop(self, "ipfs")
+            layout.prop(self, "gateway_server")
+            layout.prop(self, "gateway_username")
+            layout.prop(self, "gateway_token")
+
+            if len(self.gateway_token) == 0:
+                layout.operator(GatewayGenerateToken.bl_idname)
+        else:
+            layout.operator(TermsOperator.bl_idname)
 
 
 class GatewayGenerateToken(bpy.types.Operator):
@@ -81,6 +162,7 @@ class GatewayGenerateToken(bpy.types.Operator):
 
     def execute(self, context):
         # gatewayClient.new_token()
+
         user_preferences = context.user_preferences
         addon_prefs = user_preferences.addons[__name__].preferences
 
@@ -89,16 +171,16 @@ class GatewayGenerateToken(bpy.types.Operator):
         if not "gateway_server" in addon_prefs.keys():
             addon_prefs["gateway_server"] = default_gateway_server
 
-        server = addon_prefs["gateway_server"]          
+        server = addon_prefs["gateway_server"]
 
         result = GatewayClient.new_token(server, username)
-        
+
         if result is "Err":
             return {'CANCELLED'}
-            
+
         addon_prefs["gateway_token"] = result
 
-        #TODO: Suggest to save as token can only be generated once, until password is added to this.
+        # TODO: Suggest to save as token can only be generated once, until password is added to this.
 
         return {'FINISHED'}
 

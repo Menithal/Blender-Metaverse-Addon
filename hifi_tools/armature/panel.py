@@ -32,7 +32,7 @@ from hifi_tools.armature.skeleton import structure as base_armature
 from hifi_tools.utils.mmd import convert_mmd_avatar_hifi
 from hifi_tools.utils.mixamo import convert_mixamo_avatar_hifi
 from hifi_tools.utils.makehuman import convert_makehuman_avatar_hifi
-from hifi_tools.utils.materials import make_materials_fullbright, make_materials_shadeless, convert_to_png, convert_images_to_mask
+from hifi_tools.utils.materials import make_materials_fullbright, make_materials_shadeless, convert_to_png, convert_images_to_mask, remove_materials_metallic
 
 from hifi_tools.gateway import client as GatewayClient
 from bpy.props import StringProperty
@@ -116,9 +116,9 @@ class HifiMaterialsPanel(bpy.types.Panel):
         layout = self.layout
         layout.operator(HifiMaterialFullbrightOperator.bl_idname)
         layout.operator(HifiMaterialShadelessOperator.bl_idname)
-
         layout.operator(HifiTexturesConvertToPngOperator.bl_idname)
         layout.operator(HifiTexturesMakeMaskOperator.bl_idname)
+        layout.operator(HifiMaterialMetallicRemoveOperator.bl_idname)
 
         return None
 
@@ -154,7 +154,6 @@ class HifiIPFSCheckAssetsOperator(bpy.types.Operator):
     bl_category = "High Fidelity"
 
     def execute(self, context):
-        print("START WEBPAGE")
         user_preferences = context.user_preferences
         addon_prefs = user_preferences.addons[hifi_tools.__name__].preferences
         server = addon_prefs["gateway_server"]
@@ -320,7 +319,7 @@ class HifiMaterialFullbrightOperator(bpy.types.Operator):
 
 class HifiMaterialShadelessOperator(bpy.types.Operator):
     bl_idname = "materials_toolset_shadeless.hifi"
-    bl_label = "Make All Shadeless"
+    bl_label = "Remove All Shadeless"
 
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
@@ -328,6 +327,19 @@ class HifiMaterialShadelessOperator(bpy.types.Operator):
 
     def execute(self, context):
         make_materials_shadeless(bpy.data.materials)
+        return {'FINISHED'}
+
+
+class HifiMaterialMetallicRemoveOperator(bpy.types.Operator):
+    bl_idname = "materials_toolset_shadeless.hifi"
+    bl_label = "Remove All Metallic"
+
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "TOOLS"
+    bl_category = "High Fidelity"
+
+    def execute(self, context):
+        remove_materials_metallic(bpy.data.materials)
         return {'FINISHED'}
 
 
@@ -397,6 +409,7 @@ classes = [
     HifiCombineBonesOperator,
     HifiMaterialFullbrightOperator,
     HifiMaterialShadelessOperator,
+    HifiMaterialMetallicRemoveOperator,
     HifiTexturesConvertToPngOperator,
     HifiTexturesMakeMaskOperator,
     HifiMMDOperator,

@@ -136,7 +136,6 @@ def convert_images_to_mask(images, threshold=0.3):
     for image in images:
         convert_image_to_mask(image, threshold)
 
-
 def make_material_shadeless(material):
     if material is not None:
         material.specular_shader = 'WARDISO'
@@ -147,6 +146,11 @@ def make_material_shadeless(material):
 def make_materials_shadeless(materials):
     for material in materials:
         make_material_shadeless(material)
+
+
+def remove_materials_metallic(materials):
+    for material in materials:
+        material.specular_color = (0, 0, 0)
 
 
 def make_material_shaded(material):
