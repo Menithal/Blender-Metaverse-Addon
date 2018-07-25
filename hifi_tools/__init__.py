@@ -20,7 +20,7 @@
 bl_info = {
     "name": "HiFi Blender Add-on",
     "author": "Matti 'Menithal' Lahtinen",
-    "version": (1, 1, 2),
+    "version": (1, 1, 3),
     "blender": (2, 7, 7),
     "location": "File > Import-Export, Materials, Armature",
     "description": "Blender tools to allow for easier Content creation for High Fidelity",
@@ -49,21 +49,22 @@ from bpy.types import AddonPreferences
 # TODO: This is placeholder and will be shut down after more are available.
 default_gateway_server = "https://fox.menithal.com"
 
-class TermsOperator (bpy.types.Operator):
-    bl_idname = "ipfs_feature_agreement.confirm"
+
+class InfoOperator (bpy.types.Operator):
+    bl_idname = "ipfs_feature_understand.confirm"
 
     bl_label = "Enable IPFS"
     bl_options = {'REGISTER', 'INTERNAL'}
 
     agree = BoolProperty(
-        name="I Agree", description="I agree when using ipfs upload in fst export, that my file is uploaded to the ifps via a Gateway.", default=False)
+        name="Yes", description="I am aware what it means to upload to ipfs via the hifi-ipfs gateway.", default=False)
 
     def draw(self, context):
         layout = self.layout
 
         row = layout.row()
         row.label(
-            "IPFS is Interplanetary File System, https://ipfs.io is a public, ")
+            text="IPFS is Interplanetary File System, https://ipfs.io is a public, ", icon="INFO")
 
         row = layout.row()
         row.label(
@@ -71,25 +72,58 @@ class TermsOperator (bpy.types.Operator):
 
         row = layout.row()
         row.label(
-            "The Hifi-Blender plugins allows to use an experimental service to upload")
-
-        row = layout.row()
-
-        row.label(
-            "files to the ipfs.")
-
-        row = layout.row()
-
-        row.label(
-            text="Warning: Anything you put into the ipfs is public for anyone", icon="ERROR")
+            "The Hifi-Blender plugin allows to use an experimental services 'hifi-ipfs'")
 
         row = layout.row()
         row.label(
-            "with the url to see and will be nearly impossible to remove after ")
+            "to upload files to the ipfs. ")
+        row = layout.row()
 
         row = layout.row()
-        row.label("being distributed.")
+        row = layout.row()
+        row = layout.row()
+        row.label(
+            "You can put anything not used as your username.")
 
+        row = layout.row()
+        row.label(
+            "Save both the name and token somewhere safe. You cannot recover it."
+        )
+
+        row = layout.row()
+        row.label(
+            'You cannot generate new tokens, if a username that has one already.'
+        )
+        row = layout.row()
+        row = layout.row()
+        row = layout.row()
+        row.label(
+            "These credential are 'hifi-ipfs' service specific and the 'hifi-ipfs' service ")
+        row = layout.row()
+        row.label(
+            "set here only tracks what have been uploaded with the username."
+        )
+        row = layout.row()
+        row.label("and where they can be found for convenience.  ")
+        row = layout.row()
+        row.label(
+            "Anything uploaded in another service to the ipfs network cannot be tracked.")
+        row = layout.row()
+        row = layout.row()
+        row = layout.row()
+        row.label(
+            text=": Anything you put into the IPFS is public for anyone", icon="ERROR")
+
+        row = layout.row()
+        row.label(
+            "with the url to see and maybe be nearly impossible to remove after ")
+
+        row = layout.row()
+        row.label(
+            "being distributed / accessed from a public 'ipfs' gateway, unless forgotten.")
+
+        row = layout.row()
+        row = layout.row()
         row = layout.row()
         row.label(
             "Are you sure you want to enable the choice to upload on Export? ")
@@ -126,17 +160,14 @@ class HifiAddOnPreferences(AddonPreferences):
                                    subtype="FILE_PATH")
 
     ipfs = BoolProperty(name="IPFS (EXPERIMENTAL)", description="Enabled IPFS")
-    
-    upload_to_ipfs = BoolProperty()
 
-    gateway_server = StringProperty(name="Gateway Server",
+    gateway_server = StringProperty(name="HIFI-IPFS Server",
                                     description="API to upload files",
-                                    default=default_gateway_server
-                                    )
-    gateway_username = StringProperty(name="Gateway IPFS Username",
-                                      description="Enter a random Username for  API")
-    gateway_token = StringProperty(name="Gateway IPFS Token",
-                                   description="login to API")
+                                    default=default_gateway_server)
+    gateway_username = StringProperty(name="HIFI-IPFS Username",
+                                      description="Enter any Username for API", default="")
+    gateway_token = StringProperty(name="HIFI-IPFS Token",
+                                   description="login to API", default="")
 
     def draw(self, context):
         layout = self.layout
@@ -151,7 +182,7 @@ class HifiAddOnPreferences(AddonPreferences):
             if len(self.gateway_token) == 0:
                 layout.operator(GatewayGenerateToken.bl_idname)
         else:
-            layout.operator(TermsOperator.bl_idname)
+            layout.operator(InfoOperator.bl_idname)
 
 
 class GatewayGenerateToken(bpy.types.Operator):
@@ -164,19 +195,29 @@ class GatewayGenerateToken(bpy.types.Operator):
         user_preferences = context.user_preferences
         addon_prefs = user_preferences.addons[__name__].preferences
 
+        wm = context.window_manager
         username = addon_prefs["gateway_username"]
+
+        if len(username) == 0:
+            bpy.ops.wm.console_toggle()
+            print(" No username")
+            return {'CANCELLED'}
 
         if not "gateway_server" in addon_prefs.keys():
             addon_prefs["gateway_server"] = default_gateway_server
 
         server = addon_prefs["gateway_server"]
 
-        result = GatewayClient.new_token(server, username)
+        response = GatewayClient.new_token(server, username)
 
+        result = response[0]
+        message = response[1]
         if result is "Err":
+            bpy.ops.wm.console_toggle()
+            print(message)
             return {'CANCELLED'}
 
-        addon_prefs["gateway_token"] = result
+        addon_prefs["gateway_token"] = message
 
         # TODO: Suggest to save as token can only be generated once, until password is added to this.
 

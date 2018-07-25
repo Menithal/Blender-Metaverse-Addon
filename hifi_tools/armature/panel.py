@@ -136,7 +136,7 @@ class HifiAssetsPanel(bpy.types.Panel):
         user_preferences = context.user_preferences
         addon_prefs = user_preferences.addons[hifi_tools.__name__].preferences
 
-        return len(addon_prefs["gateway_token"]) > 0
+        return "gateway_token" in addon_prefs and len(addon_prefs["gateway_token"]) > 0
 
     def draw(self, context):
         layout = self.layout
@@ -162,11 +162,9 @@ class HifiIPFSCheckAssetsOperator(bpy.types.Operator):
         # Better way would be to use jwt, but this is just a proto
         routes = GatewayClient.routes(server)
         # TODO On failure this should return something else.
-        print(routes)
-        print(routes["uploads"])
 
         path = routes["uploads"] + "?" + urlencode({'token': addon_prefs["gateway_token"],
-                                                          'username': addon_prefs["gateway_username"]})
+                                                    'username': addon_prefs["gateway_username"]})
         if "windows-default" in browsers:
             print("Windows detected")
             webbrowser.get("windows-default").open(server + path)

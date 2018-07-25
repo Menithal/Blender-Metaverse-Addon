@@ -89,16 +89,18 @@ def new_token(server, username):
     route = routes(server)
 
     if route is None:
-        return "Err"
+        return ("Err", "Could not get routes to server! server is probably down")
 
     result = json.loads(_basic_connect(
         server, route["new_user"], "POST", username))
 
     if "error" in result.keys():
-        return "Err"
+        return ("Err", result["error"])
 
     if "secret" in result.keys():
-        return result["secret"]
+        return ("Success", result["secret"])
+
+    return ("Err", " No conditions met, contact maintainer")
 
 
 def routes(server):
