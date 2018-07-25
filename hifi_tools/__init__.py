@@ -38,18 +38,16 @@ from . import armature
 from . import utils
 from . import world
 from . import files
-
 from .files.hifi_json.operator import *
 from .files.fst.operator import *
-
 from .gateway import client as GatewayClient
 
 import bpy
 
 from bpy.types import AddonPreferences
 
-default_gateway_server = "http://fox.menithal.com"
-
+# TODO: This is placeholder and will be shut down after more are available.
+default_gateway_server = "https://fox.menithal.com"
 
 class TermsOperator (bpy.types.Operator):
     bl_idname = "ipfs_feature_agreement.confirm"

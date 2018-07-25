@@ -58,7 +58,7 @@ def multipart_encoder(params, files):
 
 
 def upload(server, username, token, filename, file):
-    print("Uploading ")
+    print("Connecting to Server")
     route = routes(server)
     data = None
     connection = _form_connect(server)
@@ -68,11 +68,14 @@ def upload(server, username, token, filename, file):
         headers, body = multipart_encoder(
             {"username": username, "token": token}, {"file": file})
 
-        print("Sending Request", route["asset_upload"])
+        print("Sending Request",
+              route["asset_upload"], " This may take a while.")
         connection.request("POST", route["asset_upload"], body, headers)
 
         res = connection.getresponse()
         data = res.read()
+        print("Response:")
+        print(data)
     except HTTPException as e:
         print("HttpException Occurred", e)
     finally:
@@ -99,6 +102,7 @@ def new_token(server, username):
 
 
 def routes(server):
+    print("Getting routes for the plugin from server.")
     return json.loads(_basic_connect(server, '/plugin_routes'))
 
 
@@ -126,7 +130,6 @@ def _basic_connect(server, path, method="GET",  username=None, token=None):
             if token is not None:
                 body['token'] = token
 
-            print(urlencode(body))
             connection.request(
                 method, path, urlencode(body), {"Content-Type": 'application/x-www-form-urlencoded'})
 
@@ -135,6 +138,8 @@ def _basic_connect(server, path, method="GET",  username=None, token=None):
 
     except HTTPException as e:
         print("HttpException Occurred", e)
+        # TODO: Should probably throw Exception here.
+        return None
     finally:
         connection.close()
 

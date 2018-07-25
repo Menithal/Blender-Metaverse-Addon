@@ -102,8 +102,6 @@ def unpack_images(images):
         bpy.ops.image.save()
         bpy.ops.image.reload()
 
-    # bpy.ops.image.save_dirty()
-    ## ---- #
     bpy.context.area.type = mode
 
 
@@ -126,7 +124,6 @@ def convert_image_to_mask(image, threshold):
         else:
             pixels[index] = 0
     image.pixels = pixels
-    # image.save()
 
     bpy.ops.image.save()
     bpy.context.area.type = mode

@@ -7,11 +7,6 @@ Plugin ("Project Hermes") is a plugin for Blender to allow for easier content cr
 ----
 
 
-# Dependencies Included with source
-
-- py-ipfs-api is from https://github.com/ipfs/py-ipfs-api under MIT license. This is used to export avatars directly to be hosted online of ipfs, a distributed web.
-
-
 # Installation Guide
 
 ## Simple
@@ -56,7 +51,7 @@ On Windows this is under `%APPDATA%/Blender Foundation/Blender/<BlenderVersion>/
 
 
 ## Importing from Hifi:
-The add-on allows you to import **0primitive entities**  from High Fidelity. In High Fidelity,  select the entities you want to export and press export. 
+The add-on allows you to import **primitive entities**  from High Fidelity. In High Fidelity,  select the entities you want to export and press export. 
 
 In Blender, You can then import these entities with `File > Import > HiFi Metaverse Scene JSON`
 

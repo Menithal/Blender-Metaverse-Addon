@@ -159,6 +159,7 @@ def fst_export(context, selected):
         else:
             path_mode = 'AUTO'
 
+        print("Writing FBX with path_mode=", path_mode)
         bpy.ops.export_scene.fbx(filepath=avatar_filepath, version='BIN7400', embed_textures=context.embed, path_mode=path_mode,
                                  use_selection=True, add_leaf_bones=False,  axis_forward='-Z', axis_up='Y')
 
@@ -167,23 +168,23 @@ def fst_export(context, selected):
 
             # If textures already exists in the folder we will put (overiding old)
             # Remove it.
+            print("Checking if there is an existing export folder.")
             if os.path.isdir(texture_dir):
+                print("Deleting existing folder")
                 shutil.rmtree(texture_dir)
+
             os.mkdir(texture_dir)
             # This is where things get interesting. if COPY mode is used when not embedding,
             # Blender doesnt export the rest of the information, so the behavior is strange.
 
+            print("Getting Textures from selected Mesh.")
             images = get_images_from(get_mesh_from(selected))
 
-            print(images)
-
+            print("Copying Textures to export folder.")
             for image in images:
                 current_path = bpy.path.abspath(image.filepath)
-                print(bpy.path.basename(image.filepath))
-                shutil.copy(current_path, ntpath.join(texture_dir, ntpath.basename(current_path)))
-
-            # rename_folder = ntpath.join(directory, scene_id + '.fbm')
-            # os.rename(rename_folder, texture_dir)
+                shutil.copy(current_path, ntpath.join(
+                    texture_dir, ntpath.basename(current_path)))
 
         if preferences.oventool is not None and context.bake:
             bake_fbx(preferences.oventool, avatar_filepath)
@@ -192,38 +193,50 @@ def fst_export(context, selected):
         print('Could not write to file.', e)
 
         f.close()
-        bpy.context.area.type=mode
+        bpy.context.area.type = mode
         return {"CANCELLED"}
 
     f.close()
 
     if context.ipfs:
-        token=preferences.gateway_token
-        username=preferences.gateway_username
-        server=preferences.gateway_server
+        bpy.ops.wm.console_toggle()
 
-        filename=ntpath.basename(context.filepath).replace('.fst', "")
+        print("IPFS Upload Enabled!")
 
-        zip_file=directory + "/../" + filename  # context.filepath
+        token = preferences.gateway_token
+        username = preferences.gateway_username
+        server = preferences.gateway_server
 
-        archive_name=shutil.make_archive(
+        filename = ntpath.basename(context.filepath).replace('.fst', "")
+
+        zip_file = directory + "/../" + filename  # context.filepath
+
+        print("Packing", directory, "to", zip_file)
+
+        archive_name = shutil.make_archive(
             zip_file, 'zip', root_dir=directory)
 
-        response=json.loads(GatewayClient.upload(
+        response = json.loads(GatewayClient.upload(
             server, username, token, filename, archive_name))
 
         if isinstance(response,  list):
-            stored_hash=None
+            stored_hash = None
             # Choose from multiple?
-            gateway_default="https://gateway.ipfs.io/ipfs/"
+            print("For Now using gateway.ipfs.io gateway as reference point. Look at https://ipfs.github.io/public-gateway-checker/ for others!")
+
+            # TODO: use https://ipfs.github.io/public-gateway-checker/gateways.json for other gateways
+
+            gateway_default = "https://gateway.ipfs.io/ipfs/"
 
             for item in response:
                 if item["Name"] == filename+".zip":
-                    stored_hash=item["Hash"]
+                    stored_hash = item["Hash"]
+                    print("Found Directory at", stored_hash)
                     break
 
             if stored_hash is not None:
-                browsers=webbrowser._browsers
+                browsers = webbrowser._browsers
+                print("Opening Web Browser on OS to point to uploaded directory.")
                 if "windows-default" in browsers:
                     print("Windows detected")
                     webbrowser.get(
@@ -233,7 +246,7 @@ def fst_export(context, selected):
         else:
             print("ERROR")
 
-    bpy.context.area.type=mode
+    bpy.context.area.type = mode
 
     return {"FINISHED"}
     # FST Exporter

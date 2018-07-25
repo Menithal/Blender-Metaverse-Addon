@@ -187,6 +187,10 @@ class FSTWriterOperator(bpy.types.Operator, ExportHelper):
         layout.prop(self, "embed")
 
         oven_tool = context.user_preferences.addons[hifi_tools.__name__].preferences.oventool
+        
+        layout.prop(self, "anim_graph_url")
+        layout.prop(self, "script")
+
         enabled_ipfs = len(
             context.user_preferences.addons[hifi_tools.__name__].preferences.gateway_token) > 0
 
@@ -214,6 +218,8 @@ class FSTWriterOperator(bpy.types.Operator, ExportHelper):
                 "Do you want to upload assets to IPFS? ")
 
             layout.prop(self, "ipfs")
+        
+
 
     def execute(self, context):
         if not self.filepath:
