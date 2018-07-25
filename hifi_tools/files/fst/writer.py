@@ -229,7 +229,7 @@ def fst_export(context, selected):
             gateway_default = "https://gateway.ipfs.io/ipfs/"
 
             for item in response:
-                if item["Name"] == filename+".zip":
+                if item["Name"] == filename+".zip" or item["Name"] == filename:
                     stored_hash = item["Hash"]
                     print("Found Directory at", stored_hash)
                     break
