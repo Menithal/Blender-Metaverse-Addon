@@ -214,6 +214,9 @@ class FSTWriterOperator(bpy.types.Operator, ExportHelper):
             row.label("being distributed to ipfs, unless links of it are forgotten.")
 
             row = layout.row()
+            row.label("Distribution may take a while. You may need to refresh the page after a few minutes.")
+
+            row = layout.row()
             row.label(
                 "Do you want to upload assets to IPFS? ")
 

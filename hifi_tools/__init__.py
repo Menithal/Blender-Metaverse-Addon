@@ -30,6 +30,7 @@ bl_info = {
     "category": "Import-Export",
 }
 
+default_gateway_server = "https://fox.menithal.com"
 import addon_utils
 import sys
 import logging
@@ -47,7 +48,6 @@ import bpy
 from bpy.types import AddonPreferences
 
 # TODO: This is placeholder and will be shut down after more are available.
-default_gateway_server = "https://fox.menithal.com"
 
 
 class InfoOperator (bpy.types.Operator):

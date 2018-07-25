@@ -37,6 +37,8 @@ from hifi_tools.utils.materials import make_materials_fullbright, make_materials
 from hifi_tools.gateway import client as GatewayClient
 from bpy.props import StringProperty
 
+from hifi_tools import default_gateway_server
+
 # TODO: Move somewhere more sensible, this contains alot of other UI stuff not just armature
 
 
@@ -156,6 +158,11 @@ class HifiIPFSCheckAssetsOperator(bpy.types.Operator):
     def execute(self, context):
         user_preferences = context.user_preferences
         addon_prefs = user_preferences.addons[hifi_tools.__name__].preferences
+
+        if not "gateway_server" in addon_prefs.keys():
+            addon_prefs["gateway_server"] = default_gateway_server
+
+
         server = addon_prefs["gateway_server"]
 
         browsers = webbrowser._browsers
@@ -329,7 +336,7 @@ class HifiMaterialShadelessOperator(bpy.types.Operator):
 
 
 class HifiMaterialMetallicRemoveOperator(bpy.types.Operator):
-    bl_idname = "materials_toolset_shadeless.hifi"
+    bl_idname = "materials_toolset_metallic.hifi"
     bl_label = "Remove All Metallic"
 
     bl_space_type = "VIEW_3D"
