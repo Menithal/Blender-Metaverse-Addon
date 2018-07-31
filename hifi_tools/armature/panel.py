@@ -324,7 +324,7 @@ class HifiMaterialFullbrightOperator(bpy.types.Operator):
 
 class HifiMaterialShadelessOperator(bpy.types.Operator):
     bl_idname = "materials_toolset_shadeless.hifi"
-    bl_label = "Remove All Shadeless"
+    bl_label = "Make All Shadeless"
 
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"

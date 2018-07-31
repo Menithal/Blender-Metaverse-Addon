@@ -220,7 +220,7 @@ def fst_export(context, selected):
             server, username, token, filename, archive_name))
 
         if isinstance(response,  list):
-            stored_hash = None
+            file = None
             # Choose from multiple?
             print("For Now using gateway.ipfs.io gateway as reference point. Look at https://ipfs.github.io/public-gateway-checker/ for others!")
 
@@ -230,19 +230,19 @@ def fst_export(context, selected):
 
             for item in response:
                 if item["Name"] == filename+".zip" or item["Name"] == filename:
-                    stored_hash = item["Hash"]
-                    print("Found Directory at", stored_hash)
+                    file = item["Hash"] + filename + ".fst"
+                    print("Found Directory at", file)
                     break
 
-            if stored_hash is not None:
+            if file is not None:
                 browsers = webbrowser._browsers
                 print("Opening Web Browser on OS to point to uploaded directory.")
                 if "windows-default" in browsers:
                     print("Windows detected")
                     webbrowser.get(
-                        "windows-default").open(gateway_default + stored_hash)
+                        "windows-default").open(gateway_default + file)
                 else:
-                    webbrowser.open(gateway_default + stored_hash)
+                    webbrowser.open(gateway_default + file)
         else:
             print("ERROR")
 
