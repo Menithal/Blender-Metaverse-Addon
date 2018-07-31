@@ -22,7 +22,7 @@ import bpy
 import os
 import uuid
 import hifi_tools
-import ntpath
+import os.path as ntpath
 import shutil
 
 from hifi_tools.utils.bones import find_armature, retarget_armature
