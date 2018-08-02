@@ -240,9 +240,9 @@ def fst_export(context, selected):
                 if "windows-default" in browsers:
                     print("Windows detected")
                     webbrowser.get(
-                        "windows-default").open(gateway_default + file)
+                        "windows-default").open(gateway_default + "/" + file)
                 else:
-                    webbrowser.open(gateway_default + file)
+                    webbrowser.open(gateway_default + "/"+file)
         else:
             print("ERROR")
 
