@@ -230,7 +230,7 @@ def fst_export(context, selected):
 
             for item in response:
                 if item["Name"] == filename+".zip" or item["Name"] == filename:
-                    file = item["Hash"] + filename + ".fst"
+                    file = item["Hash"] + "/" + filename + ".fst"
                     print("Found Directory at", file)
                     break
 
@@ -240,9 +240,9 @@ def fst_export(context, selected):
                 if "windows-default" in browsers:
                     print("Windows detected")
                     webbrowser.get(
-                        "windows-default").open(gateway_default + "/" + file)
+                        "windows-default").open(gateway_default + file)
                 else:
-                    webbrowser.open(gateway_default + "/"+file)
+                    webbrowser.open(gateway_default + file)
         else:
             print("ERROR")
 
