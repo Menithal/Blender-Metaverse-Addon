@@ -116,6 +116,7 @@ class HifiMaterialsPanel(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
+        
         layout.operator(HifiMaterialFullbrightOperator.bl_idname)
         layout.operator(HifiMaterialShadelessOperator.bl_idname)
         layout.operator(HifiTexturesConvertToPngOperator.bl_idname)
@@ -137,13 +138,11 @@ class HifiAssetsPanel(bpy.types.Panel):
     def poll(self, context):
         user_preferences = context.user_preferences
         addon_prefs = user_preferences.addons[hifi_tools.__name__].preferences
-
         return "gateway_token" in addon_prefs and len(addon_prefs["gateway_token"]) > 0
 
     def draw(self, context):
         layout = self.layout
         layout.operator(HifiIPFSCheckAssetsOperator.bl_idname)
-
         return None
 
 
@@ -161,8 +160,7 @@ class HifiIPFSCheckAssetsOperator(bpy.types.Operator):
 
         if not "gateway_server" in addon_prefs.keys():
             addon_prefs["gateway_server"] = default_gateway_server
-
-
+        
         server = addon_prefs["gateway_server"]
 
         browsers = webbrowser._browsers
@@ -374,7 +372,6 @@ class HifiTexturesMakeMaskOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 # -----
-
 
 class HifiSaveReminderOperator(bpy.types.Operator):
     bl_idname = "hifi_error.save_file"

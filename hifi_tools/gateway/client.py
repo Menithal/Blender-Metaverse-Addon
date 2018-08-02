@@ -1,7 +1,7 @@
-import http.client
 import bpy
 import json
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlparse
+import http.client
 from http.client import HTTPException
 import uuid
 import os
@@ -103,6 +103,25 @@ def new_token(server, username):
     return ("Err", " No conditions met, contact maintainer")
 
 
+def new_token_oauth(server, username, oauth):
+    route = routes(server)
+
+    if route is None:
+        return ("Err", "Could not get routes to server! server is probably down")
+
+    result = json.loads(_basic_connect(
+        server, route["new_user"], "POST", username, None, oauth))
+
+    if "error" in result.keys():
+        return ("Err", result["error"])
+
+    if "secret" in result.keys():
+        return ("Success", result["secret"])
+
+    return ("Err", " No conditions met, contact maintainer")
+
+    
+
 def routes(server):
     print("Getting routes for the plugin from server.")
     return json.loads(_basic_connect(server, '/plugin_routes'))
@@ -115,7 +134,7 @@ def _form_connect(server):
         return http.client.HTTPConnection(server.replace("http://", ""))
 
 
-def _basic_connect(server, path, method="GET",  username=None, token=None):
+def _basic_connect(server, path, method="GET", username=None, token=None, oauth=None):
     connection = _form_connect(server)
     data = None
 
@@ -131,6 +150,9 @@ def _basic_connect(server, path, method="GET",  username=None, token=None):
 
             if token is not None:
                 body['token'] = token
+                
+            if oauth is not None:
+                body['oauth'] = oauth
 
             connection.request(
                 method, path, urlencode(body), {"Content-Type": 'application/x-www-form-urlencoded'})

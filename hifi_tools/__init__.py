@@ -20,7 +20,7 @@
 bl_info = {
     "name": "HiFi Blender Add-on",
     "author": "Matti 'Menithal' Lahtinen",
-    "version": (1, 1, 4),
+    "version": (1, 1, 6),
     "blender": (2, 7, 7),
     "location": "File > Import-Export, Materials, Armature",
     "description": "Blender tools to allow for easier Content creation for High Fidelity",
@@ -31,9 +31,12 @@ bl_info = {
 }
 
 default_gateway_server = "https://fox.menithal.com"
+oauth_default = True
 import addon_utils
 import sys
 import logging
+
+from hifi_tools.ext.throttle import throttle
 
 from . import armature
 from . import utils
@@ -42,12 +45,70 @@ from . import files
 from .files.hifi_json.operator import *
 from .files.fst.operator import *
 from .gateway import client as GatewayClient
-
+import webbrowser
 import bpy
 
 from bpy.types import AddonPreferences
 
 # TODO: This is placeholder and will be shut down after more are available.
+
+
+def on_server_update(self, context):
+    user_preferences = context.user_preferences
+    addon_prefs = user_preferences.addons[__name__].preferences
+
+    print("Server address updated" + addon_prefs["gateway_server"])
+    result = GatewayClient.routes(addon_prefs["gateway_server"])
+
+    if "oauth" in result:
+        addon_prefs["oauth_required"] = result["oauth"]
+    else:
+        addon_prefs["oauth_required"] = False
+        addon_prefs["oauth_api"] = ""
+
+    return None
+
+
+def on_token_update(self, context):
+    user_preferences = context.user_preferences
+    addon_prefs = user_preferences.addons[__name__].preferences
+
+    wm = context.window_manager
+    username = addon_prefs["gateway_username"]
+
+    if len(username) == 0:
+        bpy.ops.wm.console_toggle()
+        addon_prefs["gateway_token"] = ""
+        addon_prefs["oauth_api"] = ""
+        addon_prefs["message_box"] = "No username set."
+        return None
+
+    if not "gateway_server" in addon_prefs.keys():
+        addon_prefs["gateway_server"] = default_gateway_server
+
+    server = addon_prefs["gateway_server"]
+
+    if "oauth" in addon_prefs and addon_prefs["oauth"] or oauth_default:
+        if addon_prefs["hifi_oauth"] is not None:
+            response = GatewayClient.new_token_oauth(
+                server, username, addon_prefs["hifi_oauth"])
+        else:
+            return None
+    else:
+        response = GatewayClient.new_token(server, username)
+
+    result = response[0]
+    message = response[1]
+    if result is "Err":
+        addon_prefs["gateway_token"] = ""
+        addon_prefs["message_box"] = message
+        return None
+
+    addon_prefs["gateway_token"] = message
+    addon_prefs["message_box"] = "" #Success! Remember to Save Settings.
+    bpy.ops.auth_success.export('INVOKE_DEFAULT')
+
+    return None
 
 
 class InfoOperator (bpy.types.Operator):
@@ -153,6 +214,33 @@ class InfoOperator (bpy.types.Operator):
         return {'FINISHED'}
 
 
+class AuthSuccessOperator(bpy.types.Operator):
+    bl_idname = "auth_success.export"
+    bl_label = ""
+    bl_options = {'REGISTER', 'INTERNAL'}
+
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def invoke(self, context, even):
+        wm = context.window_manager
+        return wm.invoke_popup(self, width=400, height=600)
+
+    def execute(self, context):
+        return {'FINISHED'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        row = layout.row()
+        row.label(text="Success:", icon="FILE_TICK")
+        row = layout.row()
+        row.label("Authentication Success! ")
+        row = layout.row()
+        row.label("Remember to Save Your Settings")
+
+
 class HifiAddOnPreferences(AddonPreferences):
     bl_idname = __name__
     oventool = StringProperty(name="Oven Tool path (EXPERIMENTAL)",
@@ -163,11 +251,23 @@ class HifiAddOnPreferences(AddonPreferences):
 
     gateway_server = StringProperty(name="HIFI-IPFS Server",
                                     description="API to upload files",
-                                    default=default_gateway_server)
+                                    default=default_gateway_server,
+                                    update=on_server_update)
+
     gateway_username = StringProperty(name="HIFI-IPFS Username",
                                       description="Enter any Username for API", default="")
+
+    oauth_required = BoolProperty(default=oauth_default)
+    oauth_api = StringProperty(default="", options={"HIDDEN"})
+
+    hifi_oauth = StringProperty(name="Hifi OAuth Token",
+                                description="Enter an Oauth Token with identity permissions", default="",
+                                update=on_token_update)
+
     gateway_token = StringProperty(name="HIFI-IPFS Token",
                                    description="login to API", default="")
+
+    message_box = StringProperty(name="Status", default="", options={"SKIP_SAVE"})
 
     def draw(self, context):
         layout = self.layout
@@ -177,12 +277,41 @@ class HifiAddOnPreferences(AddonPreferences):
             layout.prop(self, "ipfs")
             layout.prop(self, "gateway_server")
             layout.prop(self, "gateway_username")
-            layout.prop(self, "gateway_token")
 
-            if len(self.gateway_token) == 0:
-                layout.operator(GatewayGenerateToken.bl_idname)
+            if self.oauth_required:
+                row = layout.row()
+                row.prop(self, "hifi_oauth")
+
+                if len(self.hifi_oauth) == 0:
+                    row.operator(HifiGenerateToken.bl_idname)
+            else:
+                row = layout.row()
+                row.prop(self, "gateway_token")
+
+                if len(self.gateway_token) == 0:
+                    row.operator(GatewayGenerateToken.bl_idname)
+
+            if len(self.message_box):
+                layout.prop(self, "message_box")
         else:
             layout.operator(InfoOperator.bl_idname)
+
+
+class HifiGenerateToken(bpy.types.Operator):
+    bl_idname = "hifi.generate_token"
+    bl_label = "Get Hifi Identity Token"
+
+    def execute(self, context):
+
+        user_preferences = context.user_preferences
+        addon_prefs = user_preferences.addons[__name__].preferences
+
+        if "windows-default" in webbrowser._browsers:
+            webbrowser.get("windows-default").open(addon_prefs["oauth_api"])
+        else:
+            webbrowser.open(addon_prefs["oauth_api"])
+
+        return {'FINISHED'}
 
 
 class GatewayGenerateToken(bpy.types.Operator):
@@ -190,34 +319,8 @@ class GatewayGenerateToken(bpy.types.Operator):
     bl_label = "Generate Token"
 
     def execute(self, context):
-        # gatewayClient.new_token()
 
-        user_preferences = context.user_preferences
-        addon_prefs = user_preferences.addons[__name__].preferences
-
-        wm = context.window_manager
-        username = addon_prefs["gateway_username"]
-
-        if len(username) == 0:
-            bpy.ops.wm.console_toggle()
-            print(" No username")
-            return {'CANCELLED'}
-
-        if not "gateway_server" in addon_prefs.keys():
-            addon_prefs["gateway_server"] = default_gateway_server
-
-        server = addon_prefs["gateway_server"]
-
-        response = GatewayClient.new_token(server, username)
-
-        result = response[0]
-        message = response[1]
-        if result is "Err":
-            bpy.ops.wm.console_toggle()
-            print(message)
-            return {'CANCELLED'}
-
-        addon_prefs["gateway_token"] = message
+        on_token_update(self, context)
 
         # TODO: Suggest to save as token can only be generated once, until password is added to this.
 

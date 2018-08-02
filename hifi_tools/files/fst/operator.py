@@ -244,7 +244,6 @@ class FSTWriterOperator(bpy.types.Operator, ExportHelper):
         self.scale = 1  # Add scene scale here
 
         armatures = find_armatures(to_export)
-       # armature = find_armature(to_export)
         if len(armatures) > 1 or len(armatures) == 0:
             bpy.ops.hifi_error_no_armature.export('INVOKE_DEFAULT')
             return {'CANCELLED'}
