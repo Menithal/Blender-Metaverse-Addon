@@ -20,7 +20,7 @@
 bl_info = {
     "name": "HiFi Blender Add-on",
     "author": "Matti 'Menithal' Lahtinen",
-    "version": (1, 1, 6),
+    "version": (1, 1, 7),
     "blender": (2, 7, 7),
     "location": "File > Import-Export, Materials, Armature",
     "description": "Blender tools to allow for easier Content creation for High Fidelity",
@@ -62,6 +62,7 @@ def on_server_update(self, context):
 
     if "oauth" in result:
         addon_prefs["oauth_required"] = result["oauth"]
+        addon_prefs["oauth_api"] = result["oauth_api"]
     else:
         addon_prefs["oauth_required"] = False
         addon_prefs["oauth_api"] = ""
@@ -79,7 +80,6 @@ def on_token_update(self, context):
     if len(username) == 0:
         bpy.ops.wm.console_toggle()
         addon_prefs["gateway_token"] = ""
-        addon_prefs["oauth_api"] = ""
         addon_prefs["message_box"] = "No username set."
         return None
 
@@ -255,7 +255,8 @@ class HifiAddOnPreferences(AddonPreferences):
                                     update=on_server_update)
 
     gateway_username = StringProperty(name="HIFI-IPFS Username",
-                                      description="Enter any Username for API", default="")
+                                      description="Enter any Username for API", default="",
+                                      update=on_server_update)
 
     oauth_required = BoolProperty(default=oauth_default)
     oauth_api = StringProperty(default="", options={"HIDDEN"})
