@@ -338,10 +338,10 @@ def navigate_armature(data, current_rest_node, world_matrix, parent, parent_node
             navigate_armature(data, child, world_matrix, bone, parent_node)
 
 
-def retarget_armature(options, selected):
+def retarget_armature(options, selected, selected_only = False):
 
     armature = find_armature(selected)
-
+    print("selected", selected, "armature", armature)
     if armature is not None:
         # Center Children First
         print(bpy.context.mode, armature)
@@ -358,6 +358,7 @@ def retarget_armature(options, selected):
         bpy.ops.object.transform_apply(
             location=False, rotation=True, scale=True)
         print("Selecting Bones")
+
         bpy.ops.object.mode_set(mode='POSE')
         bpy.ops.pose.select_all(action='SELECT')
         bpy.ops.pose.transforms_clear()
@@ -368,23 +369,37 @@ def retarget_armature(options, selected):
         # Now lets do the repose to rest
         world_matrix = armature.matrix_world
         bones = armature.pose.bones
-        for bone in base_armature:
-            navigate_armature(bones, bone, world_matrix, None, None)
-            print("Iterating Bones")
 
+        for bone in base_armature:
+            print("Iterating Bones", bone["name"])
+            navigate_armature(bones, bone, world_matrix, None, None)
+
+        print("Moving Next")
         # Then apply everything
         if options['apply']:
-            bpy.ops.object.mode_set(mode='OBJECT')
+            
+            print ("Applying Scale")
+            if bpy.context.mode != 'OBJECT':
+                bpy.ops.object.mode_set(mode='OBJECT')
+
+            print ("Correcting Scale and Rotations")
             correct_scale_rotation(armature, True)
 
+            print (" Correcting child rotations and scale")
             for child in armature.children:
-                correct_scale_rotation(child, False)
+                if selected_only is False or child.select:
+                    correct_scale_rotation(child, False)
 
             print("Set", armature, " active")
             bpy.context.scene.objects.active = armature
+        
+        armature.select = True
 
-        bpy.ops.object.mode_set(mode='OBJECT')
+        print("Test")
+        if bpy.context.mode != 'OBJECT':
+            bpy.ops.object.mode_set(mode='OBJECT')
 
+        print ("Done")
     else:
         # Judas proofing:
         print("No Armature, select, throw an exception")

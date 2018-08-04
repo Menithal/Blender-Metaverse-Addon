@@ -241,6 +241,8 @@ class FSTWriterOperator(bpy.types.Operator, ExportHelper):
         else:
             to_export = list(bpy.data.objects)
 
+        print(to_export)
+        
         self.scale = 1  # Add scene scale here
 
         armatures = find_armatures(to_export)

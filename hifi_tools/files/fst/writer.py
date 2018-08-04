@@ -144,13 +144,13 @@ def fst_export(context, selected):
                 print("Writing joint index", "freeJoint = " + bone.name + "\n")
                 f.write(prefix_free_joint.replace('$', bone.name))
 
-        retarget_armature({"apply": True}, selected)
+        retarget_armature({"apply": True}, selected, context.selected_only)
 
         if bpy.context.mode != 'OBJECT':
             bpy.ops.object.mode_set(mode='OBJECT')
 
         bpy.ops.object.select_all(action='DESELECT')
-
+    
         for select in selected:
             select.select = True
 
@@ -179,7 +179,7 @@ def fst_export(context, selected):
 
             print("Getting Textures from selected Mesh.")
             images = get_images_from(get_mesh_from(selected))
-
+            print(images)
             print("Copying Textures to export folder.")
             for image in images:
                 current_path = bpy.path.abspath(image.filepath)
