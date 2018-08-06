@@ -20,7 +20,7 @@
 bl_info = {
     "name": "HiFi Blender Add-on",
     "author": "Matti 'Menithal' Lahtinen",
-    "version": (1, 1, 9),
+    "version": (1, 1, 10),
     "blender": (2, 7, 7),
     "location": "File > Import-Export, Materials, Armature",
     "description": "Blender tools to allow for easier Content creation for High Fidelity",
@@ -31,6 +31,8 @@ bl_info = {
 }
 
 default_gateway_server = "http://206.189.208.218"
+oauth_api = "https://metaverse.highfidelity.com/user/tokens/new?for_identity=true"
+
 oauth_default = True
 import addon_utils
 import sys

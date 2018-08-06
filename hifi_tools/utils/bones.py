@@ -61,6 +61,10 @@ bone_parent_structure = {
 
 physical_re = re.compile("^sim")
 
+number_re = re.compile("\\d+")
+number_text_re = re.compile(".+(\\d+).*")
+blender_copy_re = re.compile("\.001$")
+end_re = re.compile("_end$")
 
 def combine_bones(selected_bones, active_bone, active_object):
     print("----------------------")
@@ -125,7 +129,7 @@ def find_armatures(selection):
     for selected in selection:
         if selected.type == "ARMATURE":
             armatures.append(selected)
-            
+
     return armatures
 
 
@@ -136,10 +140,55 @@ def find_armature(selection):
     return None
 
 
+def clean_up_bone_name(bone_name, remove_clones = True):
+    if remove_clones:
+        bone_name = blender_copy_re.sub("", bone_name)
+
+    bone_name = bone_name.capitalize().replace('.', '_')
+    # Remove .001 blender suffic First remove every dot with _ to remove confusion
+
+    #bone_name = end_re.sub("", bone_name)
+    
+    split = bone_name.split("_")
+    if "end" in split:
+        end = True
+    else:
+        end = False
+        
+    length = len(split)
+    last = None
+    new_bone_split = []
+    for idx, val in enumerate(split):
+        if val is "r":
+            new_bone_split.append("Right")
+        elif val is "l":
+            new_bone_split.append("Left")
+        elif number_text_re.match(val):
+            nr = number_text_re.match(val)
+            group = nr.groups()
+            if end:
+                last = str(int(group[0]) + 1)
+            else:
+                last = group[0]
+        elif number_re.match(val):  # value is a number, before the last
+            print ("Idx", idx, length)
+            if idx < length:
+                print ("Storing")
+                last = val.capitalize()
+        elif val.lower() != "end":
+            print(val)
+            new_bone_split.append(val.capitalize())
+
+    if last is not None:
+        new_bone_split.append(last)
+
+    return "".join(new_bone_split)
+
+
 def set_selected_bones_physical(bones):
     for bone in bones:
         if physical_re.search(bone.name) is None:
-            bone.name = "sim" + bone.name
+            bone.name = "sim" + clean_up_bone_name(bone.name)
 
 
 def remove_selected_bones_physical(bones):
@@ -338,7 +387,7 @@ def navigate_armature(data, current_rest_node, world_matrix, parent, parent_node
             navigate_armature(data, child, world_matrix, bone, parent_node)
 
 
-def retarget_armature(options, selected, selected_only = False):
+def retarget_armature(options, selected, selected_only=False):
 
     armature = find_armature(selected)
     print("selected", selected, "armature", armature)
@@ -377,27 +426,27 @@ def retarget_armature(options, selected, selected_only = False):
         print("Moving Next")
         # Then apply everything
         if options['apply']:
-            
-            print ("Applying Scale")
+
+            print("Applying Scale")
             if bpy.context.mode != 'OBJECT':
                 bpy.ops.object.mode_set(mode='OBJECT')
 
-            print ("Correcting Scale and Rotations")
+            print("Correcting Scale and Rotations")
             correct_scale_rotation(armature, True)
 
-            print (" Correcting child rotations and scale")
+            print(" Correcting child rotations and scale")
             for child in armature.children:
                 if selected_only is False or child.select:
                     correct_scale_rotation(child, False)
 
             bpy.context.scene.objects.active = armature
-        
+
         armature.select = True
 
         if bpy.context.mode != 'OBJECT':
             bpy.ops.object.mode_set(mode='OBJECT')
 
-        print ("Done")
+        print("Done")
     else:
         # Judas proofing:
         print("No Armature, select, throw an exception")

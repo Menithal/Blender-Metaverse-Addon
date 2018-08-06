@@ -93,7 +93,6 @@ class MMDTranslator:
         split_pattern = re.compile(",\s")
         remove_end = re.compile(",$")
 
-        print(__file__)
         try:
             local = os.path.dirname(os.path.abspath(__file__))
             filename = os.path.join(local, 'mmd_hifi_dict.csv')
