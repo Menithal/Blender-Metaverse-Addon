@@ -20,7 +20,7 @@
 bl_info = {
     "name": "HiFi Blender Add-on",
     "author": "Matti 'Menithal' Lahtinen",
-    "version": (1, 1, 8),
+    "version": (1, 1, 9),
     "blender": (2, 7, 7),
     "location": "File > Import-Export, Materials, Armature",
     "description": "Blender tools to allow for easier Content creation for High Fidelity",
@@ -30,7 +30,7 @@ bl_info = {
     "category": "Import-Export",
 }
 
-default_gateway_server = "https://fox.menithal.com"
+default_gateway_server = "http://206.189.208.218"
 oauth_default = True
 import addon_utils
 import sys
@@ -57,15 +57,24 @@ def on_server_update(self, context):
     user_preferences = context.user_preferences
     addon_prefs = user_preferences.addons[__name__].preferences
 
-    print("Server address updated" + addon_prefs["gateway_server"])
-    result = GatewayClient.routes(addon_prefs["gateway_server"])
+    if len(addon_prefs["gateway_server"]) > 0 and len(addon_prefs["gateway_username"]) > 0:
+        print("Server address updated" + addon_prefs["gateway_server"])
+        result = GatewayClient.routes(addon_prefs["gateway_server"])
+        
 
-    if "oauth" in result:
-        addon_prefs["oauth_required"] = result["oauth"]
-        addon_prefs["oauth_api"] = result["oauth_api"]
+        if "oauth" in result:
+            addon_prefs["oauth_required"] = result["oauth"]
+            addon_prefs["oauth_api"] = result["oauth_api"]
+        else:
+            addon_prefs["oauth_required"] = False
+            addon_prefs["oauth_api"] = ""
+            
     else:
         addon_prefs["oauth_required"] = False
         addon_prefs["oauth_api"] = ""
+        addon_prefs["gateway_username"] = ""
+        addon_prefs["hifi_oauth"] = ""
+
 
     return None
 
@@ -247,7 +256,7 @@ class HifiAddOnPreferences(AddonPreferences):
                                    description="Point this to the High Fidelity Oven tool",
                                    subtype="FILE_PATH")
 
-    ipfs = BoolProperty(name="IPFS (EXPERIMENTAL)", description="Enabled IPFS")
+    ipfs = BoolProperty(name="IPFS (EXPERIMENTAL)", description="Enabled IPFS", update=on_server_update)
 
     gateway_server = StringProperty(name="HIFI-IPFS Server",
                                     description="API to upload files",

@@ -390,12 +390,10 @@ def retarget_armature(options, selected, selected_only = False):
                 if selected_only is False or child.select:
                     correct_scale_rotation(child, False)
 
-            print("Set", armature, " active")
             bpy.context.scene.objects.active = armature
         
         armature.select = True
 
-        print("Test")
         if bpy.context.mode != 'OBJECT':
             bpy.ops.object.mode_set(mode='OBJECT')
 
