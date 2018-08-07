@@ -180,7 +180,10 @@ def clean_up_bone_name(bone_name, remove_clones = True):
             new_bone_split.append(val.capitalize())
 
     if last is not None:
-        new_bone_split.append(last)
+        if end:
+            new_bone_split.append( str(int(last) + 1))
+        else:
+            new_bone_split.append(last)
 
     return "".join(new_bone_split)
 

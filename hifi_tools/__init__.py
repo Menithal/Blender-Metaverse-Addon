@@ -270,7 +270,7 @@ class HifiAddOnPreferences(AddonPreferences):
                                       update=on_server_update)
 
     oauth_required = BoolProperty(default=oauth_default)
-    oauth_api = StringProperty(default="", options={"HIDDEN"})
+    oauth_api = StringProperty(default=oauth_api, options={"HIDDEN"})
 
     hifi_oauth = StringProperty(name="Hifi OAuth Token",
                                 description="Enter an Oauth Token with identity permissions", default="",
@@ -317,6 +317,9 @@ class HifiGenerateToken(bpy.types.Operator):
 
         user_preferences = context.user_preferences
         addon_prefs = user_preferences.addons[__name__].preferences
+
+        if addon_prefs["oauth_api"] is None:
+            addon_prefs["oauth_api"] = oauth_api
 
         if "windows-default" in webbrowser._browsers:
             webbrowser.get("windows-default").open(addon_prefs["oauth_api"])
