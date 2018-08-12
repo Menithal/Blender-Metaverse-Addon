@@ -35,11 +35,17 @@ def get_mesh_from(selected):
 def mix_weights(a, b):
     print("  Mixing", a, b)
     bpy.ops.object.modifier_add(type='VERTEX_WEIGHT_MIX')
+    
     bpy.context.object.modifiers["VertexWeightMix"].vertex_group_a = a
     bpy.context.object.modifiers["VertexWeightMix"].vertex_group_b = b
     bpy.context.object.modifiers["VertexWeightMix"].mix_mode = 'ADD'
-
     bpy.context.object.modifiers["VertexWeightMix"].mix_set = 'OR'
+    
+    bpy.ops.object.modifier_move_up(modifier="VertexWeightMix")
+    bpy.ops.object.modifier_move_up(modifier="VertexWeightMix")
+    bpy.ops.object.modifier_move_up(modifier="VertexWeightMix")
+    bpy.ops.object.modifier_move_up(modifier="VertexWeightMix")
+
     bpy.ops.object.modifier_apply(apply_as='DATA', modifier="VertexWeightMix")
 
 

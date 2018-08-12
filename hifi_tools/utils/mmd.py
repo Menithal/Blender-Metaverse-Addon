@@ -85,8 +85,6 @@ contains_to_remove = [
 ]
 
 # Simplified Translator based on powroupi MMDTranslation
-
-
 class MMDTranslator:
     def __init__(self):
         self.translation_dict = []
@@ -470,10 +468,8 @@ def convert_mmd_avatar_hifi():
                 elif obj.type == 'MESH' and obj.parent is not None and obj.parent.type == 'ARMATURE':
                     clean_mesh(Translator, obj)
                     bpy.ops.object.mode_set(mode='OBJECT')
-                    print(" Cleaning up Materials now. May take a while ")
+                    
                     materials.clean_materials(obj.material_slots)
-
-            # translate armature names!
 
     bpy.ops.object.select_all(action='DESELECT')
     for deletion in marked_for_deletion:

@@ -20,7 +20,7 @@
 bl_info = {
     "name": "HiFi Blender Add-on",
     "author": "Matti 'Menithal' Lahtinen",
-    "version": (1, 1, 10),
+    "version": (1, 2, 0),
     "blender": (2, 7, 7),
     "location": "File > Import-Export, Materials, Armature",
     "description": "Blender tools to allow for easier Content creation for High Fidelity",
@@ -37,6 +37,10 @@ oauth_default = True
 import addon_utils
 import sys
 import logging
+import webbrowser
+import bpy
+from bpy.types import AddonPreferences
+
 
 from hifi_tools.ext.throttle import throttle
 
@@ -47,10 +51,8 @@ from . import files
 from .files.hifi_json.operator import *
 from .files.fst.operator import *
 from .gateway import client as GatewayClient
-import webbrowser
-import bpy
 
-from bpy.types import AddonPreferences
+from hifi_tools.utils.custom import custom_register, custom_unregister, scene_define, scene_delete
 
 # TODO: This is placeholder and will be shut down after more are available.
 
@@ -62,7 +64,6 @@ def on_server_update(self, context):
     if len(addon_prefs["gateway_server"]) > 0 and len(addon_prefs["gateway_username"]) > 0:
         print("Server address updated" + addon_prefs["gateway_server"])
         result = GatewayClient.routes(addon_prefs["gateway_server"])
-        
 
         if "oauth" in result:
             addon_prefs["oauth_required"] = result["oauth"]
@@ -70,13 +71,12 @@ def on_server_update(self, context):
         else:
             addon_prefs["oauth_required"] = False
             addon_prefs["oauth_api"] = ""
-            
+
     else:
         addon_prefs["oauth_required"] = False
         addon_prefs["oauth_api"] = ""
         addon_prefs["gateway_username"] = ""
         addon_prefs["hifi_oauth"] = ""
-
 
     return None
 
@@ -116,7 +116,7 @@ def on_token_update(self, context):
         return None
 
     addon_prefs["gateway_token"] = message
-    addon_prefs["message_box"] = "" #Success! Remember to Save Settings.
+    addon_prefs["message_box"] = ""  # Success! Remember to Save Settings.
     bpy.ops.auth_success.export('INVOKE_DEFAULT')
 
     return None
@@ -258,7 +258,8 @@ class HifiAddOnPreferences(AddonPreferences):
                                    description="Point this to the High Fidelity Oven tool",
                                    subtype="FILE_PATH")
 
-    ipfs = BoolProperty(name="IPFS (EXPERIMENTAL)", description="Enabled IPFS", update=on_server_update)
+    ipfs = BoolProperty(name="IPFS (EXPERIMENTAL)",
+                        description="Enabled IPFS", update=on_server_update)
 
     gateway_server = StringProperty(name="HIFI-IPFS Server",
                                     description="API to upload files",
@@ -279,7 +280,8 @@ class HifiAddOnPreferences(AddonPreferences):
     gateway_token = StringProperty(name="HIFI-IPFS Token",
                                    description="login to API", default="")
 
-    message_box = StringProperty(name="Status", default="", options={"SKIP_SAVE"})
+    message_box = StringProperty(
+        name="Status", default="", options={"SKIP_SAVE"})
 
     def draw(self, context):
         layout = self.layout
@@ -318,7 +320,7 @@ class HifiGenerateToken(bpy.types.Operator):
         user_preferences = context.user_preferences
         addon_prefs = user_preferences.addons[__name__].preferences
 
-        if addon_prefs["oauth_api"] is None:
+        if "oauth_api" not in addon_prefs:
             addon_prefs["oauth_api"] = oauth_api
 
         if "windows-default" in webbrowser._browsers:
@@ -365,12 +367,14 @@ def menu_func_export(self, context):
 
 
 def register():
+    scene_define()
     bpy.utils.register_module(__name__)  # Magic Function!
     bpy.types.INFO_MT_file_import.append(menu_func_import)
     bpy.types.INFO_MT_file_export.append(menu_func_export)
 
 
 def unregister():
+    scene_delete()
     bpy.utils.unregister_module(__name__)
     bpy.types.INFO_MT_file_import.remove(menu_func_import)
     bpy.types.INFO_MT_file_export.remove(menu_func_export)

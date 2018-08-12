@@ -16,7 +16,7 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
-# Created by Matti 'Menithal' Lahtinen
+# Created by Matti "Menithal" Lahtinen
 
 import bpy
 import re
@@ -60,11 +60,12 @@ bone_parent_structure = {
 
 
 physical_re = re.compile("^sim")
-
+number_end_re = re.compile("(\\d+$)")
 number_re = re.compile("\\d+")
 number_text_re = re.compile(".+(\\d+).*")
 blender_copy_re = re.compile("\.001$")
 end_re = re.compile("_end$")
+
 
 def combine_bones(selected_bones, active_bone, active_object):
     print("----------------------")
@@ -73,34 +74,42 @@ def combine_bones(selected_bones, active_bone, active_object):
     edit_bones = list(active_object.data.edit_bones)
     meshes = mesh.get_mesh_from(active_object.children)
     names_to_combine = []
+    active_bone_name = active_bone.name
 
-    print("Removing Selected Bones first:")
+    bpy.ops.object.mode_set(mode="EDIT")
     for bone in selected_bones:
         if bone.name != active_bone.name:
             print("Now Removing ", bone.name)
             children = list(bone.children)
             names_to_combine.append(bone.name)
-
-            active_object.data.edit_bones.remove(
-                bone)  # TODO: REmoval is broken :(
+            active_object.data.edit_bones.remove(bone)
+            # TODO: Removal is broken :(
             for child in children:
                 child.use_connect = True
 
-    print("Combining weights.")
-    bpy.ops.object.mode_set(mode='OBJECT')
+    print("Combining weights.", meshes)
+    bpy.ops.object.mode_set(mode="OBJECT")
     for name in names_to_combine:
-        if name != active_bone.name:
+        if name != active_bone_name:
             for me in meshes:
+                print("Mesh: ", me.name)
                 bpy.context.scene.objects.active = me
-                mesh.mix_weights(active_bone.name, name)
-                me.vertex_groups.remove(me.vertex_groups.get(name))
+
+                vertex_group_b = me.vertex_groups.get(name)
+                vertex_group_a = me.vertex_groups.get(active_bone_name)
+
+                print("A", vertex_group_a, name)
+                print("B", vertex_group_b, active_bone_name)
+
+                if vertex_group_b is not None and vertex_group_a is not None:
+                    mesh.mix_weights(active_bone_name, name)
+                    me.vertex_groups.remove(me.vertex_groups.get(name))
 
     bpy.context.scene.objects.active = active_object
-    bpy.ops.object.mode_set(mode='EDIT')
+    bpy.ops.object.mode_set(mode="EDIT")
     print("Done")
 
 
-# TODO: Fix Naming Convention!
 def scale_helper(obj):
     if obj.dimensions.y > 2.4:
         print("Avatar too large > 2.4m, maybe incorrect? setting height to 1.9m. You can scale avatar inworld, instead")
@@ -117,7 +126,7 @@ def scale_helper(obj):
         bpy.ops.pose.transforms_clear()
 
         bpy.ops.object.mode_set(mode='OBJECT')
-
+        
 
 def remove_all_actions():
     for action in bpy.data.actions:
@@ -140,48 +149,117 @@ def find_armature(selection):
     return None
 
 
-def clean_up_bone_name(bone_name, remove_clones = True):
-    if remove_clones:
-        bone_name = blender_copy_re.sub("", bone_name)
+side_front_re = re.compile("^l|r|L|R")
+side_end_re = re.compile("l|r|L|R$")
 
-    bone_name = bone_name.capitalize().replace('.', '_')
+
+class BoneInfo():
+    side = ""
+    mirror = ""
+    name = ""
+    mirror_name = ""
+    index = None
+
+    def __init__(self, side, mirror, name, mirror_name):
+        self.side = side
+        self.mirror = mirror
+        self.name = name
+        m = number_end_re.search(name)
+        if m is not None:
+            self.index = m.group(0)
+        else:
+            self.index = None
+
+        self.mirror_name = mirror_name
+
+
+def camel_case_split(name):
+    s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
+    return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1)
+
+
+def get_bone_side_and_mirrored(bone_name):
+    cleaned_bones = camel_case_split(bone_name)
+    cleaned_bones = bone_name.replace(".", "_").replace(" ", "_")
+    split = cleaned_bones.split("_")
+    length = len(split)
+    if length == 1:
+        if "left" in split[0].lower():
+            return BoneInfo("Left", "Right", bone_name, bone_name.replace("Left", "Right").replace('left', 'Right'))
+        elif "right" in split[0].lower():
+            return BoneInfo("Right", "Left", bone_name, bone_name.replace("Right", "Left").replace('right', 'Left'))
+    else:
+        if "left" in split or "Left" in split or "LEFT" in split:
+            return BoneInfo("Left", "Right", bone_name, bone_name.replace("Left", "Right").replace('left', 'Right'))
+        elif "right" in split or "Right" in split or "RIGHT" in split:
+            return BoneInfo("Right", "Left", bone_name, bone_name.replace("Right", "Left").replace('right', 'Left'))
+        elif "l" in split:
+            index = split.index('l')
+            if index == 0:
+                return BoneInfo("Right", "Left", bone_name, side_front_re.sub('r', bone_name))
+            return BoneInfo("Right", "Left", bone_name,  side_end_re.sub('r', bone_name))
+        elif "r" in split:
+            index = split.index('r')
+            if index == 0:
+                return BoneInfo("Left", "Right", bone_name,  side_front_re.sub('l', bone_name))
+            return BoneInfo("Left", "Right", bone_name,  side_end_re.sub('l', bone_name))
+        elif "L" in split:
+            index = split.index('L')
+            if index == 0:
+                return BoneInfo("Right", "Left", bone_name,  side_front_re.sub('R', bone_name))
+            return BoneInfo("Right", "Left", bone_name,  side_end_re.sub('R', bone_name))
+        elif "R" in split:
+            index = split.index('R')
+            if index == 0:
+                return BoneInfo("Left", "Right", bone_name, side_front_re.sub('L', bone_name))
+            return BoneInfo("Left", "Right", bone_name, side_end_re.sub('L', bone_name))
+    return None
+
+
+def clean_up_bone_name(bone_name, remove_clones=True):
+    
+    cleaned_bones = camel_case_split(bone_name)
+    cleaned_bones = bone_name.replace(".", "_").replace(" ", "_")
+    split = cleaned_bones.split("_")
+    
     # Remove .001 blender suffic First remove every dot with _ to remove confusion
 
-    #bone_name = end_re.sub("", bone_name)
-    
-    split = bone_name.split("_")
+    # bone_name = end_re.sub("", bone_name)
+
     if "end" in split:
         end = True
     else:
         end = False
-        
+
     length = len(split)
     last = None
     new_bone_split = []
-    for idx, val in enumerate(split):
-        if val is "r":
-            new_bone_split.append("Right")
-        elif val is "l":
-            new_bone_split.append("Left")
-        elif number_text_re.match(val):
-            nr = number_text_re.match(val)
-            group = nr.groups()
-            if end:
-                last = str(int(group[0]) + 1)
-            else:
-                last = group[0]
-        elif number_re.match(val):  # value is a number, before the last
-            print ("Idx", idx, length)
-            if idx < length:
-                print ("Storing")
-                last = val.capitalize()
-        elif val.lower() != "end":
-            print(val)
-            new_bone_split.append(val.capitalize())
+
+    if length == 1:
+        new_bone_split.append(bone_name)
+    else:
+        for idx, val in enumerate(split):
+            print(idx, val)
+            if val is "r":
+                new_bone_split.append("Right")
+            elif val is "l":
+                new_bone_split.append("Left")
+            elif number_text_re.match(val):
+                nr = number_text_re.match(val)
+                group = nr.groups()
+                if end:
+                    last = str(int(group[0]) + 1)
+                else:
+                    last = group[0]
+            elif number_re.match(val):  # value is a number, before the last
+                print("Idx", idx, length)
+                if idx < length:
+                    print("Storing")
+                    last = val.capitalize()
 
     if last is not None:
         if end:
-            new_bone_split.append( str(int(last) + 1))
+            new_bone_split.append(str(int(last) + 1))
         else:
             new_bone_split.append(last)
 
@@ -199,18 +277,19 @@ def remove_selected_bones_physical(bones):
         if physical_re.search(bone.name) is not None:
             bone.name = physical_re.sub("", bone.name)
 
+def correct_bone(bone, bones):
+    if bone.name == "Hips":
+        bone.parent = None
+    else:
+        parent = bone_parent_structure.get(bone.name)
+        if parent is not None:
+            parent_bone = bones.get(parent)
+            if parent_bone is not None:
+                bone.parent = parent_bone
 
 def correct_bone_parents(bones):
-    keys = bone_parent_structure.keys()
     for bone in bones:
-        if bone.name == "Hips":
-            bone.parent = None
-        else:
-            parent = bone_parent_structure.get(bone.name)
-            if parent is not None:
-                parent_bone = bones.get(parent)
-                if parent_bone is not None:
-                    bone.parent = parent_bone
+        correct_bone(bone, bones)
 
 
 def correct_bone_rotations(obj):
@@ -244,9 +323,11 @@ def correct_bone_rotations(obj):
             for correction in corrections:
                 if correction in name:
                     print("Found correction", name, axis)
-                    bpy.ops.object.mode_set(mode='EDIT')
+                    bpy.ops.object.mode_set(mode="EDIT")
                     bpy.ops.armature.select_all(action="DESELECT")
+                    
                     obj.select = True
+
                     bpy.ops.armature.calculate_roll(type=axis)
                     bpy.ops.armature.select_all(action="DESELECT")
                     found = True
@@ -290,7 +371,7 @@ def build_armature_structure(data, current_node, parent):
 
     current_bone.head = current_node["head"]
     current_bone.tail = current_node["tail"]
-    mat = current_node['matrix']
+    mat = current_node["matrix"]
     current_bone.matrix = mat
 
     if current_node["connect"]:
@@ -306,7 +387,7 @@ def build_skeleton():
     current_view = bpy.context.area.type
 
     try:
-        bpy.context.area.type = 'VIEW_3D'
+        bpy.context.area.type = "VIEW_3D"
         # set context to 3D View and set Cursor
         bpy.context.space_data.cursor_location[0] = 0.0
         bpy.context.space_data.cursor_location[1] = 0.0
@@ -318,7 +399,7 @@ def build_skeleton():
         # Reset mode to Object, just to be sure
 
         if bpy.context.active_object:
-            bpy.ops.object.mode_set(mode='OBJECT')
+            bpy.ops.object.mode_set(mode="OBJECT")
 
         bpy.ops.object.add(type="ARMATURE", enter_editmode=True)
 
@@ -332,7 +413,7 @@ def build_skeleton():
         correct_scale_rotation(bpy.context.active_object, True)
 
     except Exception as detail:
-        print('Error', detail)
+        print("Error", detail)
 
     finally:
         bpy.context.area.type = current_view
@@ -340,26 +421,28 @@ def build_skeleton():
 
 def correct_scale_rotation(obj, rotation):
     current_context = bpy.context.area.type
-    bpy.context.area.type = 'VIEW_3D'
+    bpy.context.area.type = "VIEW_3D"
     # set context to 3D View and set Cursor
     bpy.context.space_data.cursor_location[0] = 0.0
     bpy.context.space_data.cursor_location[1] = 0.0
     bpy.context.space_data.cursor_location[2] = 0.0
     bpy.context.area.type = current_context
-    bpy.ops.object.mode_set(mode='OBJECT')
-    bpy.ops.object.select_all(action='DESELECT')
+    bpy.ops.object.mode_set(mode="OBJECT")
+    bpy.ops.object.select_all(action="DESELECT")
+
     obj.select = True
+    
     bpy.context.scene.objects.active = obj
-    bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
+    bpy.ops.object.origin_set(type="ORIGIN_CURSOR")
     bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
     obj.scale = Vector((100, 100, 100))
     str_angle = -90 * pi/180
     if rotation:
-        obj.rotation_euler = Euler((str_angle, 0, 0), 'XYZ')
+        obj.rotation_euler = Euler((str_angle, 0, 0), "XYZ")
     bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
     obj.scale = Vector((0.01, 0.01, 0.01))
     if rotation:
-        obj.rotation_euler = Euler((-str_angle, 0, 0), 'XYZ')
+        obj.rotation_euler = Euler((-str_angle, 0, 0), "XYZ")
 
 
 def navigate_armature(data, current_rest_node, world_matrix, parent, parent_node):
@@ -397,11 +480,11 @@ def retarget_armature(options, selected, selected_only=False):
     if armature is not None:
         # Center Children First
         print(bpy.context.mode, armature)
-        if bpy.context.mode != 'OBJECT':
-            bpy.ops.object.mode_set(mode='OBJECT')
+        if bpy.context.mode != "OBJECT":
+            bpy.ops.object.mode_set(mode="OBJECT")
 
         print("Deselect all")
-        bpy.ops.object.select_all(action='DESELECT')
+        bpy.ops.object.select_all(action="DESELECT")
         print("Selected")
 
         bpy.context.scene.objects.active = armature
@@ -411,10 +494,10 @@ def retarget_armature(options, selected, selected_only=False):
             location=False, rotation=True, scale=True)
         print("Selecting Bones")
 
-        bpy.ops.object.mode_set(mode='POSE')
-        bpy.ops.pose.select_all(action='SELECT')
+        bpy.ops.object.mode_set(mode="POSE")
+        bpy.ops.pose.select_all(action="SELECT")
         bpy.ops.pose.transforms_clear()
-        bpy.ops.pose.select_all(action='DESELECT')
+        bpy.ops.pose.select_all(action="DESELECT")
 
         print("---")
 
@@ -428,11 +511,11 @@ def retarget_armature(options, selected, selected_only=False):
 
         print("Moving Next")
         # Then apply everything
-        if options['apply']:
+        if options["apply"]:
 
             print("Applying Scale")
-            if bpy.context.mode != 'OBJECT':
-                bpy.ops.object.mode_set(mode='OBJECT')
+            if bpy.context.mode != "OBJECT":
+                bpy.ops.object.mode_set(mode="OBJECT")
 
             print("Correcting Scale and Rotations")
             correct_scale_rotation(armature, True)
@@ -446,8 +529,8 @@ def retarget_armature(options, selected, selected_only=False):
 
         armature.select = True
 
-        if bpy.context.mode != 'OBJECT':
-            bpy.ops.object.mode_set(mode='OBJECT')
+        if bpy.context.mode != "OBJECT":
+            bpy.ops.object.mode_set(mode="OBJECT")
 
         print("Done")
     else:

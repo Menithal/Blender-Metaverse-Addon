@@ -27,12 +27,14 @@ from mathutils import Quaternion, Vector, Euler, Matrix
 from urllib.parse import urlencode
 import hifi_tools
 import webbrowser
+
 from hifi_tools.utils.bones import combine_bones, build_skeleton, retarget_armature, correct_scale_rotation, set_selected_bones_physical, remove_selected_bones_physical
 from hifi_tools.armature.skeleton import structure as base_armature
 from hifi_tools.utils.mmd import convert_mmd_avatar_hifi
 from hifi_tools.utils.mixamo import convert_mixamo_avatar_hifi
 from hifi_tools.utils.makehuman import convert_makehuman_avatar_hifi
 from hifi_tools.utils.materials import make_materials_fullbright, make_materials_shadeless, convert_to_png, convert_images_to_mask, remove_materials_metallic
+from hifi_tools.utils.custom import HifiCustomAvatarBinderOperator
 
 from hifi_tools.gateway import client as GatewayClient
 from bpy.props import StringProperty
@@ -43,8 +45,9 @@ from hifi_tools import default_gateway_server
 
 
 class HifiArmaturePanel(bpy.types.Panel):
-    bl_idname = "armature_toolset.hifi"
-    bl_label = "Armature Tools"
+    bl_idname = "general_toolset.hifi"
+    bl_label = "General Tools"
+    bl_icon = "OBJECT_DATA"
 
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
@@ -58,6 +61,8 @@ class HifiArmaturePanel(bpy.types.Panel):
         layout = self.layout
         layout.operator(HifiArmatureCreateOperator.bl_idname)
         layout.operator(HifiArmaturePoseOperator.bl_idname)
+        layout.operator(HifiFixScaleOperator.bl_idname)
+        layout.operator(HifiForumOperator.bl_idname)
         # layout.operator(HifiArmatureRetargetPoseOperator.bl_idname)
         return None
 
@@ -65,6 +70,7 @@ class HifiArmaturePanel(bpy.types.Panel):
 class HifiBonePanel(bpy.types.Panel):
     bl_idname = "bones_toolset.hifi"
     bl_label = "Bones Tools"
+    bl_icon = "BONE_DATA"
 
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
@@ -85,6 +91,7 @@ class HifiBonePanel(bpy.types.Panel):
 class HifiAvatarPanel(bpy.types.Panel):
     bl_idname = "avatar_toolset.hifi"
     bl_label = "Avatar Converters"
+    bl_icon = "ARMATURE_DATA"
 
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
@@ -96,6 +103,7 @@ class HifiAvatarPanel(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.operator(HifiCustomAvatarOperator.bl_idname)
         layout.operator(HifiMMDOperator.bl_idname)
         layout.operator(HifiMixamoOperator.bl_idname)
         layout.operator(HifiMakeHumanOperator.bl_idname)
@@ -116,7 +124,7 @@ class HifiMaterialsPanel(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        
+
         layout.operator(HifiMaterialFullbrightOperator.bl_idname)
         layout.operator(HifiMaterialShadelessOperator.bl_idname)
         layout.operator(HifiTexturesConvertToPngOperator.bl_idname)
@@ -160,7 +168,7 @@ class HifiIPFSCheckAssetsOperator(bpy.types.Operator):
 
         if not "gateway_server" in addon_prefs.keys():
             addon_prefs["gateway_server"] = default_gateway_server
-        
+
         server = addon_prefs["gateway_server"]
 
         browsers = webbrowser._browsers
@@ -210,6 +218,24 @@ class HifiArmaturePoseOperator(bpy.types.Operator):
         retarget_armature({'apply': False}, bpy.data.objects)
 
         return {'FINISHED'}
+
+
+class HifiFixScaleOperator(bpy.types.Operator):
+    bl_idname = "armature_toolset_resize.hifi"
+    bl_label = "Fix Scale and Rotations"
+
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "TOOLS"
+    bl_category = "High Fidelity"
+
+    def execute(self, context):
+        
+        for selected in context.selected_objects:
+            correct_scale_rotation(selected, True)
+
+        return {'FINISHED'}
+
+
 
 
 # Remove once fst export is available
@@ -262,8 +288,29 @@ class HifiCombineBonesOperator(bpy.types.Operator):
         return len(context.selected_bones) > 1
 
     def execute(self, context):
+        
+        use_mirror_x = bpy.context.object.data.use_mirror_x
+        bpy.context.object.data.use_mirror_x = False
         combine_bones(list(context.selected_bones),
                       context.active_bone, context.active_object)
+        bpy.context.object.data.use_mirror_x = use_mirror_x
+        return {'FINISHED'}
+
+
+class HifiCustomAvatarOperator(bpy.types.Operator):
+    bl_idname = "armature_toolset_fix_custom_avatar.hifi"
+    bl_label = "Custom Avatar"
+
+    bl_icon = "ARMATURE_DATA"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "TOOLS"
+    bl_category = "High Fidelity"
+
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+            # https://b3d.interplanety.org/en/creating-pop-up-panels-with-user-ui-in-blender-add-on/
+        bpy.ops.hifi.mirror_custom_avatar_bind('INVOKE_DEFAULT')
         return {'FINISHED'}
 
 
@@ -272,6 +319,7 @@ class HifiMMDOperator(bpy.types.Operator):
     bl_label = "MMD Avatar"
 
     bl_space_type = "VIEW_3D"
+    bl_icon = "ARMATURE_DATA"
     bl_region_type = "TOOLS"
     bl_category = "High Fidelity"
 
@@ -284,6 +332,7 @@ class HifiMixamoOperator(bpy.types.Operator):
     bl_idname = "armature_toolset_fix_mixamo_avatar.hifi"
     bl_label = "Mixamo Avatar"
 
+    bl_icon = "ARMATURE_DATA"
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
     bl_category = "High Fidelity"
@@ -297,6 +346,7 @@ class HifiMakeHumanOperator(bpy.types.Operator):
     bl_idname = "armature_toolset_fix_makehuman_avatar.hifi"
     bl_label = "MakeHuman Avatar"
 
+    bl_icon = "ARMATURE_DATA"
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
     bl_category = "High Fidelity"
@@ -373,6 +423,7 @@ class HifiTexturesMakeMaskOperator(bpy.types.Operator):
 
 # -----
 
+
 class HifiSaveReminderOperator(bpy.types.Operator):
     bl_idname = "hifi_error.save_file"
     bl_label = "You must save scene to a blend file first allowing for relative directories."
@@ -398,6 +449,24 @@ class HifiSaveReminderOperator(bpy.types.Operator):
         row = layout.row()
         row.label(self.bl_label)
 
+class HifiForumOperator(bpy.types.Operator):
+    bl_idname = "forum.hifi"
+    bl_label = "Forum Thread / Bug Reports"
+
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "TOOLS"
+    bl_category = "High Fidelity"
+
+    def execute(self, context):
+        url = "https://forums.highfidelity.com/t/high-fidelity-blender-add-on-version-1-1-10-released/13717"
+        if "windows-default" in webbrowser._browsers:
+            webbrowser.get("windows-default").open(url)
+        else:
+            webbrowser.open(url)
+
+        return {'FINISHED'}
+
+
 
 classes = [
     HifiArmaturePanel,
@@ -418,7 +487,11 @@ classes = [
     HifiMixamoOperator,
     HifiMakeHumanOperator,
     HifiSaveReminderOperator,
-    HifiIPFSCheckAssetsOperator
+    HifiIPFSCheckAssetsOperator,
+    HifiCustomAvatarOperator,
+    HifiFixScaleOperator,
+    HifiForumOperator,
+    HifiCustomAvatarBinderOperator
 ]
 
 

@@ -22,6 +22,7 @@ from . import (
     helpers,
     mesh,
     bones,
+    custom,
     mmd,
     mixamo,
     materials,
