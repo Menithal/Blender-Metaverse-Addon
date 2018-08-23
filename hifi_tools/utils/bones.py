@@ -219,11 +219,11 @@ def get_bone_side_and_mirrored(bone_name):
 def clean_up_bone_name(bone_name, remove_clones=True):
     
     cleaned_bones = camel_case_split(bone_name)
+    
     cleaned_bones = bone_name.replace(".", "_").replace(" ", "_")
     split = cleaned_bones.split("_")
-    
-    # Remove .001 blender suffic First remove every dot with _ to remove confusion
 
+    # Remove .001 blender suffic First remove every dot with _ to remove confusion
     # bone_name = end_re.sub("", bone_name)
 
     if "end" in split:
@@ -256,6 +256,8 @@ def clean_up_bone_name(bone_name, remove_clones=True):
                 if idx < length:
                     print("Storing")
                     last = val.capitalize()
+            else:
+                new_bone_split.append(val)
 
     if last is not None:
         if end:
