@@ -41,15 +41,15 @@ shoulder_names = ["clavicle", "shoulder"]
 foot_name = "foot"
 toe_name = "toe"
 
-hand_name = "hand"
+hand_name = ["hand", "wrist"]
 
-hand_re = re.compile("hand$")
+hand_re = re.compile("(hand)|(wrist)$")
 
-hand_thumb_name = "thumb1"
-hand_index_name = "index1"
-hand_middle_name = "middle1"
-hand_ring_name = "ring1"
-hand_pinky_name = "pinky1"
+hand_thumb_re = re.compile("thumb(finger)?1")
+hand_index_re = re.compile("index(finger)?1")
+hand_middle_re = re.compile("middle(finger)?1")
+hand_ring_re = re.compile("ring(finger)?1")
+hand_pinky_re = re.compile("(pinky)|(little)(finger)?1")
 
 spine_name = "spine"
 spine1_name = "spine1"
@@ -59,7 +59,7 @@ eye_name = "eye"
 
 def automatic_bind_bones(self, avatar_bones):
     print('------')
-
+    knee_check = False
     for bone in avatar_bones:
         cleaned_name = bones.clean_up_bone_name(bone.name).lower()
 
@@ -78,7 +78,7 @@ def automatic_bind_bones(self, avatar_bones):
             if neck_bone in cleaned_name:
                 self.neck = bone.name
 
-        if "lowerarm" in cleaned_name or "forearm" in cleaned_name:
+        if "lowerarm" in cleaned_name or "forearm" in cleaned_name or "elbow" in cleaned_name:
             self.fore_arm = bone.name
         elif "arm" in cleaned_name or "upperarm" in cleaned_name:
             self.arm = bone.name
@@ -89,28 +89,35 @@ def automatic_bind_bones(self, avatar_bones):
 
         if "upleg" in cleaned_name or "thigh" in cleaned_name or "upleg" in cleaned_name:
             self.up_leg = bone.name
-        elif "calf" in cleaned_name or "leg" in cleaned_name:
+        elif "knee" in cleaned_name or "calf" in cleaned_name:
             self.leg = bone.name
 
-        if foot_name in cleaned_name:
+        if "knee" in cleaned_name:
+            knee_check = True
+
+        # Counter: If Knee exists somewhere, it is most likely that Leg is the upper leg.
+        if knee_check and "leg" in cleaned_name:
+            self.up_leg = bone.name
+
+        if foot_name in cleaned_name or "ankle" in cleaned_name:
             self.foot = bone.name
 
         if toe_name in cleaned_name:
             self.toe = bone.name
 
-        if hand_thumb_name in cleaned_name:
+        if hand_thumb_re.search(cleaned_name):
             self.hand_thumb = bone.name
 
-        elif hand_index_name in cleaned_name:
+        elif hand_index_re.search(cleaned_name):
             self.hand_index = bone.name
 
-        elif hand_middle_name in cleaned_name:
+        elif hand_middle_re.search(cleaned_name):
             self.hand_middle = bone.name
 
-        elif hand_ring_name in cleaned_name:
+        elif hand_ring_re.search(cleaned_name):
             self.hand_ring = bone.name
 
-        elif hand_pinky_name in cleaned_name:
+        elif hand_pinky_re.search(cleaned_name):
             self.hand_pinky = bone.name
 
         elif hand_re.search(cleaned_name) is not None:
@@ -131,6 +138,7 @@ def update_bone_name(edit_bones, from_name, to_name):
 
 
 def update_bone_name_mirrored(edit_bones, from_name, to_name):
+
     mirrored = bones.get_bone_side_and_mirrored(from_name)
     if mirrored is not None:
         update_bone_name(edit_bones, from_name, mirrored.side + to_name)
@@ -140,7 +148,7 @@ def update_bone_name_mirrored(edit_bones, from_name, to_name):
 
 def update_bone_name_chained_mirrored(edit_bones, from_name, to_name):
     bone = bones.get_bone_side_and_mirrored(from_name)
-    if bone.index is not None:
+    if bone is not None and bone.index is not None:
         update_bone_name_mirrored(edit_bones, from_name, to_name + bone.index)
         ebone = edit_bones[bone.name]
         next_index = str(int(bone.index)+1)
@@ -150,17 +158,16 @@ def update_bone_name_chained_mirrored(edit_bones, from_name, to_name):
 
 
 def rename_bones_and_fix_most_things(self, context):
-    print("Rename bones fix most things", self.armatures)
-    if len(self.armatures) < 1:
+    print("Rename bones fix most things", self.armature)
+    if len(self.armature) < 1:
         print("Armature Update cancelled")
         return {"CANCELLED"}
 
     # Naming Converted
     bpy.ops.object.mode_set(mode="EDIT")
-    print("Armatures")
-    armature = bpy.data.armatures[self.armatures]
+    armature = bpy.data.armatures[self.armature]
     ebones = armature.edit_bones
-
+    print("--------")
     print("Updating Bone Names")
     update_bone_name(ebones, self.hips, "Hips")
     update_bone_name(ebones, self.spine, "Spine")
@@ -169,6 +176,7 @@ def rename_bones_and_fix_most_things(self, context):
     update_bone_name(ebones, self.neck, "Neck")
     update_bone_name(ebones, self.head, "Head")
 
+    print("--------")
     print("Updating Bone Names Mirrored")
     update_bone_name_mirrored(ebones, self.eye, "Eye")
     update_bone_name_mirrored(ebones, self.shoulder, "Shoulder")
@@ -181,6 +189,7 @@ def rename_bones_and_fix_most_things(self, context):
     update_bone_name_mirrored(ebones, self.foot, "Foot")
     update_bone_name_mirrored(ebones, self.toe, "Toe")
 
+    print("--------")
     print("Updating Bone Names Chained Mirrored")
     update_bone_name_chained_mirrored(ebones, self.hand_thumb, "HandThumb")
     update_bone_name_chained_mirrored(ebones, self.hand_index, "HandIndex")
@@ -188,39 +197,50 @@ def rename_bones_and_fix_most_things(self, context):
     update_bone_name_chained_mirrored(ebones, self.hand_ring, "HandRing")
     update_bone_name_chained_mirrored(ebones, self.hand_pinky, "HandPinky")
 
+    print("--------")
+    print("Fix Rotations")
     # Fixing Rotations and Scales
+    # Now Refresh datablocks
+    bpy.ops.object.mode_set(mode="OBJECT")
+    armature = bpy.data.armatures[self.armature]
+    bpy.ops.object.mode_set(mode="EDIT")
+    
+    ebones = armature.edit_bones
+
     for bone in ebones:
+        bone.hide = False
+        bone.name = bones.clean_up_bone_name(bone.name)
         bones.correct_bone_rotations(bone)
         bones.correct_bone(bone, ebones)
-    
+
     bones.correct_bone_parents(armature.edit_bones)
 
     bpy.ops.object.mode_set(mode="OBJECT")
-    
+
     bpy.ops.object.select_all(action="DESELECT")
     children = bpy.data.objects
 
-    for child in children:    
+    for child in children:
         if child.type == "ARMATURE":
-            
+
             child.select = True
-    
+
             bones.correct_scale_rotation(child, True)
-            bones.correct_bone_rotations(child)
+
             bpy.ops.object.mode_set(mode="POSE")
             bpy.ops.pose.select_all(action="SELECT")
             bpy.ops.pose.transforms_clear()
             bpy.ops.pose.select_all(action="DESELECT")
             bpy.ops.object.mode_set(mode="OBJECT")
         if child.type == "MESH":
-    #        mesh.clean_unused_vertex_groups(child)
+            #        mesh.clean_unused_vertex_groups(child)
             materials.clean_materials(child.material_slots)
 
     for material in bpy.data.materials:
         materials.flip_material_specular(material)
 
     bpy.ops.object.mode_set(mode="OBJECT")
- 
+
     return {"FINISHED"}
 
 
@@ -231,6 +251,8 @@ class HifiCustomAvatarBinderOperator(bpy.types.Operator):
     custom_armature_name = bpy.props.StringProperty()
     armatures = bpy.props.EnumProperty(
         name="Select Armature", items=get_armatures)
+
+    armature = bpy.props.StringProperty()
 
     hips = bpy.props.StringProperty()
     spine = bpy.props.StringProperty()
@@ -265,21 +287,35 @@ class HifiCustomAvatarBinderOperator(bpy.types.Operator):
 
     def invoke(self, context, event):
         if self.armatures:
-            data = context.scene.objects[self.armatures].data
+            armature = context.scene.objects[self.armatures]
+            bpy.ops.object.mode_set(mode="OBJECT")
+
+            bpy.ops.object.select_all(action='DESELECT')
+            armature.select = True
+            context.scene.objects.active = armature
+
+            bpy.ops.object.mode_set(mode="EDIT")
+            data = armature.data
+            self.armature = data.name
+
+            bones.nuke_mixamo_prefix(data.edit_bones)
+
+            bpy.ops.object.mode_set(mode="OBJECT")
             automatic_bind_bones(self, data.bones)
-            # self.hips = "Hips"
 
         return context.window_manager.invoke_props_dialog(self, width=600)
 
     def draw(self, context):
         layout = self.layout
-        layout.label("This is an Experimental Feature. Please comment in the forums if there are any issues with rebinding.")
+        layout.label(
+            "This is an Experimental Feature. Please comment in the forums if there are any issues with rebinding.")
         layout.label("Everything is mirrored.")
         column = layout.column()
 
        # column.prop_search(scene, "custom_current_armature", bpy.data, "armatures", icon='ARMATURE_DATA', text="Select Armature")
         column.prop(self, "armatures")
         # context.scene.object[self.armatures]
+        # TODO: If avatar is not selected by default.
 
         if self.armatures is not "":
             data = context.scene.objects[self.armatures].data

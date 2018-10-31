@@ -162,8 +162,8 @@ class FSTWriterOperator(bpy.types.Operator, ExportHelper):
     selected_only = BoolProperty(
         default=False, name="Selected Only", description="Selected Only")
 
-    anim_graph_url = StringProperty(default="", name="Animation JSON Url",
-                                    description="Avatar Animation JSON absolute url path")
+    #anim_graph_url = StringProperty(default="", name="Animation JSON Url",
+    #                                description="Avatar Animation JSON absolute url path")
 
     script = StringProperty(default="", name="Avatar Script Path",
                             description="Avatar Script absolute url path, Script that is run on avatar")
@@ -188,7 +188,7 @@ class FSTWriterOperator(bpy.types.Operator, ExportHelper):
 
         oven_tool = context.user_preferences.addons[hifi_tools.__name__].preferences.oventool
         
-        layout.prop(self, "anim_graph_url")
+        #layout.prop(self, "anim_graph_url")
         layout.prop(self, "script")
 
         enabled_ipfs = len(

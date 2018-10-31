@@ -28,7 +28,10 @@ from urllib.parse import urlencode
 import hifi_tools
 import webbrowser
 
-from hifi_tools.utils.bones import combine_bones, build_skeleton, retarget_armature, correct_scale_rotation, set_selected_bones_physical, remove_selected_bones_physical
+from hifi_tools import default_gateway_server
+
+from hifi_tools.gateway import client as GatewayClient
+from hifi_tools.utils.bones import combine_bones, build_skeleton, retarget_armature, correct_scale_rotation, set_selected_bones_physical, remove_selected_bones_physical, bone_connection
 from hifi_tools.armature.skeleton import structure as base_armature
 from hifi_tools.utils.mmd import convert_mmd_avatar_hifi
 from hifi_tools.utils.mixamo import convert_mixamo_avatar_hifi
@@ -36,10 +39,7 @@ from hifi_tools.utils.makehuman import convert_makehuman_avatar_hifi
 from hifi_tools.utils.materials import make_materials_fullbright, make_materials_shadeless, convert_to_png, convert_images_to_mask, remove_materials_metallic
 from hifi_tools.utils.custom import HifiCustomAvatarBinderOperator
 
-from hifi_tools.gateway import client as GatewayClient
 from bpy.props import StringProperty
-
-from hifi_tools import default_gateway_server
 
 # TODO: Move somewhere more sensible, this contains alot of other UI stuff not just armature
 
@@ -85,6 +85,9 @@ class HifiBonePanel(bpy.types.Panel):
         layout.operator(HifiSetBonePhysicalOperator.bl_idname)
         layout.operator(HifiRemoveBonePhysicalOperator.bl_idname)
         layout.operator(HifiCombineBonesOperator.bl_idname)
+        layout.operator(HifiCombineBonesNonConnectedOperator.bl_idname)
+        layout.operator(HifiConnectBones.bl_idname)
+        layout.operator(HifiUnconnectBones.bl_idname)
         return None
 
 
@@ -297,6 +300,54 @@ class HifiCombineBonesOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class HifiConnectBones(bpy.types.Operator):
+    bl_idname = "bones_connect_selected.hifi"
+    bl_label = "Connect Selected "
+
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "TOOLS"
+    bl_category = "High Fidelity"
+
+    def execute(self, context):
+        bone_connection(context.selected_editable_bones, True)
+        return {'FINISHED'}
+
+class HifiUnconnectBones(bpy.types.Operator):
+    bl_idname = "bones_deconnect_selected.hifi"
+    bl_label = "Deconnect Selected "
+
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "TOOLS"
+    bl_category = "High Fidelity"
+
+    def execute(self, context):
+        bone_connection(context.selected_editable_bones, False)
+        return {'FINISHED'}
+
+
+
+class HifiCombineBonesNonConnectedOperator(bpy.types.Operator):
+    bl_idname = "bone_combine_detached.hifi"
+    bl_label = "Combine Bones Detached"
+
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "TOOLS"
+    bl_category = "High Fidelity"
+
+    @classmethod
+    def poll(self, context):
+        return len(context.selected_bones) > 1
+
+    def execute(self, context):
+        
+        use_mirror_x = bpy.context.object.data.use_mirror_x
+        bpy.context.object.data.use_mirror_x = False
+        combine_bones(list(context.selected_bones),
+                      context.active_bone, context.active_object, False)
+        bpy.context.object.data.use_mirror_x = use_mirror_x
+        return {'FINISHED'}
+
+
 class HifiCustomAvatarOperator(bpy.types.Operator):
     bl_idname = "armature_toolset_fix_custom_avatar.hifi"
     bl_label = "Custom Avatar"
@@ -449,6 +500,7 @@ class HifiSaveReminderOperator(bpy.types.Operator):
         row = layout.row()
         row.label(self.bl_label)
 
+
 class HifiForumOperator(bpy.types.Operator):
     bl_idname = "forum.hifi"
     bl_label = "Forum Thread / Bug Reports"
@@ -465,7 +517,6 @@ class HifiForumOperator(bpy.types.Operator):
             webbrowser.open(url)
 
         return {'FINISHED'}
-
 
 
 classes = [
@@ -491,7 +542,8 @@ classes = [
     HifiCustomAvatarOperator,
     HifiFixScaleOperator,
     HifiForumOperator,
-    HifiCustomAvatarBinderOperator
+    HifiCustomAvatarBinderOperator,
+    HifiCombineBonesNonConnectedOperator
 ]
 
 

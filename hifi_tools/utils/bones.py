@@ -28,8 +28,8 @@ from hifi_tools.utils import mesh
 from hifi_tools.armature.skeleton import structure as base_armature
 
 corrected_axis = {
-    "GLOBAL_NEG_Z": ["Shoulder", "Arm", "Hand", "Thumb"],
-    "GLOBAL_NEG_Y": ["Spine", "Head", "Hips", "Leg", "Foot", "Toe", "Eye"]
+    "GLOBAL_NEG_Z": ["Shoulder", "Arm", "Hand", "Thumb", "Leg",  "Foot", "Toe",  "Head", "Hips"],
+    "GLOBAL_NEG_Y": ["Eye", "Spine", "Neck", "Head"]
 }
 
 bone_parent_structure = {
@@ -65,13 +65,29 @@ number_re = re.compile("\\d+")
 number_text_re = re.compile(".+(\\d+).*")
 blender_copy_re = re.compile("\.001$")
 end_re = re.compile("_end$")
+mixamorif_prefix = "Mixamorig:"
+mixamo_prefix = "mixamo:"
+
+def nuke_mixamo_prefix(edit_bones):
+    print("Show. No. Mercy to mixamo. Remove All as a prelim")
+
+    found = False
+    for bone in edit_bones:
+        if "mixamo" in bone.name.lower():
+            found = True
+            bone.name = bone.name.replace(
+                mixamorif_prefix, "").replace(mixamo_prefix, "")
+
+    if found:
+        print("Mixamo Purge Complete")
+
+    return found
 
 
-def combine_bones(selected_bones, active_bone, active_object):
+def combine_bones(selected_bones, active_bone, active_object, use_connect=True):
     print("----------------------")
     print("Combining Bones", len(selected_bones),
           "-", active_bone, "-", active_object)
-    edit_bones = list(active_object.data.edit_bones)
     meshes = mesh.get_mesh_from(active_object.children)
     names_to_combine = []
     active_bone_name = active_bone.name
@@ -85,7 +101,7 @@ def combine_bones(selected_bones, active_bone, active_object):
             active_object.data.edit_bones.remove(bone)
             # TODO: Removal is broken :(
             for child in children:
-                child.use_connect = True
+                child.use_connect = use_connect
 
     print("Combining weights.", meshes)
     bpy.ops.object.mode_set(mode="OBJECT")
@@ -110,6 +126,11 @@ def combine_bones(selected_bones, active_bone, active_object):
     print("Done")
 
 
+def bone_connection(selected_bones, mode=False):
+    for bone in selected_bones:
+        bone.use_connect = mode
+
+
 def scale_helper(obj):
     if obj.dimensions.y > 2.4:
         print("Avatar too large > 2.4m, maybe incorrect? setting height to 1.9m. You can scale avatar inworld, instead")
@@ -126,7 +147,7 @@ def scale_helper(obj):
         bpy.ops.pose.transforms_clear()
 
         bpy.ops.object.mode_set(mode='OBJECT')
-        
+
 
 def remove_all_actions():
     for action in bpy.data.actions:
@@ -175,7 +196,8 @@ class BoneInfo():
 
 def camel_case_split(name):
     s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
-    return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1)
+    s2 = re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1)
+    return re.sub('(.)(\d+)', r'\1_\2', s2)
 
 
 def get_bone_side_and_mirrored(bone_name):
@@ -217,10 +239,9 @@ def get_bone_side_and_mirrored(bone_name):
 
 
 def clean_up_bone_name(bone_name, remove_clones=True):
-    
-    cleaned_bones = camel_case_split(bone_name)
-    
-    cleaned_bones = bone_name.replace(".", "_").replace(" ", "_")
+
+    cleaned_bones = camel_case_split(
+        bone_name).replace(".", "_").replace(" ", "_")
     split = cleaned_bones.split("_")
 
     # Remove .001 blender suffic First remove every dot with _ to remove confusion
@@ -239,25 +260,22 @@ def clean_up_bone_name(bone_name, remove_clones=True):
         new_bone_split.append(bone_name)
     else:
         for idx, val in enumerate(split):
-            print(idx, val)
-            if val is "r":
-                new_bone_split.append("Right")
-            elif val is "l":
-                new_bone_split.append("Left")
+            if val.lower() == "r" or val.lower() == "right":
+                new_bone_split.insert(0, "Right")
+            elif val.lower() == "l" or val.lower() == "left":
+                new_bone_split.insert(0, "Left")
             elif number_text_re.match(val):
                 nr = number_text_re.match(val)
                 group = nr.groups()
                 if end:
-                    last = str(int(group[0]) + 1)
+                    last = str(int(group[0]) + 1).capitalize()
                 else:
-                    last = group[0]
+                    last = group[0].capitalize()
             elif number_re.match(val):  # value is a number, before the last
-                print("Idx", idx, length)
                 if idx < length:
-                    print("Storing")
                     last = val.capitalize()
             else:
-                new_bone_split.append(val)
+                new_bone_split.append(val.capitalize())
 
     if last is not None:
         if end:
@@ -279,6 +297,7 @@ def remove_selected_bones_physical(bones):
         if physical_re.search(bone.name) is not None:
             bone.name = physical_re.sub("", bone.name)
 
+
 def correct_bone(bone, bones):
     if bone.name == "Hips":
         bone.parent = None
@@ -289,12 +308,15 @@ def correct_bone(bone, bones):
             if parent_bone is not None:
                 bone.parent = parent_bone
 
+
 def correct_bone_parents(bones):
     for bone in bones:
         correct_bone(bone, bones)
 
 
 def correct_bone_rotations(obj):
+    
+    bpy.ops.object.mode_set(mode="EDIT")
     name = obj.name
     if "Eye" in name:
         bone_head = Vector(obj.head)
@@ -319,18 +341,17 @@ def correct_bone_rotations(obj):
         axises = corrected_axis.keys()
         correction = None
         found = False
-
         for axis in axises:
             corrections = corrected_axis.get(axis)
             for correction in corrections:
                 if correction in name:
-                    print("Found correction", name, axis)
-                    bpy.ops.object.mode_set(mode="EDIT")
+                    print("Correcting Rolls,", name, axis)
                     bpy.ops.armature.select_all(action="DESELECT")
-                    
+                    print(obj)
                     obj.select = True
-
                     bpy.ops.armature.calculate_roll(type=axis)
+                    print(obj)
+                    
                     bpy.ops.armature.select_all(action="DESELECT")
                     found = True
                     break
@@ -433,7 +454,7 @@ def correct_scale_rotation(obj, rotation):
     bpy.ops.object.select_all(action="DESELECT")
 
     obj.select = True
-    
+
     bpy.context.scene.objects.active = obj
     bpy.ops.object.origin_set(type="ORIGIN_CURSOR")
     bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
@@ -478,7 +499,6 @@ def navigate_armature(data, current_rest_node, world_matrix, parent, parent_node
 def retarget_armature(options, selected, selected_only=False):
 
     armature = find_armature(selected)
-    print("selected", selected, "armature", armature)
     if armature is not None:
         # Center Children First
         print(bpy.context.mode, armature)
@@ -491,11 +511,13 @@ def retarget_armature(options, selected, selected_only=False):
 
         bpy.context.scene.objects.active = armature
         armature.select = True
+        bpy.context.object.data.pose_position = 'POSE'
+
         # Make sure to reset the bones first.
         bpy.ops.object.transform_apply(
             location=False, rotation=True, scale=True)
         print("Selecting Bones")
-
+        
         bpy.ops.object.mode_set(mode="POSE")
         bpy.ops.pose.select_all(action="SELECT")
         bpy.ops.pose.transforms_clear()

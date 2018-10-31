@@ -22,6 +22,7 @@ import bpy
 import os
 import uuid
 import hifi_tools
+import datetime
 import os.path as ntpath
 import shutil
 
@@ -65,7 +66,7 @@ prefix_joint = "joint = ¤ = $\n"
 prefix_free_joint = "freeJoint = $\n"
 
 prefix_script = "script = $\n"
-prefix_anim_graph_url = "animGraphUrl = $\n"
+#prefix_anim_graph_url = "animGraphUrl = $\n"
 
 
 def default_blend_shape(selected):
@@ -82,7 +83,7 @@ def fst_export(context, selected):
 
     preferences = bpy.context.user_preferences.addons[hifi_tools.__name__].preferences
     # file = open
-    uuid_gen = uuid.uuid5(uuid.NAMESPACE_DNS, context.filepath)
+    uuid_gen = uuid.uuid5(uuid.NAMESPACE_DNS, context.filepath + '?' + str(datetime.datetime.now()).replace(" ", ""))
     scene_id = str(uuid_gen)
 
     print("Exporting file to filepath", context.filepath)
@@ -128,8 +129,8 @@ def fst_export(context, selected):
         if context.flow:
             print("Add Flow Script")
 
-        if len(context.anim_graph_url) > 0:
-            f.write(prefix_anim_graph_url.replace('$', context.anim_graph_url))
+        #if len(context.anim_graph_url) > 0:
+        #    f.write(prefix_anim_graph_url.replace('$', context.anim_graph_url))
 
         # Writing these in separate loops because they need to done in order.
         for bone in armature.data.bones:
