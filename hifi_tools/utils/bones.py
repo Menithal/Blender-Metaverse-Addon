@@ -23,13 +23,14 @@ import re
 
 from math import pi
 from mathutils import Quaternion, Matrix, Vector, Euler
-from hifi_tools.utils import mesh
+from hifi_tools.utils import mesh, simple_math
 
 from hifi_tools.armature.skeleton import structure as base_armature
 
+
 corrected_axis = {
-    "GLOBAL_NEG_Z": ["Shoulder", "Arm", "Hand", "Thumb", "Leg",  "Foot", "Toe",  "Head", "Hips"],
-    "GLOBAL_NEG_Y": ["Eye", "Spine", "Neck", "Head"]
+    "GLOBAL_NEG_Z": ["Shoulder", "Arm", "Hand", "Thumb"],
+    "GLOBAL_NEG_Y": ["Eye", "Spine", "Neck", "Head", "Leg", "Foot", "Toe", "Hips"]
 }
 
 bone_parent_structure = {
@@ -59,14 +60,74 @@ bone_parent_structure = {
 }
 
 
+class RotationTheta():
+    theta = 0
+    axis = ""
+    direction = ""
+    connect = False
+
+    def __init__(self, theta, axis, direction, connect):
+        self.theta = theta
+        self.axis = axis
+        self.direction = direction
+        self.connect = connect
+
+
+posterior_chain_correction = {
+    'Hips': RotationTheta(0, 'x', 'z', False),
+    'Spine': RotationTheta(0, 'x', 'z', True),
+    'Spine1': RotationTheta(0, 'x', 'z', True),
+    'Spine2': RotationTheta(0, 'x', 'z', True),
+    'Neck': RotationTheta(0, 'x',  'z', False),
+    'Head': RotationTheta(0, 'x',  'z', True),
+    'LeftFoot': RotationTheta(0.673764040485057, 'x', '-y-z-x', True),
+    'RightFoot': RotationTheta(0.673764040485057, 'x',  '-y-z-x', True),
+    'LeftShoulder': RotationTheta(0, 'x',  'x', False),
+    'RightShoulder': RotationTheta(0, 'x',  '-x', False)
+}
+
+
 physical_re = re.compile("^sim")
-number_end_re = re.compile("(\\d+$)")
+number_end_re = re.compile(r"(\d+)$")
 number_re = re.compile("\\d+")
 number_text_re = re.compile(".+(\\d+).*")
 blender_copy_re = re.compile("\.001$")
 end_re = re.compile("_end$")
 mixamorif_prefix = "Mixamorig:"
 mixamo_prefix = "mixamo:"
+
+side_front_re = re.compile(r"^(l|r|L|R)")
+side_end_re = re.compile(r"(l|r|L|R)$")
+
+
+class BoneInfo():
+    side = ""
+    mirror = ""
+    name = ""
+    mirror_name = ""
+    index = None
+
+    def __init__(self, side, mirror, name, mirror_name):
+        self.side = side
+        self.mirror = mirror
+        self.name = name
+
+        m = number_end_re.search(clean_up_bone_name(name))
+        if m is not None:
+            self.index = m.group(0)
+        else:
+            self.index = None
+
+        self.mirror_name = mirror_name
+
+    def dump(self):
+        if self is not None:
+            if self.index is not None:
+                return self.side + " - " + self.mirror + " - " + self.name + ' - ' + self.mirror_name + ' - ' + self.index
+            return self.side + " - " + self.mirror + " - " + self.name + ' - ' + self.mirror_name
+
+        return None
+
 
 def nuke_mixamo_prefix(edit_bones):
     print("Show. No. Mercy to mixamo. Remove All as a prelim")
@@ -170,35 +231,88 @@ def find_armature(selection):
     return None
 
 
-side_front_re = re.compile("^l|r|L|R")
-side_end_re = re.compile("l|r|L|R$")
-
-
-class BoneInfo():
-    side = ""
-    mirror = ""
-    name = ""
-    mirror_name = ""
-    index = None
-
-    def __init__(self, side, mirror, name, mirror_name):
-        self.side = side
-        self.mirror = mirror
-        self.name = name
-        m = number_end_re.search(name)
-        if m is not None:
-            self.index = m.group(0)
-        else:
-            self.index = None
-
-        self.mirror_name = mirror_name
-
-
 def camel_case_split(name):
     s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
     s2 = re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1)
     return re.sub('(.)(\d+)', r'\1_\2', s2)
 
+
+def clean_ends(obj):
+    if obj.type == "ARMATURE":
+        bpy.ops.object.mode_set(mode='EDIT')
+        print("Cleaning Armature")
+        
+        bpy.ops.object.mode_set(mode='OBJECT')
+
+
+def pin_common_bones(obj, fix_rolls = True):
+    # Edit Bones
+
+    bpy.ops.object.mode_set(mode='OBJECT')
+    reset_scale(obj)
+    bpy.ops.object.mode_set(mode='EDIT')
+    edit_bones = obj.data.edit_bones
+    print("Pinning Common Bones")
+    for ebone in edit_bones:
+        corrector = posterior_chain_correction.get(ebone.name)
+
+        if corrector is not None:
+            ebone.use_connect = corrector.connect
+            print(" - ", ebone.name, " axis",
+                  corrector.axis, "dir", corrector.direction)
+            y_dir = 1
+            if "-y" in corrector.direction:
+                y_dir = -1
+
+            x_dir = 1
+            if "-x" in corrector.direction:
+                x_dir = -1
+
+            z_dir = 1
+            if "-z" in corrector.direction:
+                z_dir = -1
+
+            if corrector.theta < 0.001:
+                d = simple_math.bone_length(ebone)
+
+                if corrector.direction == "-y":
+                    ebone.tail = Vector([ebone.head.x, ebone.head.y - d, ebone.head.z])
+                elif corrector.direction == "y":
+                    ebone.tail = Vector([ebone.head.x, ebone.head.y + d, ebone.head.z])
+
+                if corrector.direction == "-x":
+                    ebone.tail = Vector([ebone.head.x - d , ebone.head.y, ebone.head.z])
+                elif corrector.direction == "x":
+                    ebone.tail = Vector([ebone.head.x + d, ebone.head.y, ebone.head.z])
+                
+                if corrector.direction == "-z":
+                    ebone.tail = Vector([ebone.head.x, ebone.head.y, ebone.head.z - d])
+                elif corrector.direction == "z":
+                    ebone.tail = Vector([ebone.head.x, ebone.head.y, ebone.head.z + d])
+                    
+
+            else:
+                sides = simple_math.get_sides(ebone, corrector.theta)
+                h = sides[0]
+                a = sides[1]
+                o = sides[2]
+
+                print(sides, corrector.axis, corrector.direction)
+                if corrector.axis == 'x':
+                    ebone.tail = Vector(
+                        [ebone.head.x, ebone.head.y + a * y_dir, ebone.head.z + o * z_dir])
+                elif corrector.axis == 'y':
+                    ebone.tail = Vector(
+                        [ebone.head.x + a * x_dir, ebone.head.y, ebone.head.z + o * z_dir])
+                elif corrector.axis == 'z':
+                    ebone.tail = Vector(
+                        [ebone.head.x + a * x_dir, ebone.head.y + o * y_dir, ebone.head.z])
+
+            # H, A, O
+        if fix_rolls:
+            correct_bone_rotations(ebone)
+
+    correct_scale_rotation(obj, True)
 
 def get_bone_side_and_mirrored(bone_name):
     cleaned_bones = camel_case_split(bone_name)
@@ -215,26 +329,27 @@ def get_bone_side_and_mirrored(bone_name):
             return BoneInfo("Left", "Right", bone_name, bone_name.replace("Left", "Right").replace('left', 'Right'))
         elif "right" in split or "Right" in split or "RIGHT" in split:
             return BoneInfo("Right", "Left", bone_name, bone_name.replace("Right", "Left").replace('right', 'Left'))
-        elif "l" in split:
-            index = split.index('l')
-            if index == 0:
-                return BoneInfo("Right", "Left", bone_name, side_front_re.sub('r', bone_name))
-            return BoneInfo("Right", "Left", bone_name,  side_end_re.sub('r', bone_name))
         elif "r" in split:
             index = split.index('r')
             if index == 0:
-                return BoneInfo("Left", "Right", bone_name,  side_front_re.sub('l', bone_name))
-            return BoneInfo("Left", "Right", bone_name,  side_end_re.sub('l', bone_name))
-        elif "L" in split:
-            index = split.index('L')
+                return BoneInfo("Right", "Left", bone_name, side_front_re.sub('l', bone_name))
+            return BoneInfo("Right", "Left", bone_name, side_end_re.sub('l', bone_name))
+        elif "l" in split:
+            index = split.index('l')
             if index == 0:
-                return BoneInfo("Right", "Left", bone_name,  side_front_re.sub('R', bone_name))
-            return BoneInfo("Right", "Left", bone_name,  side_end_re.sub('R', bone_name))
+                return BoneInfo("Left", "Right", bone_name,  side_front_re.sub('r', bone_name))
+            return BoneInfo("Left", "Right", bone_name, side_end_re.sub('r', bone_name))
         elif "R" in split:
             index = split.index('R')
             if index == 0:
-                return BoneInfo("Left", "Right", bone_name, side_front_re.sub('L', bone_name))
-            return BoneInfo("Left", "Right", bone_name, side_end_re.sub('L', bone_name))
+                return BoneInfo("Right", "Left", bone_name, side_front_re.sub('L', bone_name))
+            return BoneInfo("Right", "Left", bone_name, side_end_re.sub('L', bone_name))
+        elif "L" in split:
+            index = split.index('L')
+            if index == 0:
+                return BoneInfo("Left", "Right", bone_name, side_front_re.sub('R', bone_name))
+            return BoneInfo("Left", "Right", bone_name, side_end_re.sub('R', bone_name))
+
     return None
 
 
@@ -314,29 +429,17 @@ def correct_bone_parents(bones):
         correct_bone(bone, bones)
 
 
-def correct_bone_rotations(obj):
+def correct_bone_rotations(ebone):
     
     bpy.ops.object.mode_set(mode="EDIT")
-    name = obj.name
+    name = ebone.name
+
+    print("correcting bone rotation for", name)
     if "Eye" in name:
-        bone_head = Vector(obj.head)
-        bone_head.z += 0.05
-        obj.tail = bone_head
-        obj.roll = 0
-
-    elif "Hips" == name:
-        bone_head = Vector(obj.head)
-        bone_tail = Vector(obj.tail)
-
-        if bone_head.z > bone_tail.z:
-            obj.head = bone_tail
-            obj.tail = bone_head
-        else:
-            print("Hips already correct")
-    elif "RightHandThumb" in name:
-        obj.roll = 70 * pi/180
-    elif "LeftHandThumb" in name:
-        obj.roll = -70 * pi/180
+        bone_head = Vector(ebone.head)
+        bone_head.z += 5
+        ebone.tail = bone_head
+        ebone.roll = 0
     else:
         axises = corrected_axis.keys()
         correction = None
@@ -345,18 +448,13 @@ def correct_bone_rotations(obj):
             corrections = corrected_axis.get(axis)
             for correction in corrections:
                 if correction in name:
-                    print("Correcting Rolls,", name, axis)
                     bpy.ops.armature.select_all(action="DESELECT")
-                    print(obj)
-                    obj.select = True
+                    ebone.select = True
                     bpy.ops.armature.calculate_roll(type=axis)
-                    print(obj)
-                    
+                    print(" pointing towards", axis)
+
                     bpy.ops.armature.select_all(action="DESELECT")
-                    found = True
-                    break
-            if found:
-                break
+                    return
 
 
 def has_armature_as_child(me):
@@ -442,7 +540,7 @@ def build_skeleton():
         bpy.context.area.type = current_view
 
 
-def correct_scale_rotation(obj, rotation):
+def reset_scale(obj):
     current_context = bpy.context.area.type
     bpy.context.area.type = "VIEW_3D"
     # set context to 3D View and set Cursor
@@ -454,10 +552,12 @@ def correct_scale_rotation(obj, rotation):
     bpy.ops.object.select_all(action="DESELECT")
 
     obj.select = True
-
     bpy.context.scene.objects.active = obj
     bpy.ops.object.origin_set(type="ORIGIN_CURSOR")
     bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
+
+def correct_scale_rotation(obj, rotation):
+    reset_scale(obj)
     obj.scale = Vector((100, 100, 100))
     str_angle = -90 * pi/180
     if rotation:
@@ -495,6 +595,32 @@ def navigate_armature(data, current_rest_node, world_matrix, parent, parent_node
         for child in current_rest_node["children"]:
             navigate_armature(data, child, world_matrix, bone, parent_node)
 
+# Simple function to clear pose, since some dont know where to find it in blender
+
+
+def clear_pose(selected):
+    armature = find_armature(selected)
+    if armature is not None:
+        mode = "OBJECT"
+        if bpy.context.mode != "OBJECT":
+            mode = bpy.context.mode
+            bpy.ops.object.mode_set(mode="OBJECT")
+
+        print("Deselect all")
+        bpy.ops.object.select_all(action="DESELECT")
+        print("Selected")
+
+        bpy.context.scene.objects.active = armature
+        armature.select = True
+        bpy.context.object.data.pose_position = 'POSE'
+
+        bpy.ops.object.mode_set(mode="POSE")
+        bpy.ops.pose.select_all(action="SELECT")
+        bpy.ops.pose.transforms_clear()
+        bpy.ops.pose.select_all(action="DESELECT")
+
+        bpy.ops.object.mode_set(mode=mode)
+
 
 def retarget_armature(options, selected, selected_only=False):
 
@@ -517,7 +643,7 @@ def retarget_armature(options, selected, selected_only=False):
         bpy.ops.object.transform_apply(
             location=False, rotation=True, scale=True)
         print("Selecting Bones")
-        
+
         bpy.ops.object.mode_set(mode="POSE")
         bpy.ops.pose.select_all(action="SELECT")
         bpy.ops.pose.transforms_clear()

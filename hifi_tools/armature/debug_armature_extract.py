@@ -23,7 +23,6 @@ import json
 import bpy
 
 def build_armature(bone, bones, tree): 
-    
     regular_bone = bones[bone.name] 
     current_tree = {
         "name": bone.name,
@@ -34,60 +33,46 @@ def build_armature(bone, bones, tree):
         "connect": bone.use_connect,
         "children": []
     }
-        
     for child in bone.children:
         build_armature(child, bones, current_tree["children"])
-    
     tree.append(current_tree)
     return tree    
 
 
 def build_world_rotations(bone, world_matrix, list):
-    
     parent_rotation = world_matrix.to_quaternion()
-    
     matrix = bone.matrix
-    
     current_rotation = matrix.to_quaternion()
     current_node = {
         "name": bone.name,
         "rotation": parent_rotation * current_rotation,
         "local": bone.matrix_local.to_quaternion()
     }
-    
     list.append(current_node)
-    
     for child in bone.children:
         build_world_rotations(child, world_matrix, list)
-    
     return list
 
+def armature_debug():
+    print("|||||||||||||||||||||||||||")
+    print("---------------------------")
+    print("---------POSE DATA---------")
+    print("---------------------------")
+    print("|||||||||||||||||||||||||||")
 
-print("|||||||||||||||||||||||||||")
-print("---------------------------")
-print("---------POSE DATA---------")
-print("---------------------------")
-print("|||||||||||||||||||||||||||")
+    armature = bpy.context.object
 
-armature = bpy.context.object
+    world_matrix = armature.matrix_world
+            
+    if bpy.context.active_object:
+        bpy.ops.object.mode_set(mode = 'EDIT')
+        print(armature.data.edit_bones[0].name)
+        if len(armature.data.edit_bones) > 0:
+            edit_armature = build_armature( armature.data.edit_bones[0], armature.data.bones, [])
+            print("structure =", edit_armature)
+            print("#-----------------------------")
 
-world_matrix = armature.matrix_world
-        
-        
-if bpy.context.active_object:
-    bpy.ops.object.mode_set(mode = 'EDIT')
-    
-    print(armature.data.edit_bones[0].name)
-    if len(armature.data.edit_bones) > 0:
-        edit_armature = build_armature( armature.data.edit_bones[0], armature.data.bones, [])
-        print("structure =", edit_armature)
-    
-        print("#-----------------------------")
-
-
-
-
-bpy.ops.object.mode_set(mode = 'OBJECT')
+    bpy.ops.object.mode_set(mode = 'OBJECT')
 
 #for bone in armature.bones:
 #    rotation = quat_to_dict(bone.matrix.to_4x4().to_quaternion())

@@ -29,14 +29,17 @@ import hifi_tools
 import webbrowser
 
 from hifi_tools import default_gateway_server
+from hifi_tools.utils import bones, materials
 
 from hifi_tools.gateway import client as GatewayClient
-from hifi_tools.utils.bones import combine_bones, build_skeleton, retarget_armature, correct_scale_rotation, set_selected_bones_physical, remove_selected_bones_physical, bone_connection
+# TODO: Start clearing these specific imports and just use the packages....
+from hifi_tools.utils.bones import combine_bones, build_skeleton, retarget_armature, correct_scale_rotation, set_selected_bones_physical, remove_selected_bones_physical, bone_connection, pin_common_bones
 from hifi_tools.armature.skeleton import structure as base_armature
 from hifi_tools.utils.mmd import convert_mmd_avatar_hifi
 from hifi_tools.utils.mixamo import convert_mixamo_avatar_hifi
 from hifi_tools.utils.makehuman import convert_makehuman_avatar_hifi
-from hifi_tools.utils.materials import make_materials_fullbright, make_materials_shadeless, convert_to_png, convert_images_to_mask, remove_materials_metallic
+from hifi_tools.utils.materials import make_materials_fullbright, make_materials_shadeless, convert_to_png, convert_images_to_mask, remove_materials_metallic, clean_materials
+from hifi_tools.armature.debug_armature_extract import armature_debug
 from hifi_tools.utils.custom import HifiCustomAvatarBinderOperator
 
 from bpy.props import StringProperty
@@ -60,9 +63,14 @@ class HifiArmaturePanel(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         layout.operator(HifiArmatureCreateOperator.bl_idname)
-        layout.operator(HifiArmaturePoseOperator.bl_idname)
+
+        row = layout.row()
+        row.operator(HifiArmaturePoseOperator.bl_idname)
+        row.operator(HifiArmatureClearPoseOperator.bl_idname)
+
         layout.operator(HifiFixScaleOperator.bl_idname)
         layout.operator(HifiForumOperator.bl_idname)
+        # layout.operator(HifiDebugArmatureOperator.bl_idname)
         # layout.operator(HifiArmatureRetargetPoseOperator.bl_idname)
         return None
 
@@ -110,6 +118,12 @@ class HifiAvatarPanel(bpy.types.Panel):
         layout.operator(HifiMMDOperator.bl_idname)
         layout.operator(HifiMixamoOperator.bl_idname)
         layout.operator(HifiMakeHumanOperator.bl_idname)
+        row = layout.row()
+
+        row.operator(HifiPinPosteriorOperator.bl_idname)
+        row.operator(HifiFixRollsOperator.bl_idname)
+        # TODO remove when done
+
         return None
 
 
@@ -133,7 +147,7 @@ class HifiMaterialsPanel(bpy.types.Panel):
         layout.operator(HifiTexturesConvertToPngOperator.bl_idname)
         layout.operator(HifiTexturesMakeMaskOperator.bl_idname)
         layout.operator(HifiMaterialMetallicRemoveOperator.bl_idname)
-
+        layout.operator(HifiCompressMaterialsOperator.bl_idname)
         return None
 
 
@@ -203,7 +217,7 @@ class HifiArmatureCreateOperator(bpy.types.Operator):
         return context.mode == "OBJECT"
 
     def execute(self, context):
-        build_skeleton()
+        bones.build_skeleton()
         return {'FINISHED'}
 
 # Remove once fst export is available
@@ -211,15 +225,27 @@ class HifiArmatureCreateOperator(bpy.types.Operator):
 
 class HifiArmaturePoseOperator(bpy.types.Operator):
     bl_idname = "armature_toolset_pose.hifi"
-    bl_label = "Test Avatar Rest Pose"
+    bl_label = "Rest TPose"
 
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
     bl_category = "High Fidelity"
 
     def execute(self, context):
-        retarget_armature({'apply': False}, bpy.data.objects)
+        bones.retarget_armature({'apply': False}, bpy.data.objects)
+        return {'FINISHED'}
 
+
+class HifiArmatureClearPoseOperator(bpy.types.Operator):
+    bl_idname = "armature_clear_pose.hifi"
+    bl_label = "Clear Pose"
+
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "TOOLS"
+    bl_category = "High Fidelity"
+
+    def execute(self, context):
+        bones.clear_pose(bpy.data.objects)
         return {'FINISHED'}
 
 
@@ -232,13 +258,61 @@ class HifiFixScaleOperator(bpy.types.Operator):
     bl_category = "High Fidelity"
 
     def execute(self, context):
-        
+
         for selected in context.selected_objects:
-            correct_scale_rotation(selected, True)
+            bones.correct_scale_rotation(selected, True)
 
         return {'FINISHED'}
 
 
+class HifiPinPosteriorOperator(bpy.types.Operator):
+    bl_idname = "bones_pin.hifi"
+    bl_label = "Pin Problem Bones"
+
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "TOOLS"
+    bl_category = "High Fidelity"
+
+    def execute(self, context):
+        bpy.ops.object.mode_set(mode="EDIT")
+
+        for obj in bpy.data.objects:
+            if obj.type == "ARMATURE":
+                bones.pin_common_bones(obj, False)
+
+        bpy.ops.object.mode_set(mode="OBJECT")
+        return {'FINISHED'}
+
+
+class HifiFixRollsOperator(bpy.types.Operator):
+    bl_idname = "reference_roll_bones.hifi"
+    bl_label = "Match Reference Rolls"
+
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "TOOLS"
+    bl_category = "High Fidelity"
+
+    def execute(self, context):
+        bpy.ops.object.mode_set(mode="EDIT")
+
+        selected = bpy.context.selected_objects
+        if selected is None:
+            selected = bpy.data.objects
+
+        for obj in selected:
+            if obj.type == "ARMATURE":
+                print("Lets Do this shit ", obj)
+                bpy.ops.object.mode_set(mode="OBJECT")
+                correct_scale_rotation(obj, False)
+                bpy.ops.object.mode_set(mode="EDIT")
+                for ebone in obj.data.edit_bones:
+                    bones.correct_bone_rotations(ebone)
+
+        bpy.ops.object.mode_set(mode="OBJECT")
+        bones.clear_pose(selected)
+                
+        bpy.ops.object.mode_set(mode="OBJECT")
+        return {'FINISHED'}
 
 
 # Remove once fst export is available
@@ -255,7 +329,7 @@ class HifiSetBonePhysicalOperator(bpy.types.Operator):
         return len(context.selected_bones) > 0
 
     def execute(self, context):
-        set_selected_bones_physical(context.selected_bones)
+        bones.set_selected_bones_physical(context.selected_bones)
         return {'FINISHED'}
 
 # Remove once fst export is available
@@ -274,7 +348,7 @@ class HifiRemoveBonePhysicalOperator(bpy.types.Operator):
         return len(context.selected_bones) > 0
 
     def execute(self, context):
-        remove_selected_bones_physical(context.selected_bones)
+        bones.remove_selected_bones_physical(context.selected_bones)
         return {'FINISHED'}
 
 
@@ -291,10 +365,10 @@ class HifiCombineBonesOperator(bpy.types.Operator):
         return len(context.selected_bones) > 1
 
     def execute(self, context):
-        
+
         use_mirror_x = bpy.context.object.data.use_mirror_x
         bpy.context.object.data.use_mirror_x = False
-        combine_bones(list(context.selected_bones),
+        bones.combine_bones(list(context.selected_bones),
                       context.active_bone, context.active_object)
         bpy.context.object.data.use_mirror_x = use_mirror_x
         return {'FINISHED'}
@@ -309,8 +383,9 @@ class HifiConnectBones(bpy.types.Operator):
     bl_category = "High Fidelity"
 
     def execute(self, context):
-        bone_connection(context.selected_editable_bones, True)
+        bones.bone_connection(context.selected_editable_bones, True)
         return {'FINISHED'}
+
 
 class HifiUnconnectBones(bpy.types.Operator):
     bl_idname = "bones_deconnect_selected.hifi"
@@ -321,9 +396,8 @@ class HifiUnconnectBones(bpy.types.Operator):
     bl_category = "High Fidelity"
 
     def execute(self, context):
-        bone_connection(context.selected_editable_bones, False)
+        bones.bone_connection(context.selected_editable_bones, False)
         return {'FINISHED'}
-
 
 
 class HifiCombineBonesNonConnectedOperator(bpy.types.Operator):
@@ -339,10 +413,10 @@ class HifiCombineBonesNonConnectedOperator(bpy.types.Operator):
         return len(context.selected_bones) > 1
 
     def execute(self, context):
-        
+
         use_mirror_x = bpy.context.object.data.use_mirror_x
         bpy.context.object.data.use_mirror_x = False
-        combine_bones(list(context.selected_bones),
+        bones.combine_bones(list(context.selected_bones),
                       context.active_bone, context.active_object, False)
         bpy.context.object.data.use_mirror_x = use_mirror_x
         return {'FINISHED'}
@@ -417,22 +491,47 @@ class HifiMaterialFullbrightOperator(bpy.types.Operator):
     bl_category = "High Fidelity"
 
     def execute(self, context):
-        make_materials_fullbright(bpy.data.materials)
+        materials.make_materials_fullbright(bpy.data.materials)
         return {'FINISHED'}
 
 
 class HifiMaterialShadelessOperator(bpy.types.Operator):
     bl_idname = "materials_toolset_shadeless.hifi"
-    bl_label = "Make All Shadeless"
+    bl_label = "Make All Non-Avatars Shadeless"
 
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
     bl_category = "High Fidelity"
 
     def execute(self, context):
-        make_materials_shadeless(bpy.data.materials)
+        # TODO: Make sure to only effect materials on non avatars.
+        for obj in bpy.data.objects:
+            if obj.type == "MESH":
+                has_armature = False
+                for modifier in obj.modifiers:
+                    if modifier.type == "ARMATURE":
+                        has_armature = True
+
+                if not has_armature:
+                    materials.make_materials_shadeless(obj.data.materials)
+                else:
+                    print(
+                        "Skipping materials for potential Avatar (as these won't work in the shading engine.).")
+
         return {'FINISHED'}
 
+
+class HifiMaterialCompressOperator(bpy.types.Operator):
+    bl_idname = "materials_toolset_compress.hifi"
+    bl_label = "Compress Material Count"
+
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "TOOLS"
+    bl_category = "High Fidelity"
+
+    def execute(self, context):
+        materials.clean_materials(bpy.data.materials)
+        return {'FINISHED'}
 
 class HifiMaterialMetallicRemoveOperator(bpy.types.Operator):
     bl_idname = "materials_toolset_metallic.hifi"
@@ -443,7 +542,7 @@ class HifiMaterialMetallicRemoveOperator(bpy.types.Operator):
     bl_category = "High Fidelity"
 
     def execute(self, context):
-        remove_materials_metallic(bpy.data.materials)
+        materials.remove_materials_metallic(bpy.data.materials)
         return {'FINISHED'}
 
 
@@ -456,7 +555,7 @@ class HifiTexturesConvertToPngOperator(bpy.types.Operator):
     bl_category = "High Fidelity"
 
     def execute(self, context):
-        convert_to_png(bpy.data.images)
+        materials.convert_to_png(bpy.data.images)
         return {'FINISHED'}
 
 
@@ -469,11 +568,26 @@ class HifiTexturesMakeMaskOperator(bpy.types.Operator):
     bl_category = "High Fidelity"
 
     def execute(self, context):
-        convert_images_to_mask(bpy.data.images)
+        materials.convert_images_to_mask(bpy.data.images)
         return {'FINISHED'}
 
-# -----
+class HifiCompressMaterialsOperator(bpy.types.Operator):
+    bl_idname = "compress_materials.hifi"
+    bl_label = "Compress Materials"
 
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "TOOLS"
+    bl_category = "High Fidelity"
+
+    def execute(self, context):
+        for obj in bpy.data.object:
+            if obj.type == "MESH":
+                materials.clean_materials(obj.material_slots)
+        
+        return {'FINISHED'}
+
+
+# -----
 
 class HifiSaveReminderOperator(bpy.types.Operator):
     bl_idname = "hifi_error.save_file"
@@ -518,6 +632,17 @@ class HifiForumOperator(bpy.types.Operator):
 
         return {'FINISHED'}
 
+class HifiDebugArmatureOperator(bpy.types.Operator):
+    bl_idname = "debug_log_armature.hifi"
+    bl_label = "debug armature"
+
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "TOOLS"
+    bl_category = "High Fidelity"
+
+    def execute(self, context):
+        armature_debug()
+        return {'FINISHED'}
 
 classes = [
     HifiArmaturePanel,
@@ -534,6 +659,7 @@ classes = [
     HifiMaterialMetallicRemoveOperator,
     HifiTexturesConvertToPngOperator,
     HifiTexturesMakeMaskOperator,
+    HifiPinPosteriorOperator,
     HifiMMDOperator,
     HifiMixamoOperator,
     HifiMakeHumanOperator,
@@ -543,7 +669,11 @@ classes = [
     HifiFixScaleOperator,
     HifiForumOperator,
     HifiCustomAvatarBinderOperator,
-    HifiCombineBonesNonConnectedOperator
+    HifiCombineBonesNonConnectedOperator,
+    HifiDebugArmatureOperator,
+    HifiArmatureClearPoseOperator,
+    HifiFixRollsOperator,
+    HifiCompressMaterialsOperator
 ]
 
 
