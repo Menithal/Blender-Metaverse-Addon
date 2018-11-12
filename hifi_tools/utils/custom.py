@@ -1,11 +1,10 @@
 import bpy
 import re
-from hifi_tools.utils import bones, mesh, materials
+from hifi_tools.utils import bones, mesh, materials, bpyutil
 from bpy.props import StringProperty, BoolProperty, PointerProperty
 
 def poll(self, object):
     return object.type == "BONE"
-
 
 def get_armatures(self, context):
     obj = []
@@ -20,7 +19,6 @@ def get_armatures(self, context):
 
     return obj
 
-
 def get_bones(self, context):
 
     armature = context.scene.objects.get(self.custom_armatures)
@@ -29,7 +27,6 @@ def get_bones(self, context):
     if armature is None:
         return
     return [(bone.name, bone.name, "") for bone in armature.data.bones]
-
 
 hips_names = ["hips", "pelvis"]
 
@@ -80,8 +77,13 @@ common_cats_blend_mapping = [
 def automatic_bind_bones(self, avatar_bones):
     print('------')
     knee_check = False
+    cleaned_bones = dict()
     for bone in avatar_bones:
-        cleaned_name = bones.clean_up_bone_name(bone.name).lower()
+        cleaned_bones[bones.clean_up_bone_name(bone.name).lower()] = bone
+
+    keys = list(cleaned_bones.keys())
+    for cleaned_name in keys:
+        bone = cleaned_bones[cleaned_name]
 
         for hip_bone in hips_names:
             if hip_bone in cleaned_name:
@@ -90,7 +92,12 @@ def automatic_bind_bones(self, avatar_bones):
         if "spine2" in cleaned_name or "chest" in cleaned_name or "breast" in cleaned_name:
             self.spine2 = bone.name
         elif spine1_name in cleaned_name:
-            self.spine1 = bone.name
+            ## if there is no Spine2, chest or breast, its likely that spine1 is the chest. Convert it.
+            if cleaned_bones["spine2"] is None and cleaned_bones["chest"] is None and cleaned_bones["breast"] is None:
+                self.spine2 = bone.name
+            else:
+                self.spine1 = bone.name
+            
         elif spine_name in cleaned_name:
             self.spine = bone.name
 
@@ -245,13 +252,26 @@ def rename_bones_and_fix_most_things(self, context):
     update_bone_name_chained_mirrored(ebones, self.hand_middle, "HandMiddle")
     update_bone_name_chained_mirrored(ebones, self.hand_ring, "HandRing")
     update_bone_name_chained_mirrored(ebones, self.hand_pinky, "HandPinky")
-
-    print("--------")
-    print("Fix Rotations")
-    # Fixing Rotations and Scales
-    # Now Refresh datablocks
+    
     bpy.ops.object.mode_set(mode="OBJECT")
     armature = bpy.data.armatures[self.armature]
+
+    object_armature = None
+    for obj in bpy.data.objects:
+        if obj.type == "ARMATURE" and obj.data == armature:
+            object_armature = obj
+            break
+
+    bones.reset_scale_rotation(object_armature)
+
+    # Fixing Rotations and Scales
+    # Now Refresh datablocks
+
+    print("Reset Scale to unit scale")
+    print("--------")
+    print("Fix Rotations")
+
+
     bpy.ops.object.mode_set(mode="EDIT")
     
     ebones = armature.edit_bones
@@ -286,6 +306,7 @@ def rename_bones_and_fix_most_things(self, context):
             
         if child.type == "MESH":
             #        mesh.clean_unused_vertex_groups(child)
+            bones.reset_scale_rotation(child)
             if spine_was_split:
                 print("Dealing with the Spine split for" + child.name)
                 spine1_weights = child.vertex_groups["Spine1"]
@@ -316,8 +337,6 @@ def rename_bones_and_fix_most_things(self, context):
                             block.value = blend_map.value
                             child.shape_key_add(name=blend_map.to, from_mix=True)
                             block.value = 0
-    
-            materials.clean_materials(child.material_slots)
             
             if self.compress_materials:
                 materials.clean_materials(child.material_slots)

@@ -29,7 +29,7 @@ import hifi_tools
 import webbrowser
 
 from hifi_tools import default_gateway_server
-from hifi_tools.utils import bones, materials
+from hifi_tools.utils import bones, materials, bpyutil
 
 from hifi_tools.gateway import client as GatewayClient
 # TODO: Start clearing these specific imports and just use the packages....
@@ -530,7 +530,13 @@ class HifiMaterialCompressOperator(bpy.types.Operator):
     bl_category = "High Fidelity"
 
     def execute(self, context):
-        materials.clean_materials(bpy.data.materials)
+
+        selected = bpyutil.selected_objects()
+        materials = []
+        for obj in selected:
+            if obj.type == "MESH":
+                materials.clean_materials(obj.material_slots)
+        
         return {'FINISHED'}
 
 class HifiMaterialMetallicRemoveOperator(bpy.types.Operator):
@@ -585,7 +591,6 @@ class HifiCompressMaterialsOperator(bpy.types.Operator):
                 materials.clean_materials(obj.material_slots)
         
         return {'FINISHED'}
-
 
 # -----
 

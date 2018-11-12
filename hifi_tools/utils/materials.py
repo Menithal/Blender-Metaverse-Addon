@@ -139,34 +139,28 @@ def make_material_shadeless(material):
         material.use_shadeless = True
         material.specular_color = (0, 0, 0)
 
-
 def make_materials_shadeless(materials):
     for material in materials:
         make_material_shadeless(material)
 
-
 def remove_materials_metallic(materials):
     for material in materials:
         material.specular_color = (0, 0, 0)
-
 
 def make_material_shaded(material):
     if material is not None:
         material.specular_shader = 'PHONG'
         material.use_shadeless = False
 
-
 def make_materials_shaded(materials):
     for material in materials:
         make_material_shaded(material)
-
 
 def make_materials_fullbright(materials):
     for material in materials:
         for texture_slot in material.texture_slots:
             if texture_slot is not None and texture_slot.use_map_color_diffuse:
                 texture_slot.use_map_emit = True
-
 
 def get_textures_for_slot(texture_slots, texture_type="ALL"):
     texture_list = []
@@ -185,7 +179,6 @@ def get_textures_for_slot(texture_slots, texture_type="ALL"):
             texture_list.append(slot.image)
 
     return texture_list
-
 
 def clean_textures(material):
     textures = []

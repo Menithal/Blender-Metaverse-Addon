@@ -20,6 +20,7 @@
 # Common Swappers
 # By Matti 'Menithal' Lahtinen
 
+
 from mathutils import Quaternion, Vector, Euler, Matrix
 from math import sqrt, acos, pow, sin, cos
 
@@ -117,11 +118,16 @@ def list_tuple(l):
 
     return (l[0], l[1], l[2])
 
-
 def list_vector(l):
     t = list_tuple(l)
     return Vector(t)
 
-
 def list_matrix(v):
     return Matrix((v[0], v[1], v[2], v[3]))
+
+def bone_length(bone):
+    return (bone.head - bone.tail).magnitude
+
+def get_sides(bone, theta):
+    h = bone_length(bone)
+    return [h, h * cos(theta), h * sin(theta)]

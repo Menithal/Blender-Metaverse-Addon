@@ -23,7 +23,7 @@ import re
 
 from math import pi
 from mathutils import Quaternion, Matrix, Vector, Euler
-from hifi_tools.utils import mesh, simple_math
+from hifi_tools.utils import mesh, helpers
 
 from hifi_tools.armature.skeleton import structure as base_armature
 
@@ -249,9 +249,10 @@ def pin_common_bones(obj, fix_rolls = True):
     # Edit Bones
 
     bpy.ops.object.mode_set(mode='OBJECT')
-    reset_scale(obj)
+    reset_scale_rotation(obj)
     bpy.ops.object.mode_set(mode='EDIT')
     edit_bones = obj.data.edit_bones
+    
     print("Pinning Common Bones")
     for ebone in edit_bones:
         corrector = posterior_chain_correction.get(ebone.name)
@@ -273,7 +274,7 @@ def pin_common_bones(obj, fix_rolls = True):
                 z_dir = -1
 
             if corrector.theta < 0.001:
-                d = simple_math.bone_length(ebone)
+                d = helpers.bone_length(ebone)
 
                 if corrector.direction == "-y":
                     ebone.tail = Vector([ebone.head.x, ebone.head.y - d, ebone.head.z])
@@ -292,7 +293,7 @@ def pin_common_bones(obj, fix_rolls = True):
                     
 
             else:
-                sides = simple_math.get_sides(ebone, corrector.theta)
+                sides = helpers.get_sides(ebone, corrector.theta)
                 h = sides[0]
                 a = sides[1]
                 o = sides[2]
@@ -437,7 +438,7 @@ def correct_bone_rotations(ebone):
     print("correcting bone rotation for", name)
     if "Eye" in name:
         bone_head = Vector(ebone.head)
-        bone_head.z += 5
+        bone_head.z += 0.05
         ebone.tail = bone_head
         ebone.roll = 0
     else:
@@ -540,7 +541,7 @@ def build_skeleton():
         bpy.context.area.type = current_view
 
 
-def reset_scale(obj):
+def reset_scale_rotation(obj):
     current_context = bpy.context.area.type
     bpy.context.area.type = "VIEW_3D"
     # set context to 3D View and set Cursor
@@ -557,7 +558,7 @@ def reset_scale(obj):
     bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
 
 def correct_scale_rotation(obj, rotation):
-    reset_scale(obj)
+    reset_scale_rotation(obj)
     obj.scale = Vector((100, 100, 100))
     str_angle = -90 * pi/180
     if rotation:
