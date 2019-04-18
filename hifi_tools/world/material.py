@@ -113,7 +113,7 @@ def find_first_texture_in(has_operation):
 
 
 class HifiMaterialOperator(bpy.types.Panel):
-    bl_idname = "material_helper.hifi"
+    bl_idname = "HIFI_PLUGIN_PT_material_helper"
     bl_label = "High Fidelity Material Helper"
     
     bl_space_type = "PROPERTIES"
@@ -232,7 +232,7 @@ def build_texture_ui(context, layout, operator, float_widget = None):
     
 
 class HifiResetDiffuseOperator(bpy.types.Operator):
-    bl_idname = HifiMaterialOperator.bl_idname + "_diffuse_reset_color"
+    bl_idname = "HIFI_PLUGIN_OT_material_helper_diffuse_reset_color"
     bl_label = "Reset Tint" 
    
     def execute(self, context):
@@ -246,7 +246,7 @@ class HifiResetDiffuseOperator(bpy.types.Operator):
     
 class HifiGenericTextureOperator(bpy.types.Operator):
 
-    bl_idname = HifiMaterialOperator.bl_idname + "_generic_reset_color"
+    bl_idname = "HIFI_PLUGIN_OT_material_helper_generic_reset_color"
     bl_label = "Reset Tint" 
    
     has_operation = None
@@ -278,7 +278,7 @@ class HifiGenericTextureOperator(bpy.types.Operator):
     
 
 class HifiDiffuseTextureOperator(HifiGenericTextureOperator, bpy.types.Operator):
-    bl_idname = HifiMaterialOperator.bl_idname + "_diffuse_texture"
+    bl_idname = "HIFI_PLUGIN_OT_material_helper_diffuse_texture"
     bl_label = "Diffuse"
     enabled = BoolProperty(name="enabled", default=True)
     
@@ -289,7 +289,7 @@ class HifiDiffuseTextureOperator(HifiGenericTextureOperator, bpy.types.Operator)
     
     
 class HifiRoughnessTextureOperator(HifiGenericTextureOperator, bpy.types.Operator):
-    bl_idname = HifiMaterialOperator.bl_idname + "_glossiness_texture"
+    bl_idname = "HIFI_PLUGIN_OT_material_helper_glossiness_texture"
     bl_label = "Glossiness"
     enabled = BoolProperty(name="enabled", default=True)
     
@@ -300,7 +300,7 @@ class HifiRoughnessTextureOperator(HifiGenericTextureOperator, bpy.types.Operato
     
     
 class HifiMetallicTextureOperator(HifiGenericTextureOperator, bpy.types.Operator):
-    bl_idname = HifiMaterialOperator.bl_idname + "_metallic_texture"
+    bl_idname = "HIFI_PLUGIN_OT_material_helper_metallic_texture"
     bl_label = "Metallicness"
     enabled = BoolProperty(name="enabled", default=True)
     
@@ -311,7 +311,7 @@ class HifiMetallicTextureOperator(HifiGenericTextureOperator, bpy.types.Operator
 
 
 class HifiNormalTextureOperator(HifiGenericTextureOperator, bpy.types.Operator):
-    bl_idname = HifiMaterialOperator.bl_idname + "_normal_texture"
+    bl_idname = "HIFI_PLUGIN_OT_material_helper_normal_texture"
     bl_label = "Normal"
     enabled = BoolProperty(name="enabled", default=True)
     
@@ -322,7 +322,7 @@ class HifiNormalTextureOperator(HifiGenericTextureOperator, bpy.types.Operator):
 
 
 class HifiTransparencyTextureOperator(HifiGenericTextureOperator, bpy.types.Operator):
-    bl_idname = HifiMaterialOperator.bl_idname + "_transparency_texture"
+    bl_idname = "HIFI_PLUGIN_OT_material_helper_transparency_texture"
     bl_label = "Transparency"
     enabled = BoolProperty(name="enabled", default=True)
    
@@ -341,7 +341,7 @@ class HifiTransparencyTextureOperator(HifiGenericTextureOperator, bpy.types.Oper
     
     
 class HifiEmitTextureOperator(HifiGenericTextureOperator, bpy.types.Operator):
-    bl_idname = HifiMaterialOperator.bl_idname + "_emit_texture"
+    bl_idname = "HIFI_PLUGIN_OT_material_helper_emit_texture"
     bl_label = "Emit"
     enabled = BoolProperty(name="enabled", default=True)
         

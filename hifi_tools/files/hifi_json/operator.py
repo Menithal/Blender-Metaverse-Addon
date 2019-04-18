@@ -37,7 +37,7 @@ from bpy.props import (
 
 
 class ATPReminderOperator(bpy.types.Operator):
-    bl_idname = "hifi_error.atp_or_override_not_in_use"
+    bl_idname = "HIFI_PLUGIN_OT_error_atp_or_override_not_in_use"
     bl_label = "You must either select ATP export or override a baseURL for your host (be it marketplace or your own)"
     bl_options = {'REGISTER', 'INTERNAL'}
 
@@ -67,24 +67,24 @@ class ATPReminderOperator(bpy.types.Operator):
 
 
 class JSONWriterOperator(bpy.types.Operator, ExportHelper):
-    bl_idname = "export_scene.hifi_fbx_json"
+    bl_idname = "HIFI_PLUGIN_OT_export_hifi_scene_fbx_json"
     bl_label = "Export HiFi Scene"
     bl_options = {'UNDO'}
 
-    directory = StringProperty()
-    filename_ext = ".hifi.json"
-    filter_glob = StringProperty(default="*.hifi.json", options={'HIDDEN'})
+    directory: StringProperty()
+    filename_ext: ".hifi.json"
+    filter_glob: StringProperty(default="*.hifi.json", options={'HIDDEN'})
 
-    atp = BoolProperty(default=False, name="Use ATP / Upload to domain",
+    atp: BoolProperty(default=False, name="Use ATP / Upload to domain",
                        description="Use ATP instead of Marketplace / upload assets to domain")
-    use_folder = BoolProperty(default=True, name="Use Folder",
+    use_folder: BoolProperty(default=True, name="Use Folder",
                               description="Upload Files as a folder instead of individually")
 
-    url_override = StringProperty(default="", name="Marketplace / Base Url",
+    url_override: StringProperty(default="", name="Marketplace / Base Url",
                                   description="Set Marketplace / URL Path here to override")
-    clone_scene = BoolProperty(default=False, name="Clone Scene prior to export", description="Clones the scene and performs the automated export functions on the clone instead of the original. " +
+    clone_scene: BoolProperty(default=False, name="Clone Scene prior to export", description="Clones the scene and performs the automated export functions on the clone instead of the original. " +
                                "WARNING: instancing will not work, and ids will no longer be the same, for future features.")
-    remove_trailing = BoolProperty(
+    remove_trailing: BoolProperty(
         default=False, name="Remove Trailing .### from names")
 
     def draw(self, context):
@@ -121,41 +121,41 @@ class JSONWriterOperator(bpy.types.Operator, ExportHelper):
 class JSONLoaderOperator(bpy.types.Operator, ImportHelper):
 
     # Load a Hifi File
-    bl_idname = "import_scene.hifi"
+    bl_idname = "HIFI_PLUGIN_OT_import_scene"
     bl_label = "Import Hifi Json"
     bl_options = {"UNDO", "PRESET"}
 
-    directory = StringProperty()
+    directory: StringProperty()
 
     filename_ext = ".json"
-    filter_glob = StringProperty(default="*.json", options={'HIDDEN'})
+    filter_glob: StringProperty(default="*.json", options={'HIDDEN'})
 
-    uv_sphere = BoolProperty(
+    uv_sphere: BoolProperty(
         name="Use UV Sphere",
         description="Uses UV Sphere instead of Quad Sphere",
         default=False,
     )
 
-    join_children = BoolProperty(
+    join_children: BoolProperty(
         name="Join Mesh Children",
         description="Joins Child Mesh with their parents to form a single object. Instead of keeping everything separate",
         default=True,
     )
 
-    merge_distance = FloatProperty(
+    merge_distance: FloatProperty(
         name="Merge Distance",
         description="Merge close vertices together",
         min=0.0, max=1.0,
         default=0.001,
     )
 
-    delete_interior_faces = BoolProperty(
+    delete_interior_faces: BoolProperty(
         name="Delete interior Faces",
         description="If Mesh is made whole with Merge, make sure to remove interior faces",
         default=True,
     )
 
-    use_boolean_operation = EnumProperty(
+    use_boolean_operation: EnumProperty(
         items=(('NONE', "None", "Do not use boolean operations"),
                ('CARVE', "Carve", "EXPERIMENTAL: Use CARVE boolean Operation to join mesh"),
                ('BMESH', "BMesh", "EXPERIMENTAL: Use BMESH boolean Operation to join mesh")),

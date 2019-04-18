@@ -48,7 +48,7 @@ from bpy.props import StringProperty
 
 
 class HifiArmaturePanel(bpy.types.Panel):
-    bl_idname = "general_toolset.hifi"
+    bl_idname = "HIFI_PLUGIN_PT_general_toolset"
     bl_label = "General Tools"
     bl_icon = "OBJECT_DATA"
 
@@ -76,7 +76,7 @@ class HifiArmaturePanel(bpy.types.Panel):
 
 
 class HifiBonePanel(bpy.types.Panel):
-    bl_idname = "bones_toolset.hifi"
+    bl_idname = "HIFI_PLUGIN_PT_bones_toolset"
     bl_label = "Bones Tools"
     bl_icon = "BONE_DATA"
 
@@ -100,7 +100,7 @@ class HifiBonePanel(bpy.types.Panel):
 
 
 class HifiAvatarPanel(bpy.types.Panel):
-    bl_idname = "avatar_toolset.hifi"
+    bl_idname = "HIFI_PLUGIN_PT_avatar_toolset"
     bl_label = "Avatar Converters"
     bl_icon = "ARMATURE_DATA"
 
@@ -128,7 +128,7 @@ class HifiAvatarPanel(bpy.types.Panel):
 
 
 class HifiMaterialsPanel(bpy.types.Panel):
-    bl_idname = "material_toolset.hifi"
+    bl_idname = "HIFI_PLUGIN_PT_material_toolset"
     bl_label = "Material Tools"
 
     bl_space_type = "VIEW_3D"
@@ -152,7 +152,7 @@ class HifiMaterialsPanel(bpy.types.Panel):
 
 
 class HifiAssetsPanel(bpy.types.Panel):
-    bl_idname = "assets.hifi"
+    bl_idname = "HIFI_PLUGIN_PT_assets"
     bl_label = "Assets"
 
     bl_space_type = "VIEW_3D"
@@ -172,7 +172,7 @@ class HifiAssetsPanel(bpy.types.Panel):
 
 
 class HifiIPFSCheckAssetsOperator(bpy.types.Operator):
-    bl_idname = "asset_toolset.hifi"
+    bl_idname = "HIFI_PLUGIN_OT_asset_toolset"
     bl_label = "IPFS Uploads"
 
     bl_space_type = "VIEW_3D"
@@ -205,7 +205,7 @@ class HifiIPFSCheckAssetsOperator(bpy.types.Operator):
 
 
 class HifiArmatureCreateOperator(bpy.types.Operator):
-    bl_idname = "armature_toolset_create_base_rig.hifi"
+    bl_idname = "HIFI_PLUGIN_OT_armature_toolset_create_base_rig"
     bl_label = "Add HiFi Armature"
 
     bl_space_type = "VIEW_3D"
@@ -224,7 +224,7 @@ class HifiArmatureCreateOperator(bpy.types.Operator):
 
 
 class HifiArmaturePoseOperator(bpy.types.Operator):
-    bl_idname = "armature_toolset_pose.hifi"
+    bl_idname = "HIFI_PLUGIN_OT_armature_toolset_pose"
     bl_label = "Rest TPose"
 
     bl_space_type = "VIEW_3D"
@@ -237,7 +237,7 @@ class HifiArmaturePoseOperator(bpy.types.Operator):
 
 
 class HifiArmatureClearPoseOperator(bpy.types.Operator):
-    bl_idname = "armature_clear_pose.hifi"
+    bl_idname = "HIFI_PLUGIN_OT_armature_clear_pose"
     bl_label = "Clear Pose"
 
     bl_space_type = "VIEW_3D"
@@ -250,7 +250,7 @@ class HifiArmatureClearPoseOperator(bpy.types.Operator):
 
 
 class HifiFixScaleOperator(bpy.types.Operator):
-    bl_idname = "armature_toolset_resize.hifi"
+    bl_idname = "HIFI_PLUGIN_OT_armature_toolset_resize"
     bl_label = "Fix Scale and Rotations"
 
     bl_space_type = "VIEW_3D"
@@ -266,7 +266,7 @@ class HifiFixScaleOperator(bpy.types.Operator):
 
 
 class HifiPinPosteriorOperator(bpy.types.Operator):
-    bl_idname = "bones_pin.hifi"
+    bl_idname = "HIFI_PLUGIN_OT_bones_pin"
     bl_label = "Pin Problem Bones"
 
     bl_space_type = "VIEW_3D"
@@ -285,7 +285,7 @@ class HifiPinPosteriorOperator(bpy.types.Operator):
 
 
 class HifiFixRollsOperator(bpy.types.Operator):
-    bl_idname = "reference_roll_bones.hifi"
+    bl_idname = "HIFI_PLUGIN_OT_reference_roll_bones"
     bl_label = "Match Reference Rolls"
 
     bl_space_type = "VIEW_3D"
@@ -317,7 +317,7 @@ class HifiFixRollsOperator(bpy.types.Operator):
 
 # Remove once fst export is available
 class HifiSetBonePhysicalOperator(bpy.types.Operator):
-    bl_idname = "bone_set_physical.hifi"
+    bl_idname = "HIFI_PLUGIN_OT_bone_set_physical"
     bl_label = "Set Bone Physical"
 
     bl_space_type = "VIEW_3D"
@@ -336,7 +336,7 @@ class HifiSetBonePhysicalOperator(bpy.types.Operator):
 
 
 class HifiRemoveBonePhysicalOperator(bpy.types.Operator):
-    bl_idname = "bone_remove_physical.hifi"
+    bl_idname = "HIFI_PLUGIN_OT_bone_remove_physical"
     bl_label = "Remove Bone Physical"
 
     bl_space_type = "VIEW_3D"
@@ -353,7 +353,7 @@ class HifiRemoveBonePhysicalOperator(bpy.types.Operator):
 
 
 class HifiCombineBonesOperator(bpy.types.Operator):
-    bl_idname = "bone_combine.hifi"
+    bl_idname = "HIFI_PLUGIN_OT_bone_combine"
     bl_label = "Combine Bones"
 
     bl_space_type = "VIEW_3D"
@@ -375,7 +375,7 @@ class HifiCombineBonesOperator(bpy.types.Operator):
 
 
 class HifiConnectBones(bpy.types.Operator):
-    bl_idname = "bones_connect_selected.hifi"
+    bl_idname = "HIFI_PLUGIN_OT_bones_connect_selected"
     bl_label = "Connect Selected "
 
     bl_space_type = "VIEW_3D"
@@ -388,7 +388,7 @@ class HifiConnectBones(bpy.types.Operator):
 
 
 class HifiUnconnectBones(bpy.types.Operator):
-    bl_idname = "bones_deconnect_selected.hifi"
+    bl_idname = "HIFI_PLUGIN_OT_bones_deconnect_selected"
     bl_label = "Deconnect Selected "
 
     bl_space_type = "VIEW_3D"
@@ -401,7 +401,7 @@ class HifiUnconnectBones(bpy.types.Operator):
 
 
 class HifiCombineBonesNonConnectedOperator(bpy.types.Operator):
-    bl_idname = "bone_combine_detached.hifi"
+    bl_idname = "HIFI_PLUGIN_OT_bone_combine_detached"
     bl_label = "Combine Bones Detached"
 
     bl_space_type = "VIEW_3D"
@@ -423,7 +423,7 @@ class HifiCombineBonesNonConnectedOperator(bpy.types.Operator):
 
 
 class HifiCustomAvatarOperator(bpy.types.Operator):
-    bl_idname = "armature_toolset_fix_custom_avatar.hifi"
+    bl_idname = "HIFI_PLUGIN_OT_armature_toolset_fix_custom_avatar"
     bl_label = "Custom Avatar"
 
     bl_icon = "ARMATURE_DATA"
@@ -440,7 +440,7 @@ class HifiCustomAvatarOperator(bpy.types.Operator):
 
 
 class HifiMMDOperator(bpy.types.Operator):
-    bl_idname = "armature_toolset_fix_mmd_avatar.hifi"
+    bl_idname = "HIFI_PLUGIN_OT_armature_toolset_fix_mmd_avatar"
     bl_label = "MMD Avatar"
 
     bl_space_type = "VIEW_3D"
@@ -454,7 +454,7 @@ class HifiMMDOperator(bpy.types.Operator):
 
 
 class HifiMixamoOperator(bpy.types.Operator):
-    bl_idname = "armature_toolset_fix_mixamo_avatar.hifi"
+    bl_idname = "HIFI_PLUGIN_OT_armature_toolset_fix_mixamo_avatar"
     bl_label = "Mixamo Avatar"
 
     bl_icon = "ARMATURE_DATA"
@@ -468,7 +468,7 @@ class HifiMixamoOperator(bpy.types.Operator):
 
 
 class HifiMakeHumanOperator(bpy.types.Operator):
-    bl_idname = "armature_toolset_fix_makehuman_avatar.hifi"
+    bl_idname = "HIFI_PLUGIN_OT_armature_toolset_fix_makehuman_avatar"
     bl_label = "MakeHuman Avatar"
 
     bl_icon = "ARMATURE_DATA"
@@ -483,7 +483,7 @@ class HifiMakeHumanOperator(bpy.types.Operator):
 
 
 class HifiMaterialFullbrightOperator(bpy.types.Operator):
-    bl_idname = "materials_toolset_fullbright.hifi"
+    bl_idname = "HIFI_PLUGIN_OT_materials_toolset_fullbright"
     bl_label = "Make All Fullbright"
 
     bl_space_type = "VIEW_3D"
@@ -496,7 +496,7 @@ class HifiMaterialFullbrightOperator(bpy.types.Operator):
 
 
 class HifiMaterialShadelessOperator(bpy.types.Operator):
-    bl_idname = "materials_toolset_shadeless.hifi"
+    bl_idname = "HIFI_PLUGIN_OT_materials_toolset_shadeless"
     bl_label = "Make All Non-Avatars Shadeless"
 
     bl_space_type = "VIEW_3D"
@@ -522,7 +522,7 @@ class HifiMaterialShadelessOperator(bpy.types.Operator):
 
 
 class HifiMaterialCompressOperator(bpy.types.Operator):
-    bl_idname = "materials_toolset_compress.hifi"
+    bl_idname = "HIFI_PLUGIN_OT_materials_toolset_compress"
     bl_label = "Compress Material Count"
 
     bl_space_type = "VIEW_3D"
@@ -540,7 +540,7 @@ class HifiMaterialCompressOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 class HifiMaterialMetallicRemoveOperator(bpy.types.Operator):
-    bl_idname = "materials_toolset_metallic.hifi"
+    bl_idname = "HIFI_PLUGIN_OT_materials_toolset_metallic"
     bl_label = "Remove All Metallic"
 
     bl_space_type = "VIEW_3D"
@@ -553,7 +553,7 @@ class HifiMaterialMetallicRemoveOperator(bpy.types.Operator):
 
 
 class HifiTexturesConvertToPngOperator(bpy.types.Operator):
-    bl_idname = "textures_toolset_png_convert.hifi"
+    bl_idname = "HIFI_PLUGIN_OT_textures_toolset_png_convert"
     bl_label = "Textures to PNG"
 
     bl_space_type = "VIEW_3D"
@@ -566,7 +566,7 @@ class HifiTexturesConvertToPngOperator(bpy.types.Operator):
 
 
 class HifiTexturesMakeMaskOperator(bpy.types.Operator):
-    bl_idname = "textures_toolset_mask_convert.hifi"
+    bl_idname = "HIFI_PLUGIN_OT_textures_toolset_mask_convert"
     bl_label = "Textures to Masked"
 
     bl_space_type = "VIEW_3D"
@@ -578,7 +578,7 @@ class HifiTexturesMakeMaskOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 class HifiCompressMaterialsOperator(bpy.types.Operator):
-    bl_idname = "compress_materials.hifi"
+    bl_idname = "HIFI_PLUGIN_OT_compress_materials"
     bl_label = "Compress Materials"
 
     bl_space_type = "VIEW_3D"
@@ -595,7 +595,7 @@ class HifiCompressMaterialsOperator(bpy.types.Operator):
 # -----
 
 class HifiSaveReminderOperator(bpy.types.Operator):
-    bl_idname = "hifi_error.save_file"
+    bl_idname = "HIFI_PLUGIN_OT_error_save_file"
     bl_label = "You must save scene to a blend file first allowing for relative directories."
     bl_options = {'REGISTER', 'INTERNAL'}
 
@@ -621,7 +621,7 @@ class HifiSaveReminderOperator(bpy.types.Operator):
 
 
 class HifiForumOperator(bpy.types.Operator):
-    bl_idname = "forum.hifi"
+    bl_idname = "HIFI_PLUGIN_OT_forum_link"
     bl_label = "Forum Thread / Bug Reports"
 
     bl_space_type = "VIEW_3D"
@@ -638,7 +638,7 @@ class HifiForumOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 class HifiDebugArmatureOperator(bpy.types.Operator):
-    bl_idname = "debug_log_armature.hifi"
+    bl_idname = "HIFI_PLUGIN_OT_debug_log_armature"
     bl_label = "debug armature"
 
     bl_space_type = "VIEW_3D"

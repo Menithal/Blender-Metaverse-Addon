@@ -38,7 +38,7 @@ from hifi_tools.utils.bones import find_armatures
 
 
 class HifiBoneOperator(bpy.types.Operator):
-    bl_idname = "hifi_warn.bone_count"
+    bl_idname = "HIFI_PLUGIN_OT_warn_bone_count"
     bl_label = ""
     bl_options = {'REGISTER', 'INTERNAL'}
 
@@ -71,7 +71,7 @@ class HifiBoneOperator(bpy.types.Operator):
 
 
 class HifiExportErrorOperator(bpy.types.Operator):
-    bl_idname = "hifi_error.export"
+    bl_idname = "HIFI_PLUGIN_OT_error_export"
     bl_label = ""
     bl_options = {'REGISTER', 'INTERNAL'}
 
@@ -97,7 +97,7 @@ class HifiExportErrorOperator(bpy.types.Operator):
 
 
 class HifiExportErrorNoArmatureOperator(bpy.types.Operator):
-    bl_idname = "hifi_error_no_armature.export"
+    bl_idname = "HIFI_PLUGIN_OT_error_export_no_armature"
     bl_label = ""
     bl_options = {'REGISTER', 'INTERNAL'}
 
@@ -123,7 +123,7 @@ class HifiExportErrorNoArmatureOperator(bpy.types.Operator):
 
 
 class HifiExportSucccessOperator(bpy.types.Operator):
-    bl_idname = "hifi_success.export"
+    bl_idname = "HIFI_PLUGIN_OT_hifi_success_export"
     bl_label = ""
     bl_options = {'REGISTER', 'INTERNAL'}
 
@@ -149,35 +149,35 @@ class HifiExportSucccessOperator(bpy.types.Operator):
 
 
 class FSTWriterOperator(bpy.types.Operator, ExportHelper):
-    bl_idname = "export_avatar.hifi_fbx_fst"
+    bl_idname = "HIFI_PLUGIN_OT_export_avatar_hifi_fbx_fst"
     bl_label = "Export Hifi Avatar"
     bl_options = {'UNDO'}
 
-    directory = StringProperty()
-    filename_ext = ".fst"
+    directory: StringProperty()
+    filename_ext: ".fst"
 
     # TODO: instead create a new directory instead of a file.
 
-    filter_glob = StringProperty(default="*.fst", options={'HIDDEN'})
-    selected_only = BoolProperty(
+    filter_glob: StringProperty(default="*.fst", options={'HIDDEN'})
+    selected_only: BoolProperty(
         default=False, name="Selected Only", description="Selected Only")
 
     #anim_graph_url = StringProperty(default="", name="Animation JSON Url",
     #                                description="Avatar Animation JSON absolute url path")
 
-    script = StringProperty(default="", name="Avatar Script Path",
+    script: StringProperty(default="", name="Avatar Script Path",
                             description="Avatar Script absolute url path, Script that is run on avatar")
 
-    flow = BoolProperty(default=False, name="Add Flow Script",
+    flow: BoolProperty(default=False, name="Add Flow Script",
                         description="Adds flow script template as an additional Avatar script")
 
-    embed = BoolProperty(default=False, name="Embed Textures",
+    embed: BoolProperty(default=False, name="Embed Textures",
                          description="Embed Textures to Exported Model. Turn this off if you are having issues of Textures  not showing correctly in elsewhere.")
 
-    bake = BoolProperty(default=False, name="Oven Bake (Experimental)",
+    bake: BoolProperty(default=False, name="Oven Bake (Experimental)",
                         description="Use the HiFi Oven Tool to bake")
 
-    ipfs = BoolProperty(default=False, name="Yes, Upload to IPFS",
+    ipfs: BoolProperty(default=False, name="Yes, Upload to IPFS",
                         description="Upload files to the \n InterPlanetary File System Blockchain via a Gateway")
 
     def draw(self, context):

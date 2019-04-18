@@ -20,10 +20,10 @@
 bl_info = {
     "name": "HiFi Blender Add-on",
     "author": "Matti 'Menithal' Lahtinen",
-    "version": (1, 3, 2),
-    "blender": (2, 7, 7),
+    "version": (1, 4, 0),
+    "blender": (2, 80, 0),
     "location": "File > Import-Export, Materials, Armature",
-    "description": "Blender tools to allow for easier Content creation for High Fidelity",
+    "description": "Blender tools to allow for easier Content creation for Metaverses, such as High Fidelity",
     "warning": "",
     "wiki_url": "",
     "support": "COMMUNITY",
@@ -39,7 +39,6 @@ import logging
 import webbrowser
 import bpy
 from bpy.types import AddonPreferences
-
 
 from hifi_tools.ext.throttle import throttle
 
