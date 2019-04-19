@@ -38,7 +38,7 @@ from hifi_tools.utils.bones import find_armatures
 
 
 class HifiBoneOperator(bpy.types.Operator):
-    bl_idname = "HIFI_PLUGIN_OT_warn_bone_count"
+    bl_idname = "hifi.export_warn.bone_count"
     bl_label = ""
     bl_options = {'REGISTER', 'INTERNAL'}
 
@@ -58,20 +58,20 @@ class HifiBoneOperator(bpy.types.Operator):
         layout = self.layout
 
         row = layout.row()
-        row.label("Avatar Successfully Exported: ")
+        row.label(text="Avatar Successfully Exported: ")
         row = layout.row()
         row.label(text="Warning:", icon="QUESTION")
         row = layout.row()
         row.label(
             "You may have issues with the avatars pose not being streamed with")
         row = layout.row()
-        row.label("So many bones.")
+        row.label(text="So many bones.")
         row = layout.row()
-        row.label("Try combining some if you have issues in HiFi.")
+        row.label(text="Try combining some if you have issues in HiFi.")
 
 
 class HifiExportErrorOperator(bpy.types.Operator):
-    bl_idname = "HIFI_PLUGIN_OT_error_export"
+    bl_idname = "hifi.export_error"
     bl_label = ""
     bl_options = {'REGISTER', 'INTERNAL'}
 
@@ -93,11 +93,11 @@ class HifiExportErrorOperator(bpy.types.Operator):
         row = layout.row()
         row.label(text="Warning:", icon="ERROR")
         row = layout.row()
-        row.label("Avatar Export Failed. Please Check the console logs")
+        row.label(text="Avatar Export Failed. Please Check the console logs")
 
 
 class HifiExportErrorNoArmatureOperator(bpy.types.Operator):
-    bl_idname = "HIFI_PLUGIN_OT_error_export_no_armature"
+    bl_idname = "hifi.export_error_no_armature"
     bl_label = ""
     bl_options = {'REGISTER', 'INTERNAL'}
 
@@ -119,11 +119,11 @@ class HifiExportErrorNoArmatureOperator(bpy.types.Operator):
         row = layout.row()
         row.label(text="Warning:", icon="ERROR")
         row = layout.row()
-        row.label("Avatar Export Failed. Please have 1 armature on selected")
+        row.label(text="Avatar Export Failed. Please have 1 armature on selected")
 
 
 class HifiExportSucccessOperator(bpy.types.Operator):
-    bl_idname = "HIFI_PLUGIN_OT_hifi_success_export"
+    bl_idname = "hifi.export_success"
     bl_label = ""
     bl_options = {'REGISTER', 'INTERNAL'}
 
@@ -145,11 +145,11 @@ class HifiExportSucccessOperator(bpy.types.Operator):
         row = layout.row()
         row.label(text="Success:", icon="FILE_TICK")
         row = layout.row()
-        row.label("Avatar Export Successful.")
+        row.label(text="Avatar Export Successful.")
 
 
 class FSTWriterOperator(bpy.types.Operator, ExportHelper):
-    bl_idname = "HIFI_PLUGIN_OT_export_avatar_hifi_fbx_fst"
+    bl_idname = "hifi.export_avatar_hifi_fbx_fst"
     bl_label = "Export Hifi Avatar"
     bl_options = {'UNDO'}
 
@@ -186,13 +186,13 @@ class FSTWriterOperator(bpy.types.Operator, ExportHelper):
        #layout.prop(self, "flow")
         layout.prop(self, "embed")
 
-        oven_tool = context.user_preferences.addons[hifi_tools.__name__].preferences.oventool
+        oven_tool = context.preferences.addons[hifi_tools.__name__].preferences.oventool
         
         #layout.prop(self, "anim_graph_url")
         layout.prop(self, "script")
 
         enabled_ipfs = len(
-            context.user_preferences.addons[hifi_tools.__name__].preferences.gateway_token) > 0
+            context.preferences.addons[hifi_tools.__name__].preferences.gateway_token) > 0
 
         if (oven_tool is not None and "oven" in oven_tool):
             layout.prop(self, "bake")
@@ -211,10 +211,10 @@ class FSTWriterOperator(bpy.types.Operator, ExportHelper):
                 "with the url to see / download and will be impossible to remove after ")
 
             row = layout.row()
-            row.label("being distributed to ipfs, unless links of it are forgotten.")
+            row.label(text="being distributed to ipfs, unless links of it are forgotten.")
 
             row = layout.row()
-            row.label("Distribution may take a while. You may need to refresh the page after a few minutes.")
+            row.label(text="Distribution may take a while. You may need to refresh the page after a few minutes.")
 
             row = layout.row()
             row.label(
@@ -228,7 +228,7 @@ class FSTWriterOperator(bpy.types.Operator, ExportHelper):
         if not self.filepath:
             raise Exception("filepath not set")
 
-        preferences = bpy.context.user_preferences.addons[hifi_tools.__name__].preferences
+        preferences = bpy.context.preferences.addons[hifi_tools.__name__].preferences
 
         if self.bake and (preferences.oventool is None or "oven" not in preferences.oventool):
             raise Exception(
@@ -261,3 +261,4 @@ class FSTWriterOperator(bpy.types.Operator, ExportHelper):
         else:
             bpy.ops.hifi_error.export('INVOKE_DEFAULT')
             return val
+

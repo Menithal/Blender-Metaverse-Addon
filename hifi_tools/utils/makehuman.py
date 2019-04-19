@@ -116,7 +116,7 @@ def clean_up_bones(obj):
             if "Thumb" in edit_bone.name:
                 bpy.ops.object.mode_set(mode='EDIT')
                 bpy.ops.armature.select_all(action="DESELECT")
-                edit_bone.select = True
+                edit_bone.select_set(state=True)
                 bpy.ops.armature.calculate_roll(type="GLOBAL_NEG_Z")
                 bpy.ops.armature.select_all(action="DESELECT")
 
@@ -175,9 +175,9 @@ def create_blink_shapes(shapekey, armature1, armature2):
         for obj in scene.objects:
             if obj is not None:
                 if obj.type == 'ARMATURE':
-                    obj.select = True
+                    obj.select_set(state=True)
                 elif obj.type == 'MESH':
-                    obj.select = True
+                    obj.select_set(state=True)
                     old_meshes[obj.name+".001"] = obj
     bpy.ops.object.duplicate()
 
@@ -185,7 +185,7 @@ def create_blink_shapes(shapekey, armature1, armature2):
     for obj in bpy.context.selected_objects:
         if obj.type == 'ARMATURE':
             armature = obj
-            bpy.context.scene.objects.active = obj
+            bpy.context.view_layer.objects.active = obj
             bpy.ops.object.mode_set(mode='POSE')
             pose_bones = obj.pose.bones
             bone_1 = pose_bones.get(armature1)
@@ -200,10 +200,10 @@ def create_blink_shapes(shapekey, armature1, armature2):
 	# apply armature as shape and transfer to initial avatar
     for name in meshes:
         obj = meshes[name]
-        bpy.context.scene.objects.active = obj
+        bpy.context.view_layer.objects.active = obj
         bpy.ops.object.mode_set(mode='OBJECT')
         bpy.ops.object.select_all(action='DESELECT')
-        obj.select = True
+        obj.select_set(state=True)
         bpy.ops.object.modifier_apply(apply_as='SHAPE', modifier='ARMATURE')
         index = 0
         for key in bpy.data.shape_keys:
@@ -213,15 +213,15 @@ def create_blink_shapes(shapekey, armature1, armature2):
                     index = len(obj.data.shape_keys.key_blocks)-1
                     obj.active_shape_key_index = index
 
-        old_meshes[name].select = True
-        bpy.context.scene.objects.active = old_meshes[name]
+        old_meshes[name].select_set(state=True)
+        bpy.context.view_layer.objects.active = old_meshes[name]
         bpy.ops.object.shape_key_transfer()
 
     #delete temporary avatar
     bpy.ops.object.select_all(action='DESELECT')
     for name in meshes:
-        meshes[name].select = True
-    armature.select = True
+        meshes[name].select_set(state=True)
+    armature.select_set(state=True)
     bpy.ops.object.delete()
 
 # --------------------
@@ -241,8 +241,8 @@ def convert_makehuman_avatar_hifi():
         for obj in scene.objects:
             bpy.ops.object.select_all(action='DESELECT')
             if obj is not None:
-                obj.select = True
-                bpy.context.scene.objects.active = obj
+                obj.select_set(state=True)
+                bpy.context.view_layer.objects.active = obj
 
                 # Delete joints and rigid bodies items. Perhaps later convert this to flow.
                 print("Reading", obj.name)
@@ -267,8 +267,8 @@ def convert_makehuman_avatar_hifi():
     create_blink_shapes("EyeBlink_R", "orbicularis03.R", "orbicularis04.R")
 
     for deletion in marked_for_deletion:
-        deletion.select = True
-        bpy.context.scene.objects.active = deletion
+        deletion.select_set(state=True)
+        bpy.context.view_layer.objects.active = deletion
         bpy.ops.object.delete()
 
     bpy.context.area.type = original_type

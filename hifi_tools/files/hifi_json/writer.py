@@ -38,17 +38,17 @@ def center_all(blender_object):
     for child in blender_object.children:
         select(child)
             
-    blender_object.select = True
+    blender_object.select_set(state=True)
     bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY', center='BOUNDS')
     
-    blender_object.select = False   
+    blender_object.select_set(state=False)   
 
 
 def select(blender_object):
     for child in blender_object.children:
         select(child)            
                 
-    blender_object.select = True
+    blender_object.select_set(state=True)
 
 # Can't use name to define the unique id as this is not shared between instancing, instead going to go through 
 # Each modifier in order and hope the order is the same
@@ -178,7 +178,7 @@ def parse_object(blender_object, path, options):
     
     if bo_type == 'MESH':  
         original_object = None
-        blender_object.select = True      
+        blender_object.select_set(state=True)      
         uid = ""
         reference_name = blender_object.data.name
         
@@ -191,16 +191,16 @@ def parse_object(blender_object, path, options):
             original_object = blender_object
             clone.data = blender_object.data.copy()
             bpy.context.scene.objects.link(clone)
-            clone.select = True
-            original_object.select = False
+            clone.select_set(state=True)
+            original_object.select_set(state=False)
             
             uid = "-" + generate_unique_id_modifier(clone.modifiers)
             print(uid)
-            bpy.context.scene.objects.active = clone
+            bpy.context.view_layer.objects.active = clone
             apply_all_modifiers(clone.modifiers)
             blender_object = clone
 
-            clone.select = True
+            clone.select_set(state=True)
 
         #temp_dimensions = Vector(blender_object.dimensions)
         dimensions = swap_yz(blender_object.dimensions)
@@ -272,7 +272,7 @@ def parse_object(blender_object, path, options):
         if original_object:
             bpy.ops.object.delete()
             blender_object = original_object
-            blender_object.select = True
+            blender_object.select_set(state=True)
             
     elif bo_type == 'LAMP':
         print(name, 'is Light')
@@ -315,7 +315,7 @@ def parse_object(blender_object, path, options):
         }   
             
         if light.type is 'POINT':
-            blender_object.select = True 
+            blender_object.select_set(state=True) 
         
         # TODO: Spot Lights require rotation by 90 degrees to get pointing in the right direction        
     elif bo_type == 'ARMATURE': # Same as Mesh actually.
@@ -375,12 +375,12 @@ def relative_rotation(parent_object):
         current.invert() 
         print('rotation test', current)
        
-        return rotation * current
+        return rotation @ current
 
 
 def relative_position(parent_object):
     if parent_object.parent is not None:
-        return relative_rotation(parent_object.parent) * parent_object.location - relative_position(parent_object.parent)
+        return relative_rotation(parent_object.parent) @ parent_object.location - relative_position(parent_object.parent)
     else:
         return parent_object.location
 

@@ -19,6 +19,7 @@
 # Created by Matti 'Menithal' Lahtinen
 
 from . import (
+    panels,
     helpers,
     mesh,
     bones,

@@ -45,7 +45,7 @@ def build_world_rotations(bone, world_matrix, list):
     current_rotation = matrix.to_quaternion()
     current_node = {
         "name": bone.name,
-        "rotation": parent_rotation * current_rotation,
+        "rotation": parent_rotation @ current_rotation,
         "local": bone.matrix_local.to_quaternion()
     }
     list.append(current_node)

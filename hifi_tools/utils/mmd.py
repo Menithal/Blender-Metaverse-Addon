@@ -165,13 +165,13 @@ def delete_self_and_children(me):
 
     me.hide = False
     me.hide_select = False
-    me.select = True
-    bpy.context.scene.objects.active = me
+    me.select_set(state=True)
+    bpy.context.view_layer.objects.active = me
 
     for child in me.children:
         child.hide = False
         child.hide_select = False
-        child.select = True
+        child.select_set(state=True)
 
     bpy.ops.object.delete()
 
@@ -279,23 +279,23 @@ def clean_up_bones(obj):
     if edit_bones.get("Spine1") is None and edit_bones.get("Spine2") is None:
         print("Couldnt Detect Spine1, Creating Out of Spine2")
         spine = edit_bones.get("Spine")
-        spine.select = True
+        spine.select_set(state=True)
         bpy.ops.armature.subdivide()
         spine.name = "Spine"
-        spine.select = False
+        spine.select_set(state=False)
         spine = edit_bones.get("Spine.001")
-        spine.select = True
+        spine.select_set(state=True)
         spine.name = "Spine2"
 
     if edit_bones.get("Spine1") is None:
         print("Couldnt Detect Spine1, Creating Out of Spine2")
         spine = edit_bones.get("Spine2")
-        spine.select = True
+        spine.select_set(state=True)
         bpy.ops.armature.subdivide()
         spine.name = "Spine1"
         spine = edit_bones.get("Spine2.001")
         spine.name = "Spine2"
-        spine.select = False
+        spine.select_set(state=False)
 
     edit_bones = updated_context.data.edit_bones
     bones.correct_bone_parents(edit_bones)
@@ -450,8 +450,8 @@ def convert_mmd_avatar_hifi():
         for obj in scene.objects:
             bpy.ops.object.select_all(action='DESELECT')
             if obj is not None:
-                obj.select = True
-                bpy.context.scene.objects.active = obj
+                obj.select_set(state=True)
+                bpy.context.view_layer.objects.active = obj
 
                 # Delete joints and rigid bodies items. Perhaps later convert this to flow.
                 print("Reading", obj.name)
@@ -473,8 +473,8 @@ def convert_mmd_avatar_hifi():
 
     bpy.ops.object.select_all(action='DESELECT')
     for deletion in marked_for_deletion:
-        deletion.select = True
-        bpy.context.scene.objects.active = deletion
+        deletion.select_set(state=True)
+        bpy.context.view_layer.objects.active = deletion
         bpy.ops.object.delete()
 
     bpy.ops.object.select_all(action='DESELECT')

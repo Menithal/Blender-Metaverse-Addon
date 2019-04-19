@@ -170,7 +170,7 @@ def combine_bones(selected_bones, active_bone, active_object, use_connect=True):
         if name != active_bone_name:
             for me in meshes:
                 print("Mesh: ", me.name)
-                bpy.context.scene.objects.active = me
+                bpy.context.view_layer.objects.active = me
 
                 vertex_group_b = me.vertex_groups.get(name)
                 vertex_group_a = me.vertex_groups.get(active_bone_name)
@@ -182,7 +182,7 @@ def combine_bones(selected_bones, active_bone, active_object, use_connect=True):
                     mesh.mix_weights(active_bone_name, name)
                     me.vertex_groups.remove(me.vertex_groups.get(name))
 
-    bpy.context.scene.objects.active = active_object
+    bpy.context.view_layer.objects.active = active_object
     bpy.ops.object.mode_set(mode="EDIT")
     print("Done")
 
@@ -199,7 +199,7 @@ def scale_helper(obj):
         bpy.ops.object.mode_set(mode='OBJECT')
         scale = 1.9/obj.dimensions.y
         obj.dimensions = obj.dimensions * scale
-        bpy.context.scene.objects.active = obj
+        bpy.context.view_layer.objects.active = obj
         bpy.ops.object.transform_apply(
             location=False, rotation=False, scale=True)
 
@@ -511,9 +511,9 @@ def build_skeleton():
     try:
         bpy.context.area.type = "VIEW_3D"
         # set context to 3D View and set Cursor
-        bpy.context.space_data.cursor_location[0] = 0.0
-        bpy.context.space_data.cursor_location[1] = 0.0
-        bpy.context.space_data.cursor_location[2] = 0.0
+        bpy.context.scene.cursor.location[0] = 0.0
+        bpy.context.scene.cursor.location[1] = 0.0
+        bpy.context.scene.cursor.location[2] = 0.0
 
         print("----------------------")
         print("Creating Base Armature")
@@ -545,15 +545,15 @@ def reset_scale_rotation(obj):
     current_context = bpy.context.area.type
     bpy.context.area.type = "VIEW_3D"
     # set context to 3D View and set Cursor
-    bpy.context.space_data.cursor_location[0] = 0.0
-    bpy.context.space_data.cursor_location[1] = 0.0
-    bpy.context.space_data.cursor_location[2] = 0.0
+    bpy.context.scene.cursor.location[0] = 0.0
+    bpy.context.scene.cursor.location[1] = 0.0
+    bpy.context.scene.cursor.location[2] = 0.0
     bpy.context.area.type = current_context
     bpy.ops.object.mode_set(mode="OBJECT")
     bpy.ops.object.select_all(action="DESELECT")
 
-    obj.select = True
-    bpy.context.scene.objects.active = obj
+    obj.select_set(state=True)
+    bpy.context.view_layer.objects.active = obj
     bpy.ops.object.origin_set(type="ORIGIN_CURSOR")
     bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
 
@@ -585,8 +585,8 @@ def navigate_armature(data, current_rest_node, world_matrix, parent, parent_node
             parent_matrix = Matrix()
             parent_inverted = Matrix()
             parent_destination = Matrix()
-        smat = inv_destination_matrix * \
-            (parent_destination * (parent_inverted * matrix))
+        smat = inv_destination_matrix @ \
+            (parent_destination @ (parent_inverted @ matrix))
         bone.rotation_quaternion = smat.to_quaternion().inverted()
         for child in current_rest_node["children"]:
             navigate_armature(data, child, world_matrix,
@@ -611,8 +611,8 @@ def clear_pose(selected):
         bpy.ops.object.select_all(action="DESELECT")
         print("Selected")
 
-        bpy.context.scene.objects.active = armature
-        armature.select = True
+        bpy.context.view_layer.objects.active = armature
+        armature.select_set(state=True)
         bpy.context.object.data.pose_position = 'POSE'
 
         bpy.ops.object.mode_set(mode="POSE")
@@ -636,8 +636,8 @@ def retarget_armature(options, selected, selected_only=False):
         bpy.ops.object.select_all(action="DESELECT")
         print("Selected")
 
-        bpy.context.scene.objects.active = armature
-        armature.select = True
+        bpy.context.view_layer.objects.active = armature
+        armature.select_set(state=True)
         bpy.context.object.data.pose_position = 'POSE'
 
         # Make sure to reset the bones first.
@@ -676,9 +676,9 @@ def retarget_armature(options, selected, selected_only=False):
                 if selected_only is False or child.select:
                     correct_scale_rotation(child, False)
 
-            bpy.context.scene.objects.active = armature
+            bpy.context.view_layer.objects.active = armature
 
-        armature.select = True
+        armature.select_set(state=True)
 
         if bpy.context.mode != "OBJECT":
             bpy.ops.object.mode_set(mode="OBJECT")

@@ -86,8 +86,6 @@ def vec_to_list(v):
 # Utility to swap quaternion axis to -zy
 def quat_swap_nyz(q):
     q1 = Quaternion(q)
-        
-    factor = sqrt(2)/2
     
     axis = q1.axis
     angle = q1.angle
@@ -100,9 +98,7 @@ def quat_swap_nyz(q):
 
 def quat_swap_nzy(q):
     q1 = Quaternion(q)
-        
-    factor = sqrt(2)/2
-    
+
     axis = q1.axis
     angle = q1.angle
     

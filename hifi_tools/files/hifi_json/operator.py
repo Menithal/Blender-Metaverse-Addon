@@ -37,7 +37,7 @@ from bpy.props import (
 
 
 class ATPReminderOperator(bpy.types.Operator):
-    bl_idname = "HIFI_PLUGIN_OT_error_atp_or_override_not_in_use"
+    bl_idname = "hifi.error_atp_or_override_not_in_use"
     bl_label = "You must either select ATP export or override a baseURL for your host (be it marketplace or your own)"
     bl_options = {'REGISTER', 'INTERNAL'}
 
@@ -59,15 +59,15 @@ class ATPReminderOperator(bpy.types.Operator):
         row = layout.row()
         row.label(text="Warning:", icon="ERROR")
         row = layout.row()
-        row.label("You must either select ATP export ")
+        row.label(text="You must either select ATP export ")
         row = layout.row()
-        row.label(" or override a baseURL for your host")
+        row.label(text=" or override a baseURL for your host")
         row = layout.row()
-        row.label(" (be it marketplace or your own)")
+        row.label(text=" (be it marketplace or your own)")
 
 
 class JSONWriterOperator(bpy.types.Operator, ExportHelper):
-    bl_idname = "HIFI_PLUGIN_OT_export_hifi_scene_fbx_json"
+    bl_idname = "hifi.export_hifi_scene_fbx_json"
     bl_label = "Export HiFi Scene"
     bl_options = {'UNDO'}
 
@@ -121,7 +121,7 @@ class JSONWriterOperator(bpy.types.Operator, ExportHelper):
 class JSONLoaderOperator(bpy.types.Operator, ImportHelper):
 
     # Load a Hifi File
-    bl_idname = "HIFI_PLUGIN_OT_import_scene"
+    bl_idname = "hifi.import_scene"
     bl_label = "Import Hifi Json"
     bl_options = {"UNDO", "PRESET"}
 

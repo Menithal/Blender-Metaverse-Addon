@@ -56,7 +56,7 @@ from hifi_tools.utils.custom import custom_register, custom_unregister, scene_de
 
 
 def on_server_update(self, context):
-    user_preferences = context.user_preferences
+    user_preferences = context.preferences
     addon_prefs = user_preferences.addons[__name__].preferences
 
     if len(addon_prefs["gateway_server"]) > 0 and len(addon_prefs["gateway_username"]) > 0:
@@ -80,7 +80,7 @@ def on_server_update(self, context):
 
 
 def on_token_update(self, context):
-    user_preferences = context.user_preferences
+    user_preferences = context.preferences
     addon_prefs = user_preferences.addons[__name__].preferences
 
     wm = context.window_manager
@@ -120,13 +120,13 @@ def on_token_update(self, context):
     return None
 
 
-class InfoOperator (bpy.types.Operator):
-    bl_idname = "ipfs_feature_understand.confirm"
+class IPFSFeatureInfo (bpy.types.Operator):
+    bl_idname = "hifi.ipfs_upload_feature"
 
     bl_label = "Enable IPFS"
     bl_options = {'REGISTER', 'INTERNAL'}
 
-    agree = BoolProperty(
+    agree: BoolProperty(
         name="Yes", description="I am aware what it means to upload to ipfs via the hifi-ipfs gateway.", default=False)
 
     def draw(self, context):
@@ -174,7 +174,7 @@ class InfoOperator (bpy.types.Operator):
             "set here only tracks what have been uploaded with the username."
         )
         row = layout.row()
-        row.label("and where they can be found for convenience.  ")
+        row.label(text="and where they can be found for convenience.  ")
         row = layout.row()
         row.label(
             "Anything uploaded in another service to the ipfs network cannot be tracked.")
@@ -213,7 +213,7 @@ class InfoOperator (bpy.types.Operator):
         return context.window_manager.invoke_props_dialog(self, width=600, height=400)
 
     def execute(self, context):
-        user_preferences = context.user_preferences
+        user_preferences = context.preferences
         addon_prefs = user_preferences.addons[__name__].preferences
         if self.agree:
             addon_prefs["ipfs"] = True
@@ -224,7 +224,7 @@ class InfoOperator (bpy.types.Operator):
 
 
 class AuthSuccessOperator(bpy.types.Operator):
-    bl_idname = "auth_success.export"
+    bl_idname = "hifi.auth_success_export"
     bl_label = ""
     bl_options = {'REGISTER', 'INTERNAL'}
 
@@ -245,40 +245,40 @@ class AuthSuccessOperator(bpy.types.Operator):
         row = layout.row()
         row.label(text="Success:", icon="FILE_TICK")
         row = layout.row()
-        row.label("Authentication Success! ")
+        row.label(text="Authentication Success! ")
         row = layout.row()
-        row.label("Remember to Save Your Settings")
+        row.label(text="Remember to Save Your Settings")
 
 
 class HifiAddOnPreferences(AddonPreferences):
     bl_idname = __name__
-    oventool = StringProperty(name="Oven Tool path (EXPERIMENTAL)",
+    oventool: StringProperty(name="Oven Tool path (EXPERIMENTAL)",
                                    description="Point this to the High Fidelity Oven tool",
                                    subtype="FILE_PATH")
 
-    ipfs = BoolProperty(name="IPFS (EXPERIMENTAL)",
+    ipfs: BoolProperty(name="IPFS (EXPERIMENTAL)",
                         description="Enabled IPFS", update=on_server_update)
 
-    gateway_server = StringProperty(name="HIFI-IPFS Server",
+    gateway_server: StringProperty(name="HIFI-IPFS Server",
                                     description="API to upload files",
                                     default=default_gateway_server,
                                     update=on_server_update)
 
-    gateway_username = StringProperty(name="HIFI-IPFS Username",
+    gateway_username: StringProperty(name="HIFI-IPFS Username",
                                       description="Enter any Username for API", default="",
                                       update=on_server_update)
 
-    oauth_required = BoolProperty(default=oauth_default)
-    oauth_api = StringProperty(default=oauth_api, options={"HIDDEN"})
+    oauth_required: BoolProperty(default=oauth_default)
+    oauth_api: StringProperty(default=oauth_api, options={"HIDDEN"})
 
-    hifi_oauth = StringProperty(name="Hifi OAuth Token",
+    hifi_oauth: StringProperty(name="Hifi OAuth Token",
                                 description="Enter an Oauth Token with identity permissions", default="",
                                 update=on_token_update)
 
-    gateway_token = StringProperty(name="HIFI-IPFS Token",
+    gateway_token: StringProperty(name="HIFI-IPFS Token",
                                    description="login to API", default="")
 
-    message_box = StringProperty(
+    message_box: StringProperty(
         name="Status", default="", options={"SKIP_SAVE"})
 
     def draw(self, context):
@@ -306,7 +306,7 @@ class HifiAddOnPreferences(AddonPreferences):
             if len(self.message_box):
                 layout.prop(self, "message_box")
         else:
-            layout.operator(InfoOperator.bl_idname)
+            layout.operator(IPFSFeatureInfo.bl_idname)
 
 
 class HifiGenerateToken(bpy.types.Operator):
@@ -315,7 +315,7 @@ class HifiGenerateToken(bpy.types.Operator):
 
     def execute(self, context):
 
-        user_preferences = context.user_preferences
+        user_preferences = context.preferences
         addon_prefs = user_preferences.addons[__name__].preferences
 
         if "oauth_api" not in addon_prefs:
@@ -330,7 +330,7 @@ class HifiGenerateToken(bpy.types.Operator):
 
 
 class GatewayGenerateToken(bpy.types.Operator):
-    bl_idname = "gateway.generate_token"
+    bl_idname = "hifi.gateway_generate_token"
     bl_label = "Generate Token"
 
     def execute(self, context):
@@ -364,19 +364,31 @@ def menu_func_export(self, context):
                          text="HiFi Metaverse Scene JSON / FBX (.json/.fbx)")
 
 
+classes = (
+    IPFSFeatureInfo,
+    FSTWriterOperator,
+    JSONWriterOperator,
+    JSONLoaderOperator,
+    AuthSuccessOperator,
+    HifiAddOnPreferences,
+    HifiGenerateToken,
+    GatewayGenerateToken,
+)
+
+module_register, module_unregister = bpy.utils.register_classes_factory(classes)
+
 def register():
     scene_define()
-    bpy.utils.register_module(__name__)  # Magic Function!
-    bpy.types.INFO_MT_file_import.append(menu_func_import)
-    bpy.types.INFO_MT_file_export.append(menu_func_export)
+    module_register()
+    bpy.types.TOPBAR_MT_file_import.append(menu_func_import)
+    bpy.types.TOPBAR_MT_file_export.append(menu_func_export)
+    utils.panels.register()
 
 
 def unregister():
     scene_delete()
-    bpy.utils.unregister_module(__name__)
-    bpy.types.INFO_MT_file_import.remove(menu_func_import)
-    bpy.types.INFO_MT_file_export.remove(menu_func_export)
+    module_unregister()
+    bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
+    bpy.types.TOPBAR_MT_file_export.remove(menu_func_export)
+    utils.panels.unregister()
 
-
-if __name__ == "__main__":
-    register()

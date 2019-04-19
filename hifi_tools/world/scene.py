@@ -95,9 +95,9 @@ class HifiScene:
         current_context = bpy.context.area.type
         bpy.context.area.type = 'VIEW_3D'
         # set context to 3D View and set Cursor
-        bpy.context.space_data.cursor_location[0] = 0.0
-        bpy.context.space_data.cursor_location[1] = 0.0
-        bpy.context.space_data.cursor_location[2] = 0.0
+        bpy.context.scene.cursor.location[0] = 0.0
+        bpy.context.scene.cursor.location[1] = 0.0
+        bpy.context.scene.cursor.location[2] = 0.0
         # return context back to earlier, and build scene.
         bpy.context.area.type = current_context
         print("Building Scene out of " + str(len(self.entities)) + ' Objects and '
@@ -185,7 +185,7 @@ class HifiObject:
         return False
 
     def select(self):
-        self.blender_object.select = True
+        self.blender_object.select_set(state=True)
 
     def build(self):
         # First places down the children (recursive)

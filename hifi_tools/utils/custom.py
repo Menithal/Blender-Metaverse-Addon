@@ -3,8 +3,10 @@ import re
 from hifi_tools.utils import bones, mesh, materials, bpyutil
 from bpy.props import StringProperty, BoolProperty, PointerProperty
 
+
 def poll(self, object):
     return object.type == "BONE"
+
 
 def get_armatures(self, context):
     obj = []
@@ -19,6 +21,7 @@ def get_armatures(self, context):
 
     return obj
 
+
 def get_bones(self, context):
 
     armature = context.scene.objects.get(self.custom_armatures)
@@ -27,6 +30,7 @@ def get_bones(self, context):
     if armature is None:
         return
     return [(bone.name, bone.name, "") for bone in armature.data.bones]
+
 
 hips_names = ["hips", "pelvis"]
 
@@ -52,12 +56,14 @@ spine1_name = "spine1"
 head_name = "head"
 eye_name = "eye"
 
+
 class BlendShapeMapping():
-    frm =""
-    to=""
-    value=0
-    override=False
-    def __init__(self, frm, to, value, override = False):
+    frm = ""
+    to = ""
+    value = 0
+    override = False
+
+    def __init__(self, frm, to, value, override=False):
         self.to = to
         self.value = value
         self.frm = frm
@@ -65,14 +71,16 @@ class BlendShapeMapping():
 
 
 common_cats_blend_mapping = [
-#    BlendShapeMapping('Basis', 'BrowsU_C', 1.0),
-#    BlendShapeMapping('Eyebrow Lower', 'Basis', 0.5, True), # Swap Lower Eyebrows at 0.5 as the new basis.
-    BlendShapeMapping('Blink', 'EyeBlink_L', 1.0), # This assumes abit too much but MMD Avatars are fidly regardless, since
+    #    BlendShapeMapping('Basis', 'BrowsU_C', 1.0),
+    #    BlendShapeMapping('Eyebrow Lower', 'Basis', 0.5, True), # Swap Lower Eyebrows at 0.5 as the new basis.
+    # This assumes abit too much but MMD Avatars are fidly regardless, since
+    BlendShapeMapping('Blink', 'EyeBlink_L', 1.0),
     BlendShapeMapping('vrc.v_th', 'JawOpen', 0.8),
     BlendShapeMapping('vrc.v_ss', 'MouthSmile_L', 0.8),
     BlendShapeMapping('vrc.v_nn', 'LipsFunnel', 0.8),
     BlendShapeMapping('U', 'LipsUpperClose', 0.8)
 ]
+
 
 def automatic_bind_bones(self, avatar_bones):
     print('------')
@@ -92,12 +100,12 @@ def automatic_bind_bones(self, avatar_bones):
         if "spine2" in cleaned_name or "chest" in cleaned_name or "breast" in cleaned_name:
             self.spine2 = bone.name
         elif spine1_name in cleaned_name:
-            ## if there is no Spine2, chest or breast, its likely that spine1 is the chest. Convert it.
+            # if there is no Spine2, chest or breast, its likely that spine1 is the chest. Convert it.
             if cleaned_bones["spine2"] is None and cleaned_bones["chest"] is None and cleaned_bones["breast"] is None:
                 self.spine2 = bone.name
             else:
                 self.spine1 = bone.name
-            
+
         elif spine_name in cleaned_name:
             self.spine = bone.name
 
@@ -155,7 +163,6 @@ def automatic_bind_bones(self, avatar_bones):
 
         if eye_name in cleaned_name:
             self.eye = bone.name
-    
 
 
 def update_bone_name(edit_bones, from_name, to_name):
@@ -164,7 +171,7 @@ def update_bone_name(edit_bones, from_name, to_name):
     if bone_to_edit is not None:
         bone_to_edit.name = to_name
         bpy.ops.object.mode_set(mode="OBJECT")
-        bpy.ops.object.mode_set(mode="EDIT")  
+        bpy.ops.object.mode_set(mode="EDIT")
 
 
 def update_bone_name_mirrored(edit_bones, from_name, to_name):
@@ -179,13 +186,15 @@ def update_bone_name_mirrored(edit_bones, from_name, to_name):
 def update_bone_name_chained_mirrored(edit_bones, from_name, to_name):
     print(' - update_bone_name_chained_mirrored', from_name, to_name)
     bone = bones.get_bone_side_and_mirrored(from_name)
-    
+
     if bone is not None and bone.index is not None:
-        update_bone_name(edit_bones, bone.name, bone.side + to_name + bone.index)
-        update_bone_name(edit_bones, bone.mirror_name, bone.mirror + to_name + bone.index)
-        
+        update_bone_name(edit_bones, bone.name,
+                         bone.side + to_name + bone.index)
+        update_bone_name(edit_bones, bone.mirror_name,
+                         bone.mirror + to_name + bone.index)
+
         next_index = str(int(bone.index)+1)
-        
+
         print("going down chain to ", bone.name.replace(bone.index, next_index))
         ebone = edit_bones.get(bone.name.replace(bone.index, next_index))
 
@@ -206,7 +215,7 @@ def rename_bones_and_fix_most_things(self, context):
     bpy.ops.object.mode_set(mode="EDIT")
     armature = bpy.data.armatures[self.armature]
     ebones = armature.edit_bones
-    
+
     print("--------")
     print("Updating Bone Names")
     update_bone_name(ebones, self.hips, "Hips")
@@ -215,8 +224,9 @@ def rename_bones_and_fix_most_things(self, context):
 
     spine_was_split = False
     if len(self.spine1) < 1:
-        spine1 = ebones.get("Spine2") # Get what is supposed to be the last spine.
-        spine1.select = True
+        # Get what is supposed to be the last spine.
+        spine1 = ebones.get("Spine2")
+        spine1.select_set(state=True)
         bpy.ops.armature.subdivide()
 
         # Spine2.001 = new spine 2
@@ -228,7 +238,7 @@ def rename_bones_and_fix_most_things(self, context):
 
     else:
         update_bone_name(ebones, self.spine1, "Spine1")
-    
+
     update_bone_name(ebones, self.neck, "Neck")
     update_bone_name(ebones, self.head, "Head")
 
@@ -252,7 +262,7 @@ def rename_bones_and_fix_most_things(self, context):
     update_bone_name_chained_mirrored(ebones, self.hand_middle, "HandMiddle")
     update_bone_name_chained_mirrored(ebones, self.hand_ring, "HandRing")
     update_bone_name_chained_mirrored(ebones, self.hand_pinky, "HandPinky")
-    
+
     bpy.ops.object.mode_set(mode="OBJECT")
     armature = bpy.data.armatures[self.armature]
 
@@ -271,9 +281,8 @@ def rename_bones_and_fix_most_things(self, context):
     print("--------")
     print("Fix Rotations")
 
-
     bpy.ops.object.mode_set(mode="EDIT")
-    
+
     ebones = armature.edit_bones
 
     for bone in ebones:
@@ -281,29 +290,28 @@ def rename_bones_and_fix_most_things(self, context):
         bone.name = bones.clean_up_bone_name(bone.name)
         bones.correct_bone_rotations(bone)
         bones.correct_bone(bone, ebones)
-        
 
     bones.correct_bone_parents(armature.edit_bones)
     bpy.ops.object.mode_set(mode="OBJECT")
     bpy.ops.object.select_all(action="DESELECT")
     # TODO: This should be more selective and only affect the armature object's children.
 
-    children = bpy.data.objects 
+    children = bpy.data.objects
     for child in children:
         if child.type == "ARMATURE":
-            child.select = True
+            child.select_set(state=True)
             bones.correct_scale_rotation(child, True)
             bpy.ops.object.mode_set(mode="POSE")
             bpy.ops.pose.select_all(action="SELECT")
             bpy.ops.pose.transforms_clear()
             bpy.ops.pose.select_all(action="DESELECT")
             bpy.ops.object.mode_set(mode="OBJECT")
-                
+
             if self.pin_problems:
                 print("PIN PROBLEM")
                 bpy.ops.object.mode_set(mode="EDIT")
                 bones.pin_common_bones(child, self.fix_rolls)
-            
+
         if child.type == "MESH":
             #        mesh.clean_unused_vertex_groups(child)
             bones.reset_scale_rotation(child)
@@ -312,22 +320,21 @@ def rename_bones_and_fix_most_things(self, context):
                 spine1_weights = child.vertex_groups["Spine1"]
                 if spine1_weights is not None:
                     spine1_weights.name = "Spine2"
-                 
+
             if self.common_shapekey_correct:
                 # common_cats_blend_mapping
                 # Reset all shapekeys.
-                ## TODO: Perhaps dettach this into a function.
+                # TODO: Perhaps dettach this into a function.
                 print("Going Through blendshapes and creating new ones")
                 bpy.ops.object.mode_set(mode="OBJECT")
                 bpy.ops.object.select_all(action="DESELECT")
-                bpy.context.scene.objects.active = child
-                child.select = True
+                bpy.context.view_layer.objects.active = child
+                child.select_set(state=True)
                 blocks = child.data.shape_keys.key_blocks
 
                 for shape_key in blocks:
                     shape_key.value = 0
 
-               
                 for blend_map in common_cats_blend_mapping:
                     blocks.update()
                     block = blocks.get(blend_map.frm)
@@ -335,25 +342,25 @@ def rename_bones_and_fix_most_things(self, context):
                         target_block = blocks.get(blend_map.to)
                         if target_block is None:
                             block.value = blend_map.value
-                            child.shape_key_add(name=blend_map.to, from_mix=True)
+                            child.shape_key_add(
+                                name=blend_map.to, from_mix=True)
                             block.value = 0
-            
+
             if self.compress_materials:
                 materials.clean_materials(child.material_slots)
-    
+
     if self.remove_ends:
         bpy.context.area.type = mode
         bpy.ops.object.mode_set(mode="OBJECT")
         bpy.ops.object.mode_set(mode="EDIT")
         bones.clean_ends(child)
 
-
     for material in bpy.data.materials:
         materials.flip_material_specular(material)
 
     if self.remove_metallic:
         materials.remove_materials_metallic(bpy.data.materials)
-    
+
     if self.mask_textures:
         materials.convert_images_to_mask(bpy.data.images)
 
@@ -370,47 +377,54 @@ class HifiCustomAvatarBinderOperator(bpy.types.Operator):
     bl_idname = "hifi.mirror_custom_avatar_bind"
     bl_label = "Custom Avatar Binding Tool"
 
-    custom_armature_name = bpy.props.StringProperty()
-    armatures = bpy.props.EnumProperty(
+    custom_armature_name: bpy.props.StringProperty()
+    armatures: bpy.props.EnumProperty(
         name="Select Armature", items=get_armatures)
 
-    armature = bpy.props.StringProperty()
+    armature: bpy.props.StringProperty()
 
-    hips = bpy.props.StringProperty()
-    spine = bpy.props.StringProperty()
-    spine1 = bpy.props.StringProperty()
-    spine2 = bpy.props.StringProperty()
-    neck = bpy.props.StringProperty()
-    head = bpy.props.StringProperty()
+    hips: bpy.props.StringProperty()
+    spine: bpy.props.StringProperty()
+    spine1: bpy.props.StringProperty()
+    spine2: bpy.props.StringProperty()
+    neck: bpy.props.StringProperty()
+    head: bpy.props.StringProperty()
     # Head
-    eye = bpy.props.StringProperty()
-    head_top = bpy.props.StringProperty()
+    eye: bpy.props.StringProperty()
+    head_top: bpy.props.StringProperty()
     # Arms
     # right
-    shoulder = bpy.props.StringProperty()
-    arm = bpy.props.StringProperty()
-    fore_arm = bpy.props.StringProperty()
-    hand = bpy.props.StringProperty()
+    shoulder: bpy.props.StringProperty()
+    arm: bpy.props.StringProperty()
+    fore_arm: bpy.props.StringProperty()
+    hand: bpy.props.StringProperty()
 
     # Fingers
-    hand_thumb = bpy.props.StringProperty()
-    hand_index = bpy.props.StringProperty()
-    hand_middle = bpy.props.StringProperty()
-    hand_ring = bpy.props.StringProperty()
-    hand_pinky = bpy.props.StringProperty()
+    hand_thumb: bpy.props.StringProperty()
+    hand_index: bpy.props.StringProperty()
+    hand_middle: bpy.props.StringProperty()
+    hand_ring: bpy.props.StringProperty()
+    hand_pinky: bpy.props.StringProperty()
     # Legs
-    up_leg = bpy.props.StringProperty()
-    leg = bpy.props.StringProperty()
-    foot = bpy.props.StringProperty()
-    toe = bpy.props.StringProperty()
+    up_leg: bpy.props.StringProperty()
+    leg: bpy.props.StringProperty()
+    foot: bpy.props.StringProperty()
+    toe: bpy.props.StringProperty()
 
-    pin_problems = bpy.props.BoolProperty(default=True, name="Pin Problem Bones", description="Straightens spines and fixes usual feet issues")
-    fix_rolls = bpy.props.BoolProperty(default=True, name="Fix Rolls", description="Fixes the rolls of all the bones to match the HumanIK reference")
-    remove_metallic = bpy.props.BoolProperty(default=True, name="Remove Metallic", description="Removes pre-emptively specular color to avoid any metallicness issues")
-    mask_textures = bpy.props.BoolProperty(default=True, name="Convert Textures to Masked", description="Pre-emptively converts all textures with alpha into Masked Textures as opaque textures are not supported")
-    compress_materials = bpy.props.BoolProperty(default=True, name="Compress Materials", description="Pre-emptively compress materials, simplifying material count")
-    remove_ends = bpy.props.BoolProperty(default=False, name="Remove _end Leaf Bones", description="Remove _end Leaf bones.")
-    common_shapekey_correct = bpy.props.BoolProperty(default=True, name="Common CATs/PMD/VRC Shapekey convert", description="CATS/PMD/VRC Shapekeys into Faceshift format")
+    pin_problems: bpy.props.BoolProperty(
+        default=True, name="Pin Problem Bones", description="Straightens spines and fixes usual feet issues")
+    fix_rolls: bpy.props.BoolProperty(
+        default=True, name="Fix Rolls", description="Fixes the rolls of all the bones to match the HumanIK reference")
+    remove_metallic: bpy.props.BoolProperty(
+        default=True, name="Remove Metallic", description="Removes pre-emptively specular color to avoid any metallicness issues")
+    mask_textures: bpy.props.BoolProperty(default=True, name="Convert Textures to Masked",
+                                          description="Pre-emptively converts all textures with alpha into Masked Textures as opaque textures are not supported")
+    compress_materials: bpy.props.BoolProperty(
+        default=True, name="Compress Materials", description="Pre-emptively compress materials, simplifying material count")
+    remove_ends: bpy.props.BoolProperty(
+        default=False, name="Remove _end Leaf Bones", description="Remove _end Leaf bones.")
+    common_shapekey_correct: bpy.props.BoolProperty(
+        default=True, name="Common CATs/PMD/VRC Shapekey convert", description="CATS/PMD/VRC Shapekeys into Faceshift format")
 
     def execute(self, context):
         return rename_bones_and_fix_most_things(self, context)
@@ -421,8 +435,11 @@ class HifiCustomAvatarBinderOperator(bpy.types.Operator):
             bpy.ops.object.mode_set(mode="OBJECT")
 
             bpy.ops.object.select_all(action='DESELECT')
-            armature.select = True
-            context.scene.objects.active = armature
+            armature.select_set(state=True)
+            print(context)
+            print(context.view_layer)
+            print(context.view_layer.objects)
+            context.view_layer.objects.active = armature
 
             bpy.ops.object.mode_set(mode="EDIT")
             data = armature.data
@@ -437,9 +454,8 @@ class HifiCustomAvatarBinderOperator(bpy.types.Operator):
 
     def draw(self, context):
         layout = self.layout
-        layout.label(
-            "Experimental Feature. Please report any issues.")
-        layout.label("Everything is mirrored.")
+        layout.label(text="Experimental Feature. Please report any issues.")
+        layout.label(text="Everything is mirrored.")
         column = layout.column()
 
        # column.prop_search(scene, "custom_current_armature", bpy.data, "armatures", icon='ARMATURE_DATA', text="Select Armature")
@@ -503,15 +519,14 @@ class HifiCustomAvatarBinderOperator(bpy.types.Operator):
                                icon='BONE_DATA', text='Toe')
 
             column.prop(self, "cats_convert")
-            column.label("Bones")
+            column.label(text="Bones")
 
             row = column.row()
             row.prop(self, "pin_problems")
             row.prop(self, "fix_rolls")
-            
 
-            column.label("Materials")
-            
+            column.label(text="Materials")
+
             row = column.row()
             row.prop(self, "remove_metallic")
             row.prop(self, "mask_textures")
@@ -530,7 +545,6 @@ class HifiCustomAvatarBinderOperator(bpy.types.Operator):
 
 def scene_define():
     bpy.types.Scene.custom_armature_name = bpy.props.StringProperty()
-
     bpy.types.Scene.custom_armature_collection = bpy.props.CollectionProperty(
         type=bpy.types.PropertyGroup)
 

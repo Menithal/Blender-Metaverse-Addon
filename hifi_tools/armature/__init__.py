@@ -1,6 +1,5 @@
 
 from . import (
-    panel,
     skeleton
 )
 

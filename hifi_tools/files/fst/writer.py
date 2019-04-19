@@ -81,7 +81,7 @@ def default_blend_shape(selected):
 
 def fst_export(context, selected):
 
-    preferences = bpy.context.user_preferences.addons[hifi_tools.__name__].preferences
+    preferences = bpy.context.preferences.addons[hifi_tools.__name__].preferences
     # file = open
     uuid_gen = uuid.uuid5(uuid.NAMESPACE_DNS, context.filepath + '?' + str(datetime.datetime.now()).replace(" ", ""))
     scene_id = str(uuid_gen)
@@ -153,7 +153,7 @@ def fst_export(context, selected):
         bpy.ops.object.select_all(action='DESELECT')
     
         for select in selected:
-            select.select = True
+            select.select_set(state=True)
 
         if context.embed:
             path_mode = 'COPY'
