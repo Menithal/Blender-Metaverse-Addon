@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # ##### BEGIN GPL LICENSE BLOCK #####
 #
 #  This program is free software; you can redistribute it and/or
@@ -15,9 +16,7 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
-
-## Build the File Loading Operator, and allows for File Selection
-# By Matti 'Menithal' Lahtinen
+# Copyright 2019 Matti 'Menithal' Lahtinen
 
 import bpy
 

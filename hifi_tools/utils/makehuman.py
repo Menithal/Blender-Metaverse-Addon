@@ -149,19 +149,6 @@ def remove_modifier_by_type(obj, modifierType):
             obj.modifiers.remove(m)
 
 
-def set_material_properties(obj):
-    for correction in material_corrections:
-        a = re.compile(correction[0])
-        if(re.match(a, obj.name)):            
-            for material_slot in obj.material_slots:
-                material_slot.material.diffuse_intensity = correction[1]
-                material_slot.material.diffuse_color = correction[2]
-                material_slot.material.specular_intensity = correction[3]
-                material_slot.material.specular_hardness = correction[4]
-                material_slot.material.specular_color = correction[5]
-            break
-
-
 def create_blink_shapes(shapekey, armature1, armature2):
 
     armature = None
@@ -258,8 +245,7 @@ def convert_makehuman_avatar_hifi():
                 elif obj.type == 'MESH' and obj.parent is not None and obj.parent.type == 'ARMATURE':
                     bpy.ops.object.mode_set(mode='OBJECT')
                     print(" Cleaning up Materials now. May take a while ")
-                    materials.clean_materials(obj.material_slots)
-                    set_material_properties(obj)                        
+                    # materials.clean_materials(obj.material_slots)                   
                     remove_modifier_by_type(obj, "SUBSURF")
 
 

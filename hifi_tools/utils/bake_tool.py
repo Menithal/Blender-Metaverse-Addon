@@ -16,7 +16,7 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
-# Created by Matti 'Menithal' Lahtinen
+# Copyright 2019 Matti 'Menithal' Lahtinen
 
 import bpy
 import os
@@ -25,7 +25,10 @@ import subprocess
 
 
 def bake_fbx(baker_path, fbx, images = []):
-    bpy.ops.wm.console_toggle()
+    try:
+        bpy.ops.wm.console_toggle()
+    except:
+        print("Console was toggled")
 
     if baker_path is None:
         print("Please set the Bake tool path")
@@ -41,8 +44,10 @@ def bake_fbx(baker_path, fbx, images = []):
     
     subprocess.call([baker_path, "-i" + fbx, "-o" + path, "-tfbx"])
 
-    bpy.ops.wm.console_toggle()
-
+    try:
+        bpy.ops.wm.console_toggle()
+    except:
+        print("Console was toggled")
     #Delete Originals
 
     return {"FINISHED"}

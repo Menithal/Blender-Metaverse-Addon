@@ -15,7 +15,7 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
-
+# Copyright 2019 Matti 'Menithal' Lahtinen
 
 bl_info = {
     "name": "HiFi Blender Add-on",
@@ -38,9 +38,12 @@ import sys
 import logging
 import webbrowser
 import bpy
+
 from bpy.types import AddonPreferences
+from bpy.app.handlers import persistent
 
 from hifi_tools.ext.throttle import throttle
+from hifi_tools.ext.modified_fbx_tools import *
 
 from . import armature
 from . import utils
@@ -49,6 +52,7 @@ from . import files
 from .files.hifi_json.operator import *
 from .files.fst.operator import *
 from .gateway import client as GatewayClient
+
 
 from hifi_tools.utils.custom import custom_register, custom_unregister, scene_define, scene_delete
 
@@ -87,7 +91,11 @@ def on_token_update(self, context):
     username = addon_prefs["gateway_username"]
 
     if len(username) == 0:
-        bpy.ops.wm.console_toggle()
+        try:
+            bpy.ops.wm.console_toggle()
+        except:
+            print("Console was toggled")
+            
         addon_prefs["gateway_token"] = ""
         addon_prefs["message_box"] = "No username set."
         return None
@@ -358,6 +366,7 @@ def menu_func_import(self, context):
 
 
 def menu_func_export(self, context):
+    self.layout.operator(ExportHifiFBX.bl_idname, text="Hifi FBX (.fbx)")
     self.layout.operator(FSTWriterOperator.bl_idname,
                          text="HiFi Avatar FST (.fst)")
     self.layout.operator(JSONWriterOperator.bl_idname,
@@ -365,6 +374,7 @@ def menu_func_export(self, context):
 
 
 classes = (
+    ExportHifiFBX,
     IPFSFeatureInfo,
     FSTWriterOperator,
     JSONWriterOperator,
@@ -376,6 +386,15 @@ classes = (
 )
 
 module_register, module_unregister = bpy.utils.register_classes_factory(classes)
+
+@persistent
+def startup_handler(scene):
+    print("Load detected. Attempt to create stuff")
+    utils.materials.create_helper_shfpbr_shader_group()
+
+bpy.app.handlers.save_pre.append(startup_handler)
+bpy.app.handlers.load_post.append(startup_handler)
+
 
 def register():
     scene_define()

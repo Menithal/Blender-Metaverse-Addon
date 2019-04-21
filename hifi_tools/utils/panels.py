@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # Adding Armature related functions to the Blender Hifi Tool set
-#
+# Copyright 2019 Matti 'Menithal' Lahtinen
 
 import bpy
 import sys
@@ -40,7 +40,7 @@ from hifi_tools.armature.skeleton import structure as base_armature
 from hifi_tools.utils.mmd import convert_mmd_avatar_hifi
 from hifi_tools.utils.mixamo import convert_mixamo_avatar_hifi
 from hifi_tools.utils.makehuman import convert_makehuman_avatar_hifi
-from hifi_tools.utils.materials import make_materials_fullbright, make_materials_shadeless, convert_to_png, convert_images_to_mask, remove_materials_metallic, clean_materials
+from hifi_tools.utils.materials import convert_to_png, convert_images_to_mask
 from hifi_tools.armature.debug_armature_extract import armature_debug
 from hifi_tools.utils.custom import HifiCustomAvatarBinderOperator
 
@@ -145,11 +145,8 @@ class HifiMaterialsPanel(bpy.types.Panel):
         layout = self.layout
 
         layout.operator(HifiMaterialFullbrightOperator.bl_idname)
-        layout.operator(HifiMaterialShadelessOperator.bl_idname)
         layout.operator(HifiTexturesConvertToPngOperator.bl_idname)
         layout.operator(HifiTexturesMakeMaskOperator.bl_idname)
-        layout.operator(HifiMaterialMetallicRemoveOperator.bl_idname)
-        layout.operator(HifiCompressMaterialsOperator.bl_idname)
         return None
 
 
@@ -484,75 +481,6 @@ class HifiMakeHumanOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class HifiMaterialFullbrightOperator(bpy.types.Operator):
-    bl_idname = "hifi.materials_toolset_fullbright"
-    bl_label = "Make All Fullbright"
-
-    bl_space_type = "VIEW_3D"
-    bl_region_type = "UI"
-    bl_category = "High Fidelity"
-
-    def execute(self, context):
-        materials.make_materials_fullbright(bpy.data.materials)
-        return {'FINISHED'}
-
-
-class HifiMaterialShadelessOperator(bpy.types.Operator):
-    bl_idname = "hifi.materials_toolset_shadeless"
-    bl_label = "Make All Non-Avatars Shadeless"
-
-    bl_space_type = "VIEW_3D"
-    bl_region_type = "UI"
-    bl_category = "High Fidelity"
-
-    def execute(self, context):
-        # TODO: Make sure to only effect materials on non avatars.
-        for obj in bpy.data.objects:
-            if obj.type == "MESH":
-                has_armature = False
-                for modifier in obj.modifiers:
-                    if modifier.type == "ARMATURE":
-                        has_armature = True
-
-                if not has_armature:
-                    materials.make_materials_shadeless(obj.data.materials)
-                else:
-                    print(
-                        "Skipping materials for potential Avatar (as these won't work in the shading engine.).")
-
-        return {'FINISHED'}
-
-
-class HifiMaterialCompressOperator(bpy.types.Operator):
-    bl_idname = "hifi.materials_toolset_compress"
-    bl_label = "Compress Material Count"
-
-    bl_space_type = "VIEW_3D"
-    bl_region_type = "UI"
-    bl_category = "High Fidelity"
-
-    def execute(self, context):
-
-        selected = bpyutil.selected_objects()
-        materials = []
-        for obj in selected:
-            if obj.type == "MESH":
-                materials.clean_materials(obj.material_slots)
-        
-        return {'FINISHED'}
-
-class HifiMaterialMetallicRemoveOperator(bpy.types.Operator):
-    bl_idname = "hifi.materials_toolset_metallic"
-    bl_label = "Remove All Metallic"
-
-    bl_space_type = "VIEW_3D"
-    bl_region_type = "UI"
-    bl_category = "High Fidelity"
-
-    def execute(self, context):
-        materials.remove_materials_metallic(bpy.data.materials)
-        return {'FINISHED'}
-
 
 class HifiTexturesConvertToPngOperator(bpy.types.Operator):
     bl_idname = "hifi.textures_toolset_png_convert"
@@ -579,20 +507,6 @@ class HifiTexturesMakeMaskOperator(bpy.types.Operator):
         materials.convert_images_to_mask(bpy.data.images)
         return {'FINISHED'}
 
-class HifiCompressMaterialsOperator(bpy.types.Operator):
-    bl_idname = "hifi.compress_materials"
-    bl_label = "Compress Materials"
-
-    bl_space_type = "VIEW_3D"
-    bl_region_type = "UI"
-    bl_category = "High Fidelity"
-
-    def execute(self, context):
-        for obj in bpy.data.object:
-            if obj.type == "MESH":
-                materials.clean_materials(obj.material_slots)
-        
-        return {'FINISHED'}
 
 # -----
 
@@ -661,9 +575,6 @@ classes = (
     HifiSetBonePhysicalOperator,
     HifiRemoveBonePhysicalOperator,
     HifiCombineBonesOperator,
-    HifiMaterialFullbrightOperator,
-    HifiMaterialShadelessOperator,
-    HifiMaterialMetallicRemoveOperator,
     HifiTexturesConvertToPngOperator,
     HifiTexturesMakeMaskOperator,
     HifiPinPosteriorOperator,
@@ -679,8 +590,7 @@ classes = (
     HifiCombineBonesNonConnectedOperator,
     HifiDebugArmatureOperator,
     HifiArmatureClearPoseOperator,
-    HifiFixRollsOperator,
-    HifiCompressMaterialsOperator
+    HifiFixRollsOperator
 )
 
 
@@ -690,9 +600,6 @@ def armature_create_menu_func(self, context):
     self.layout.operator(HifiArmatureCreateOperator.bl_idname,
                          text="Add HiFi Armature",
                          icon="ARMATURE_DATA")
-
-
-
 
 
 def register():

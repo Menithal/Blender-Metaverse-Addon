@@ -420,10 +420,13 @@ def convert_mmd_avatar_hifi():
 
     if not bpy.data.is_saved:
         print("Select a Directory")
-        bpy.ops.hifi_error.save_file('INVOKE_DEFAULT')
+        bpy.ops.hifi.error_save_file('INVOKE_DEFAULT')
         return
 
-    bpy.ops.wm.console_toggle()
+    try:
+        bpy.ops.wm.console_toggle()
+    except:
+        print("Console was toggled")
 
     print("Converting MMD Avatar to be Blender-High Fidelity compliant")
     # Should Probably have a confirmation dialog when using this.
@@ -469,7 +472,7 @@ def convert_mmd_avatar_hifi():
                     clean_mesh(Translator, obj)
                     bpy.ops.object.mode_set(mode='OBJECT')
                     
-                    materials.clean_materials(obj.material_slots)
+                    #materials.clean_materials(obj.material_slots)
 
     bpy.ops.object.select_all(action='DESELECT')
     for deletion in marked_for_deletion:
@@ -483,11 +486,14 @@ def convert_mmd_avatar_hifi():
 
     materials.convert_to_png(bpy.data.images)
     materials.convert_images_to_mask(bpy.data.images)
-    materials.cleanup_alpha(bpy.data.materials)
-    materials.remove_materials_metallic(bpy.data.materials)
+    # materials.cleanup_alpha(bpy.data.materials)
+    # materials.remove_materials_metallic(bpy.data.materials)
 
     bpy.context.area.type = original_type
 
     bpy.ops.file.make_paths_absolute()
 
-    bpy.ops.wm.console_toggle()
+    try:
+        bpy.ops.wm.console_toggle()
+    except:
+        print("Console was toggled")

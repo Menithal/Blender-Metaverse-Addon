@@ -16,7 +16,7 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
-
+# Copyright 2019 Matti 'Menithal' Lahtinen
 # Helper script for Extrating details of the Armature data
 
 import json

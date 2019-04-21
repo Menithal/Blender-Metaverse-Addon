@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # Material Helper UI
-# By Matti 'Menithal' Lahtinen
+# Copyright 2019 Matti 'Menithal' Lahtinen
 
 import bpy
 

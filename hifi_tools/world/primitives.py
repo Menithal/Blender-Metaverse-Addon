@@ -17,11 +17,9 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # Primitive Logic for Content from High Fidelity to match source.
-# By Matti 'Menithal' Lahtinen
-
+# Copyright 2019 Matti 'Menithal' Lahtinen
 
 import bpy
-
 import addon_utils
 
 # Utility Script to debug selected edges

@@ -16,7 +16,7 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
-# Created by Matti 'Menithal' Lahtinen
+# Copyright 2019 Matti 'Menithal' Lahtinen
 import bpy
 
 from hifi_tools.utils import materials, mesh, bones
@@ -26,10 +26,14 @@ def convert_mixamo_avatar_hifi():
 
     if not bpy.data.is_saved:
         print("Select a Directory")
-        bpy.ops.hifi_error.save_file('INVOKE_DEFAULT')
+        bpy.ops.hifi.error_save_file('INVOKE_DEFAULT')
         return
-
-    bpy.ops.wm.console_toggle()
+    
+    try:
+        bpy.ops.wm.console_toggle()
+    except:
+        print("Console was toggled")
+    
     print("Converting Mixamo Avatar to be Blender- High Fidelity compliant")
     print("Searching for  mixamo:: prefix bones")
     bones.remove_all_actions()
@@ -47,14 +51,17 @@ def convert_mixamo_avatar_hifi():
             print("Cleaning unused vertex groups")
             mesh.clean_unused_vertex_groups(obj)
 
-    for material in bpy.data.materials:
-        materials.flip_material_specular(material)
+    #for material in bpy.data.materials:
+    #    materials.flip_material_specular(material)
 
     print("Texture pass")
     materials.convert_to_png(bpy.data.images)
     materials.convert_images_to_mask(bpy.data.images)
 
-    materials.cleanup_alpha(bpy.data.materials)
+    # materials.cleanup_alpha(bpy.data.materials)
     bpy.ops.file.make_paths_absolute()
 
-    bpy.ops.wm.console_toggle()
+    try:
+        bpy.ops.wm.console_toggle()
+    except:
+        print("Console was toggled")

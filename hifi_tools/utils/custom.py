@@ -1,3 +1,24 @@
+
+# -*- coding: utf-8 -*-
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
+
+# Copyright 2019 Matti 'Menithal' Lahtinen
 import bpy
 import re
 from hifi_tools.utils import bones, mesh, materials, bpyutil
@@ -207,8 +228,11 @@ def rename_bones_and_fix_most_things(self, context):
     if len(self.armature) < 1:
         print("Armature Update cancelled")
         return {"CANCELLED"}
+    
+    try:
+        bpy.ops.wm.console_toggle()
+    except:
 
-    bpy.ops.wm.console_toggle()
     mode = bpy.context.area.type
 
     # Naming Converted
@@ -346,8 +370,6 @@ def rename_bones_and_fix_most_things(self, context):
                                 name=blend_map.to, from_mix=True)
                             block.value = 0
 
-            if self.compress_materials:
-                materials.clean_materials(child.material_slots)
 
     if self.remove_ends:
         bpy.context.area.type = mode
@@ -355,11 +377,11 @@ def rename_bones_and_fix_most_things(self, context):
         bpy.ops.object.mode_set(mode="EDIT")
         bones.clean_ends(child)
 
-    for material in bpy.data.materials:
-        materials.flip_material_specular(material)
+    #for material in bpy.data.materials:
+    #    materials.flip_material_specular(material)
 
-    if self.remove_metallic:
-        materials.remove_materials_metallic(bpy.data.materials)
+    #if self.remove_metallic:
+    #    materials.remove_materials_metallic(bpy.data.materials)
 
     if self.mask_textures:
         materials.convert_images_to_mask(bpy.data.images)
@@ -369,7 +391,11 @@ def rename_bones_and_fix_most_things(self, context):
     bpy.context.area.type = mode
     bpy.ops.object.mode_set(mode="OBJECT")
 
-    bpy.ops.wm.console_toggle()
+    try:
+        bpy.ops.wm.console_toggle()
+    except:
+        print("Console was toggled")
+
     return {"FINISHED"}
 
 
@@ -419,8 +445,6 @@ class HifiCustomAvatarBinderOperator(bpy.types.Operator):
         default=True, name="Remove Metallic", description="Removes pre-emptively specular color to avoid any metallicness issues")
     mask_textures: bpy.props.BoolProperty(default=True, name="Convert Textures to Masked",
                                           description="Pre-emptively converts all textures with alpha into Masked Textures as opaque textures are not supported")
-    compress_materials: bpy.props.BoolProperty(
-        default=True, name="Compress Materials", description="Pre-emptively compress materials, simplifying material count")
     remove_ends: bpy.props.BoolProperty(
         default=False, name="Remove _end Leaf Bones", description="Remove _end Leaf bones.")
     common_shapekey_correct: bpy.props.BoolProperty(
@@ -530,9 +554,6 @@ class HifiCustomAvatarBinderOperator(bpy.types.Operator):
             row = column.row()
             row.prop(self, "remove_metallic")
             row.prop(self, "mask_textures")
-
-            row = column.row()
-            row.prop(self, "compress_materials")
 
         else:
             print(" No Armatures")

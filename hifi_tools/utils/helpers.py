@@ -18,7 +18,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # Common Swappers
-# By Matti 'Menithal' Lahtinen
+# Copyright 2019 Matti 'Menithal' Lahtinen
 
 
 from mathutils import Quaternion, Vector, Euler, Matrix
