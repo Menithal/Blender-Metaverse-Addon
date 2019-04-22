@@ -21,14 +21,14 @@
 # Overides parts of io_scene_fbx
 # Original copyright (C) Campbell Barton, Bastien Montagne
 
-# eBPBSF / Stingray Modifications by Matti 'Anthony' Lahtinen
+# HifiShaderWrapper / Stingray Modifications by Matti 'Anthony' Lahtinen
 
 import array
 import math
 import os
 import time
 
-from hifi_tools.ext.extended_pbsdf_wrapper import ePBSDFWrapper, get_epbdsf_node
+from hifi_tools.utils.materials import HifiShaderWrapper, get_hifi_shader_node
 from itertools import chain
 
 import bpy
@@ -138,7 +138,7 @@ def fbx_epbdsf_data_material_elements(root, ma, scene_data):
     if scene_data.data_world:
         ambient_color = next(iter(scene_data.data_world.keys())).color
 
-    ma_wrap = ePBSDFWrapper(ma, is_readonly=True)
+    ma_wrap = HifiShaderWrapper(ma, is_readonly=True)
     ma_key, _objs = scene_data.data_materials[ma]
     ma_type = b"Phong"
 
@@ -240,7 +240,7 @@ def fbx_epbdsf_data_texture_file_elements(root, blender_tex_key, scene_data):
 
     ma, sock_name = blender_tex_key
     
-    ma_wrap = ePBSDFWrapper(ma, is_readonly=True)
+    ma_wrap = HifiShaderWrapper(ma, is_readonly=True)
     tex_key, _fbx_prop = scene_data.data_textures[blender_tex_key]
 
     tex = getattr(ma_wrap, sock_name)
@@ -522,7 +522,7 @@ def fbx_data_from_scene(scene, depsgraph, settings):
         sockets = None
         if has_extended_pricipled is not None:
             print("Do Stuff")
-            ma_wrap = ePBSDFWrapper(ma, is_readonly=True)
+            ma_wrap = HifiShaderWrapper(ma, is_readonly=True)
             sockets = EXTENDED_PRINCIPLED_TEXTURE_SOCKETS_TO_FBX
         else:
             # Note: with nodal shaders, we'll could be generating much more textures, but that's kind of unavoidable,

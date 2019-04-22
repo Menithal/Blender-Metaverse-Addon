@@ -23,7 +23,6 @@ from hifi_tools.utils import materials, mesh, bones
 
 
 def convert_mixamo_avatar_hifi():
-
     if not bpy.data.is_saved:
         print("Select a Directory")
         bpy.ops.hifi.error_save_file('INVOKE_DEFAULT')

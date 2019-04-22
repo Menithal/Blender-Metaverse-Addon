@@ -154,7 +154,7 @@ class FSTWriterOperator(bpy.types.Operator, ExportHelper):
     bl_options = {'UNDO'}
 
     directory: StringProperty()
-    filename_ext: ".fst"
+    filename_ext = ".fst"
 
     # TODO: instead create a new directory instead of a file.
 
@@ -247,18 +247,18 @@ class FSTWriterOperator(bpy.types.Operator, ExportHelper):
 
         armatures = find_armatures(to_export)
         if len(armatures) > 1 or len(armatures) == 0:
-            bpy.ops.hifi_error_no_armature.export('INVOKE_DEFAULT')
+            bpy.ops.hifi.export_error_no_armature.export('INVOKE_DEFAULT')
             return {'CANCELLED'}
 
         val = FSTWriter.fst_export(self, to_export)
 
         if val == {'FINISHED'}:
             if len(armatures[0].data.edit_bones) > 100:
-                bpy.ops.hifi_warn.bone_count('INVOKE_DEFAULT')
+                bpy.ops.hifi.export_warn.bone_count('INVOKE_DEFAULT')
             else:
-                bpy.ops.hifi_success.export('INVOKE_DEFAULT')
+                bpy.ops.hifi.export_success('INVOKE_DEFAULT')
             return {'FINISHED'}
         else:
-            bpy.ops.hifi_error.export('INVOKE_DEFAULT')
+            bpy.ops.hifi.export_error('INVOKE_DEFAULT')
             return val
 

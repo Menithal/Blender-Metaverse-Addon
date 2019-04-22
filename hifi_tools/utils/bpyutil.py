@@ -17,7 +17,6 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
-
 # Copyright 2019 Matti 'Menithal' Lahtinen
 import bpy
 

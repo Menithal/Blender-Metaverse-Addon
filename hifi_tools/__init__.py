@@ -374,6 +374,7 @@ def menu_func_export(self, context):
 
 
 classes = (
+    ATPReminderOperator,
     ExportHifiFBX,
     IPFSFeatureInfo,
     FSTWriterOperator,

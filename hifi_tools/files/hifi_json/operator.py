@@ -71,19 +71,20 @@ class JSONWriterOperator(bpy.types.Operator, ExportHelper):
     bl_label = "Export HiFi Scene"
     bl_options = {'UNDO'}
 
+    filename_ext = ".hifi.json"
+
     directory: StringProperty()
-    filename_ext: ".hifi.json"
     filter_glob: StringProperty(default="*.hifi.json", options={'HIDDEN'})
 
     atp: BoolProperty(default=False, name="Use ATP / Upload to domain",
-                       description="Use ATP instead of Marketplace / upload assets to domain")
+                      description="Use ATP instead of Marketplace / upload assets to domain")
     use_folder: BoolProperty(default=True, name="Use Folder",
-                              description="Upload Files as a folder instead of individually")
+                             description="Upload Files as a folder instead of individually")
 
     url_override: StringProperty(default="", name="Marketplace / Base Url",
-                                  description="Set Marketplace / URL Path here to override")
+                                 description="Set Marketplace / URL Path here to override")
     clone_scene: BoolProperty(default=False, name="Clone Scene prior to export", description="Clones the scene and performs the automated export functions on the clone instead of the original. " +
-                               "WARNING: instancing will not work, and ids will no longer be the same, for future features.")
+                              "WARNING: instancing will not work, and ids will no longer be the same, for future features.")
     remove_trailing: BoolProperty(
         default=False, name="Remove Trailing .### from names")
 
@@ -94,13 +95,13 @@ class JSONWriterOperator(bpy.types.Operator, ExportHelper):
 
         if not self.atp:
             layout.label(
-                "Url Override: Add Marketplace / URL to make sure that the content can be reached.")
+                text="Url Override: Add Marketplace / URL to make sure that the content can be reached.")
             layout.prop(self, "url_override")
         else:
             layout.prop(self, "use_folder")
 
         layout.label(
-            "Clone scene: Performs automated actions on a cloned scene instead of the original.")
+            text="Clone scene: Performs automated actions on a cloned scene instead of the original.")
         layout.prop(self, "clone_scene")
         layout.prop(self, "remove_trailing")
 
@@ -109,7 +110,7 @@ class JSONWriterOperator(bpy.types.Operator, ExportHelper):
             raise Exception("filepath not set")
 
         if not self.url_override and not self.atp:
-            bpy.ops.hifi_error.atp_or_override_not_in_use('INVOKE_DEFAULT')
+            bpy.ops.hifi.error_atp_or_override_not_in_use('INVOKE_DEFAULT')
             return {'CANCELLED'}
            # raise Exception("You must Use ATP or Set the Marketplace / base URL to make sure that the content can be reached after you upload it. ATP currently not supported")
 

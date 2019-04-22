@@ -228,11 +228,12 @@ def rename_bones_and_fix_most_things(self, context):
     if len(self.armature) < 1:
         print("Armature Update cancelled")
         return {"CANCELLED"}
-    
+
     try:
         bpy.ops.wm.console_toggle()
     except:
-
+        print("Console Toggle")
+    
     mode = bpy.context.area.type
 
     # Naming Converted
@@ -370,17 +371,16 @@ def rename_bones_and_fix_most_things(self, context):
                                 name=blend_map.to, from_mix=True)
                             block.value = 0
 
-
     if self.remove_ends:
         bpy.context.area.type = mode
         bpy.ops.object.mode_set(mode="OBJECT")
         bpy.ops.object.mode_set(mode="EDIT")
         bones.clean_ends(child)
 
-    #for material in bpy.data.materials:
+    # for material in bpy.data.materials:
     #    materials.flip_material_specular(material)
 
-    #if self.remove_metallic:
+    # if self.remove_metallic:
     #    materials.remove_materials_metallic(bpy.data.materials)
 
     if self.mask_textures:

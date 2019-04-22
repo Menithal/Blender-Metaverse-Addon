@@ -217,10 +217,8 @@ def parse_object(blender_object, path, options):
         # TODO: Add Option to not embedtextures / copy paths
         file_path = path + reference_name + uid + ".fbx"
 
-        atp_enabled = options.atp
-
-        bpy.ops.export_scene.fbx(filepath=file_path, version='BIN7400', embed_textures=True, path_mode='COPY',
-                            use_selection=True, axis_forward='-Z', axis_up='Y')
+        print("Writing FBX with path_mode=", file_path)
+        bpy.ops.hifi.export_scene_fbx(filepath=file_path, embed_textures=True, path_mode='COPY', use_selection=True, axis_forward='-Z', axis_up='Y')
 
         # Restore earlier rotation
         # blender_object.dimensions = temp_dimensions

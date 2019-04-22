@@ -88,6 +88,7 @@ class HifiBonePanel(bpy.types.Panel):
 
     @classmethod
     def poll(self, context):
+        print("CONTEXT")
         return context.mode == "EDIT_ARMATURE"
 
     def draw(self, context):
@@ -119,12 +120,11 @@ class HifiAvatarPanel(bpy.types.Panel):
         layout.operator(HifiCustomAvatarOperator.bl_idname)
         layout.operator(HifiMMDOperator.bl_idname)
         layout.operator(HifiMixamoOperator.bl_idname)
-        layout.operator(HifiMakeHumanOperator.bl_idname)
+        # layout.operator(HifiMakeHumanOperator.bl_idname)
         row = layout.row()
 
         row.operator(HifiPinPosteriorOperator.bl_idname)
         row.operator(HifiFixRollsOperator.bl_idname)
-        # TODO remove when done
 
         return None
 
@@ -533,7 +533,7 @@ class HifiSaveReminderOperator(bpy.types.Operator):
         row = layout.row()
         row.label(text="Warning:", icon="ERROR")
         row = layout.row()
-        row.label(self.bl_label)
+        row.label(text=self.bl_label)
 
 
 class HifiForumOperator(bpy.types.Operator):
@@ -568,6 +568,7 @@ class HifiDebugArmatureOperator(bpy.types.Operator):
 classes = (
     HifiArmaturePanel,
    # HifiMaterialsPanel,
+    HifiBonePanel,
     HifiAvatarPanel,
     HifiAssetsPanel,
     HifiArmatureCreateOperator,
@@ -580,7 +581,7 @@ classes = (
     HifiPinPosteriorOperator,
     HifiMMDOperator,
     HifiMixamoOperator,
-    HifiMakeHumanOperator,
+    #HifiMakeHumanOperator,
     HifiSaveReminderOperator,
     HifiIPFSCheckAssetsOperator,
     HifiCustomAvatarOperator,
@@ -603,10 +604,10 @@ def armature_create_menu_func(self, context):
 
 
 def register():
-    print("Panel Register")
+    print("Full Panel Register")
     module_register()
 
 def unregister():
-    print("Panel unRegister")
+    print("Full Panel unRegister")
     module_unregister()
 
