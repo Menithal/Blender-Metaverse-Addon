@@ -88,7 +88,6 @@ class HifiBonePanel(bpy.types.Panel):
 
     @classmethod
     def poll(self, context):
-        print("CONTEXT")
         return context.mode == "EDIT_ARMATURE"
 
     def draw(self, context):

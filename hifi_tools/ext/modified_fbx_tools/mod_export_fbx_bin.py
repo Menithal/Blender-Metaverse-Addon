@@ -311,7 +311,7 @@ def fbx_data_material_elements(root, ma, scene_data):
     """
     Write the Material data block.
     """
-    epbdsf_node = get_epbdsf_node(ma)
+    epbdsf_node = get_hifi_shader_node(ma)
     if epbdsf_node is not None:
         fbx_epbdsf_data_material_elements(root, ma, scene_data)
     else:
@@ -325,7 +325,7 @@ def fbx_data_texture_file_elements(root, blender_tex_key, scene_data):
     """
     ma, sock_name = blender_tex_key
     
-    epbdsf_node = get_epbdsf_node(ma)
+    epbdsf_node = get_hifi_shader_node(ma)
     if epbdsf_node is not None:
         fbx_epbdsf_data_texture_file_elements(root, blender_tex_key, scene_data)
     else:
@@ -517,7 +517,7 @@ def fbx_data_from_scene(scene, depsgraph, settings):
     data_videos = {}
     # For now, do not use world textures, don't think they can be linked to anything FBX wise...
     for ma in data_materials.keys():
-        has_extended_pricipled = get_epbdsf_node(ma)
+        has_extended_pricipled = get_hifi_shader_node(ma)
         ma_wrap = None
         sockets = None
         if has_extended_pricipled is not None:

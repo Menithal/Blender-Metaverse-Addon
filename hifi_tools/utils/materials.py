@@ -27,9 +27,7 @@ from bpy_extras.node_shader_utils import (
 )
 
 
-# TODO: Needs rewrite, as there is an entirely new materials system.
-
-CURRENT_VERSION = 1.0
+CURRENT_VERSION = 1.15
 CUSTOM_SHADER_NAME = "HFShader"
 
 
@@ -214,7 +212,6 @@ def clean_materials(materials_slots):
 
 # Simulated Hifi PBR
 
-
 def create_helper_shfpbr_shader_group():
     existing_shader_node = bpy.data.node_groups.get(CUSTOM_SHADER_NAME)
     if (existing_shader_node is None):
@@ -235,6 +232,9 @@ def create_helper_shfpbr_shader_group():
             version_frame.name = "ShaderVersion"
             version_frame.label = str(CURRENT_VERSION)
 
+            ## This is needed to make the shader seem a bit less shiny if it has a normal map defined: May be some strange Blender 2.8 issue not sure
+
+       
             # These are mainly to make life simpler for users,
             #  not really actually something that should be done
             roughness_rgb_to_bw = group_nodes.new("ShaderNodeRGBToBW")
@@ -326,7 +326,10 @@ def create_helper_shfpbr_shader_group():
             links.new(shader_pbsdf.inputs['Roughness'],
                       roughness_rgb_to_bw.outputs[0])
 
+            # Normal Mix
             links.new(shader_pbsdf.inputs['Normal'], group_inputs.outputs[6])
+            
+            
             links.new(group_outputs.inputs[0],
                       alpha_mixer_node.outputs['Shader'])
 
@@ -351,7 +354,7 @@ def create_helper_shfpbr_shader_group():
             create_helper_shfpbr_shader_group()
         else:
             print("Shader Group already exist", version)
-
+            
 
 def get_hifi_shader_node(material):
     for node in material.node_tree.nodes:
