@@ -2,7 +2,8 @@
 
 Plugin ("Project Hermes") is a plugin for Blender to allow for easier content creation and importing for the High Fidelity Metaverse Platform.
 
-## Existing installations should be removed prior to installing this new version of the Blender PLugin
+## 1.4 works only with Blender 2.80
+
 
 ----
 
@@ -34,13 +35,12 @@ On Windows this is under `%APPDATA%/Blender Foundation/Blender/<BlenderVersion>/
     - `MMD Avatar` - Translates and fixes MMD models and their materials for them to work in High Fidelity. [Full MMD Avatar import tutorial here](https://www.youtube.com/watch?v=tJX8VUPZLKQ)
     - `Mixamo Avatar` - Translates and fixes mixamo models and their materials for them to work in High Fidelity
 - Material Tools
-    - `Make All Fullbright` - Sets ALL materials fullbright
-    - `Make All Shadeless` - Sets ALL materials shadeless - Will not work for avatars, however.
-    - `Textures To PNG` - Converts ALL images used in the blend file to png. You must save first
-    - `Textures To Mask` - Converts ALL Opaque images into Masks, avoiding z sort issues with avatars
+   - `HFShader` - Eevee / Cycles Node shade group that allows one to quickly bind Materials for High Fidelity. Use `HFShader` **instead of** `Principled BDSF`
+   - `Set Non-Diffuse ColorData` and `Auto Correct on Save` Tools that fixes color spaces for Roughness, Normal, and Metallic textures bound to the `HFShader` 
 
 # Export Tools:
 
+- `File > Export > Hifi FBX`: Custom FBX that binds to materials used in High Fidelity using the `HFShader` Node Group, into a format understood by High Fidelity
 - `File > Export > Hifi Avatar FST`: Exports Avatar, applies necessary steps for avatar to work in High Fifelity. 
    - Supports Embedded textures: Exports Textures embedded to file
    - Supports Selected Only: Exports Selected only
