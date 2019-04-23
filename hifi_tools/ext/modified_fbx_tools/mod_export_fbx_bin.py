@@ -197,8 +197,6 @@ def fbx_epbdsf_data_material_elements(root, ma, scene_data):
     if ma_wrap.color_map is not None:
         elem_props_template_set(tmpl, props, "p_bool", b"Maya|use_color_map", True)
 
-    print(ma_wrap.roughness)
-
     elem_props_template_set(tmpl, props, "p_number", b"Roughness", ma_wrap.roughness)
     elem_props_template_set(tmpl, props, "p_number", b"Maya|roughness", ma_wrap.roughness)
     shininess = (1.0 - ma_wrap.roughness) * 10

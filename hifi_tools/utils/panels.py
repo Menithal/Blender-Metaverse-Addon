@@ -35,12 +35,13 @@ from hifi_tools.gateway import client as GatewayClient
 
 # TODO: Start clearing these specific imports and just use the packages....
 
+
 from hifi_tools.utils.bones import combine_bones, build_skeleton, retarget_armature, correct_scale_rotation, set_selected_bones_physical, remove_selected_bones_physical, bone_connection, pin_common_bones
 from hifi_tools.armature.skeleton import structure as base_armature
 from hifi_tools.utils.mmd import convert_mmd_avatar_hifi
 from hifi_tools.utils.mixamo import convert_mixamo_avatar_hifi
 from hifi_tools.utils.makehuman import convert_makehuman_avatar_hifi
-from hifi_tools.utils.materials import convert_to_png, convert_images_to_mask
+from hifi_tools.utils.materials import convert_to_png, convert_images_to_mask, correct_all_color_spaces_to_non_color
 from hifi_tools.armature.debug_armature_extract import armature_debug
 from hifi_tools.utils.custom import HifiCustomAvatarBinderOperator
 
@@ -143,9 +144,10 @@ class HifiMaterialsPanel(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator(HifiMaterialFullbrightOperator.bl_idname)
+        #layout.operator(HifiMaterialFullbrightOperator.bl_idname)
         layout.operator(HifiTexturesConvertToPngOperator.bl_idname)
         layout.operator(HifiTexturesMakeMaskOperator.bl_idname)
+        layout.operator(HifiColorCorrection.bl_idname)
         return None
 
 
@@ -534,6 +536,17 @@ class HifiSaveReminderOperator(bpy.types.Operator):
         row = layout.row()
         row.label(text=self.bl_label)
 
+class HifiColorCorrection(bpy.types.Operator):
+    bl_idname = "hifi.color_corrections"
+    bl_label = "Set Non-Diffuse ColorData to None"
+
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = "High Fidelity"
+
+    def execute(self, context):
+        correct_all_color_spaces_to_non_color(context)
+
 
 class HifiForumOperator(bpy.types.Operator):
     bl_idname = "hifi.forum_link"
@@ -566,7 +579,7 @@ class HifiDebugArmatureOperator(bpy.types.Operator):
 
 classes = (
     HifiArmaturePanel,
-   # HifiMaterialsPanel,
+    HifiMaterialsPanel,
     HifiBonePanel,
     HifiAvatarPanel,
     HifiAssetsPanel,
@@ -580,6 +593,7 @@ classes = (
     HifiPinPosteriorOperator,
     HifiMMDOperator,
     HifiMixamoOperator,
+    HifiColorCorrection,
     #HifiMakeHumanOperator,
     HifiSaveReminderOperator,
     HifiIPFSCheckAssetsOperator,

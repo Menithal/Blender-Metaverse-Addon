@@ -26,8 +26,10 @@ from bpy_extras.node_shader_utils import (
     _set_check, rgb_to_rgba, rgba_to_rgb
 )
 
+from bpy.app.handlers import persistent
+import hifi_tools
 
-CURRENT_VERSION = 1.15
+CURRENT_VERSION = 1.2
 CUSTOM_SHADER_NAME = "HFShader"
 
 
@@ -85,7 +87,6 @@ def pack_images(images):
                 print("+ Packing", image.name, image.filepath)
             else:
                 bpy.data.images.remove(image)
-
         success = True
 
     except Exception as e:
@@ -234,24 +235,19 @@ def create_helper_shfpbr_shader_group():
 
             ## This is needed to make the shader seem a bit less shiny if it has a normal map defined: May be some strange Blender 2.8 issue not sure
 
-       
-            # These are mainly to make life simpler for users,
-            #  not really actually something that should be done
             roughness_rgb_to_bw = group_nodes.new("ShaderNodeRGBToBW")
             roughness_rgb_to_bw.location = (250, 150)
             roughness_rgb_to_bw.inputs[0].default_value = (0.8, 0.8, 0.8, 1)
             roughness_rgb_to_bw.hide = True
 
-            roughness_curve_adjust = group_nodes.new("ShaderNodeRGBCurve")
-            roughness_curve_adjust.inputs[0].default_value = 1
-            roughness_curve_adjust.inputs[1].default_value = (0.8, 0.8, 0.8, 1)
-
-            roughness_curve_adjust.location = (125, 150)
-
-            combined_curve = roughness_curve_adjust.mapping.curves[3]
-            combined_curve.points.new(0.386368, 0.75)
-            roughness_curve_adjust.mapping.update()
-            roughness_curve_adjust.hide = True
+            #roughness_curve_adjust = group_nodes.new("ShaderNodeRGBCurve")
+            #roughness_curve_adjust.inputs[0].default_value = 1
+            #roughness_curve_adjust.inputs[1].default_value = (0.8, 0.8, 0.8, 1)
+            #roughness_curve_adjust.location = (125, 150)
+            #combined_curve = roughness_curve_adjust.mapping.curves[3]
+            #combined_curve.points.new(0.386368, 0.75)
+            #roughness_curve_adjust.mapping.update()
+            #roughness_curve_adjust.hide = True
 
             metallic_rgb_to_bw = group_nodes.new("ShaderNodeRGBToBW")
             metallic_rgb_to_bw.location = (250, 250)
@@ -319,10 +315,10 @@ def create_helper_shfpbr_shader_group():
                       metallic_rgb_to_bw.outputs[0])
 
             # Shininess / Roughness Link
+            #links.new(
+            #    roughness_curve_adjust.inputs[1], group_inputs.outputs[5])
             links.new(
-                roughness_curve_adjust.inputs[1], group_inputs.outputs[5])
-            links.new(
-                roughness_rgb_to_bw.inputs[0], roughness_curve_adjust.outputs[0])
+                roughness_rgb_to_bw.inputs[0], group_inputs.outputs[5])
             links.new(shader_pbsdf.inputs['Roughness'],
                       roughness_rgb_to_bw.outputs[0])
 
@@ -366,6 +362,46 @@ def get_hifi_shader_node(material):
 
 def rgb_to_bw(rgb):
     return (rgb[0] + rgb[1] + rgb[2])/3
+
+
+def correct_node_color_space_to_non_color(input_node, index = 0):
+    if input_node is None:
+        return
+    
+    links = input_node.links
+    
+    if links is None or len(links) == 0:
+        return
+    
+    image = links[index].from_node
+    
+    if image.type == "TEX_IMAGE":
+        image.color_space = "NONE"
+ 
+@persistent
+def correct_all_color_spaces_to_non_color(context):    
+    user_preferences = bpy.context.preferences
+    addon_prefs = user_preferences.addons[hifi_tools.__name__].preferences
+    colorspaces_on_save = addon_prefs.get("automatic_color_space_fix")
+
+    if colorspaces_on_save is None:
+        colorspaces_on_save = True
+        addon_prefs["automatic_color_space_fix"] = True
+
+    if colorspaces_on_save:
+        print("Start colorspace corrections")
+        for mat in bpy.data.materials:
+            node = get_hifi_shader_node(mat)
+            if node is not None:
+                correct_node_color_space_to_non_color(node.inputs.get("Metallic"))
+                correct_node_color_space_to_non_color(node.inputs.get("Roughness"))
+                correct_node_color_space_to_non_color(node.inputs.get("Subsurface Scattering"))
+                normal_map_socket = node.inputs.get("Normal")
+                
+                if normal_map_socket is not None:
+                    normal_map = normal_map_socket.links[0].from_node
+                    correct_node_color_space_to_non_color(normal_map.inputs.get("Color"))
+                
 
 
 class HifiShaderWrapper(ShaderWrapper):
@@ -575,3 +611,6 @@ class HifiShaderWrapper(ShaderWrapper):
         )
 
     normal_map = property(normalmap_texture_get)
+
+
+

@@ -53,11 +53,9 @@ from .files.hifi_json.operator import *
 from .files.fst.operator import *
 from .gateway import client as GatewayClient
 
-
 from hifi_tools.utils.custom import custom_register, custom_unregister, scene_define, scene_delete
 
 # TODO: This is placeholder and will be shut down after more are available.
-
 
 def on_server_update(self, context):
     user_preferences = context.preferences
@@ -126,6 +124,12 @@ def on_token_update(self, context):
     bpy.ops.auth_success.export('INVOKE_DEFAULT')
 
     return None
+
+def on_color_space_automation_update(self, context):
+    print("Color Space Toggle", self.colorspaces_on_save, context)
+    user_preferences = context.preferences
+    addon_prefs = user_preferences.addons[__name__].preferences
+    addon_prefs["automatic_color_space_fix"] = self.colorspaces_on_save
 
 
 class IPFSFeatureInfo (bpy.types.Operator):
@@ -260,6 +264,12 @@ class AuthSuccessOperator(bpy.types.Operator):
 
 class HifiAddOnPreferences(AddonPreferences):
     bl_idname = __name__
+
+    colorspaces_on_save: BoolProperty(name="Correct Color Space on save",
+                                                     description="Correct Texture Color spaces for materials prior to saving.",
+                                                    default=True,
+                                                    update=on_color_space_automation_update)
+
     oventool: StringProperty(name="Oven Tool path (EXPERIMENTAL)",
                                    description="Point this to the High Fidelity Oven tool",
                                    subtype="FILE_PATH")
@@ -291,6 +301,7 @@ class HifiAddOnPreferences(AddonPreferences):
 
     def draw(self, context):
         layout = self.layout
+        layout.prop(self, "colorspaces_on_save")
         layout.prop(self, "oventool")
 
         if self.ipfs:
@@ -392,9 +403,11 @@ module_register, module_unregister = bpy.utils.register_classes_factory(classes)
 def startup_handler(scene):
     print("Load detected. Attempt to create stuff")
     utils.materials.create_helper_shfpbr_shader_group()
+    
 
 bpy.app.handlers.save_pre.append(startup_handler)
 bpy.app.handlers.load_post.append(startup_handler)
+bpy.app.handlers.save_pre.append(utils.materials.correct_all_color_spaces_to_non_color)
 
 
 def register():
@@ -411,4 +424,5 @@ def unregister():
     bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
     bpy.types.TOPBAR_MT_file_export.remove(menu_func_export)
     utils.panels.unregister()
+
 
