@@ -167,7 +167,7 @@ def fbx_epbdsf_data_material_elements(root, ma, scene_data):
     elem_props_template_set(tmpl, props, "p_number", b"DiffuseFactor", 1.0)
 
     elem_props_template_set(tmpl, props, "p_color", b"EmissiveColor", ma_wrap.base_color)
-    elem_props_template_set(tmpl, props, "p_number", b"EmissiveFactor", 10.0)
+    elem_props_template_set(tmpl, props, "p_number", b"EmissiveFactor", 1.0)
     
     
     # --------
@@ -215,7 +215,7 @@ def fbx_epbdsf_data_material_elements(root, ma, scene_data):
 
     elem_props_template_set(tmpl, props, "p_color", b"Emissive", ma_wrap.emissive)
     elem_props_template_set(tmpl, props, "p_color", b"Maya|emissive", ma_wrap.emissive)
-    elem_props_template_set(tmpl, props, "p_number", b"Maya|emissive_intensity", 0.0) #TODO: - matti Not apparently used by Hifi atm
+    elem_props_template_set(tmpl, props, "p_number", b"Maya|emissive_intensity", 1.0) #TODO: - matti Not apparently used by Hifi atm
     
     if ma_wrap.emissive_map is not None:
         elem_props_template_set(tmpl, props, "p_bool", b"Maya|use_emissive_map", True)
