@@ -167,7 +167,7 @@ def fbx_epbdsf_data_material_elements(root, ma, scene_data):
     elem_props_template_set(tmpl, props, "p_number", b"DiffuseFactor", 1.0)
 
     elem_props_template_set(tmpl, props, "p_color", b"EmissiveColor", ma_wrap.base_color)
-    elem_props_template_set(tmpl, props, "p_number", b"EmissiveFactor", 0.0)
+    elem_props_template_set(tmpl, props, "p_number", b"EmissiveFactor", 10.0)
     
     
     # --------

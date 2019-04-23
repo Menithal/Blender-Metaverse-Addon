@@ -546,6 +546,7 @@ class HifiColorCorrection(bpy.types.Operator):
 
     def execute(self, context):
         correct_all_color_spaces_to_non_color(context)
+        return {'FINISHED'}
 
 
 class HifiForumOperator(bpy.types.Operator):

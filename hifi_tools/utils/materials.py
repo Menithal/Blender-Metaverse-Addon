@@ -366,17 +366,18 @@ def rgb_to_bw(rgb):
 
 def correct_node_color_space_to_non_color(input_node, index = 0):
     if input_node is None:
-        return
+        return None
     
     links = input_node.links
     
     if links is None or len(links) == 0:
-        return
+        return None
     
     image = links[index].from_node
     
     if image.type == "TEX_IMAGE":
         image.color_space = "NONE"
+ 
  
 @persistent
 def correct_all_color_spaces_to_non_color(context):    
