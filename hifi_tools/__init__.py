@@ -20,7 +20,7 @@
 bl_info = {
     "name": "HiFi Blender Add-on",
     "author": "Matti 'Menithal' Lahtinen",
-    "version": (1, 4, 0),
+    "version": (1, 4, 1),
     "blender": (2, 80, 0),
     "location": "File > Import-Export, Materials, Armature",
     "description": "Blender tools to allow for easier Content creation for Metaverses, such as High Fidelity",
@@ -409,13 +409,13 @@ bpy.app.handlers.save_pre.append(startup_handler)
 bpy.app.handlers.load_post.append(startup_handler)
 bpy.app.handlers.save_pre.append(utils.materials.correct_all_color_spaces_to_non_color)
 
-
 def register():
     scene_define()
     module_register()
     bpy.types.TOPBAR_MT_file_import.append(menu_func_import)
     bpy.types.TOPBAR_MT_file_export.append(menu_func_export)
     utils.panels.register()
+    utils.materials.create_helper_shfpbr_shader_group()
 
 
 def unregister():
