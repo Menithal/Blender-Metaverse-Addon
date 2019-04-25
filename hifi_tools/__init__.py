@@ -415,7 +415,6 @@ def register():
     bpy.types.TOPBAR_MT_file_import.append(menu_func_import)
     bpy.types.TOPBAR_MT_file_export.append(menu_func_export)
     utils.panels.register()
-    utils.materials.create_helper_shfpbr_shader_group()
 
 
 def unregister():
