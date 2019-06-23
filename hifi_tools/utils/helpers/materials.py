@@ -25,11 +25,10 @@ from bpy_extras.node_shader_utils import (
     ShaderWrapper, ShaderImageTextureWrapper,
     _set_check, rgb_to_rgba, rgba_to_rgb
 )
-
 from bpy.app.handlers import persistent
 import hifi_tools
 
-CURRENT_VERSION = 1.2
+CURRENT_VERSION = 1.4
 CUSTOM_SHADER_NAME = "HFShader"
 
 
@@ -58,7 +57,7 @@ def cleanup_unused(images):
 def convert_to_png(images):
     if not bpy.data.is_saved:
         print("Select a Directory")
-        bpy.ops.hifi.error_save_file('INVOKE_DEFAULT')
+        bpy.ops.hifi_messages.remind_save('INVOKE_DEFAULT')
         return
 
     if pack_images(images):
@@ -213,6 +212,10 @@ def clean_materials(materials_slots):
 
 # Simulated Hifi PBR
 
+# Note this is now obsolete as 2.8 has fixed version
+# Deprecated
+
+
 def create_helper_shfpbr_shader_group():
     existing_shader_node = bpy.data.node_groups.get(CUSTOM_SHADER_NAME)
     if (existing_shader_node is None):
@@ -233,7 +236,7 @@ def create_helper_shfpbr_shader_group():
             version_frame.name = "ShaderVersion"
             version_frame.label = str(CURRENT_VERSION)
 
-            ## This is needed to make the shader seem a bit less shiny if it has a normal map defined: May be some strange Blender 2.8 issue not sure
+            # This is needed to make the shader seem a bit less shiny if it has a normal map defined: May be some strange Blender 2.8 issue not sure
 
             roughness_rgb_to_bw = group_nodes.new("ShaderNodeRGBToBW")
             roughness_rgb_to_bw.location = (250, 150)
@@ -246,7 +249,7 @@ def create_helper_shfpbr_shader_group():
             #roughness_curve_adjust.location = (125, 150)
             #combined_curve = roughness_curve_adjust.mapping.curves[3]
             #combined_curve.points.new(0.386368, 0.75)
-            #roughness_curve_adjust.mapping.update()
+            # roughness_curve_adjust.mapping.update()
             #roughness_curve_adjust.hide = True
 
             metallic_rgb_to_bw = group_nodes.new("ShaderNodeRGBToBW")
@@ -315,7 +318,7 @@ def create_helper_shfpbr_shader_group():
                       metallic_rgb_to_bw.outputs[0])
 
             # Shininess / Roughness Link
-            #links.new(
+            # links.new(
             #    roughness_curve_adjust.inputs[1], group_inputs.outputs[5])
             links.new(
                 roughness_rgb_to_bw.inputs[0], group_inputs.outputs[5])
@@ -324,8 +327,7 @@ def create_helper_shfpbr_shader_group():
 
             # Normal Mix
             links.new(shader_pbsdf.inputs['Normal'], group_inputs.outputs[6])
-            
-            
+
             links.new(group_outputs.inputs[0],
                       alpha_mixer_node.outputs['Shader'])
 
@@ -350,7 +352,7 @@ def create_helper_shfpbr_shader_group():
             create_helper_shfpbr_shader_group()
         else:
             print("Shader Group already exist", version)
-            
+
 
 def get_hifi_shader_node(material):
     for node in material.node_tree.nodes:
@@ -364,23 +366,23 @@ def rgb_to_bw(rgb):
     return (rgb[0] + rgb[1] + rgb[2])/3
 
 
-def correct_node_color_space_to_non_color(input_node, index = 0):
+def correct_node_color_space_to_non_color(input_node, index=0):
     if input_node is None:
         return None
-    
+
     links = input_node.links
-    
+
     if links is None or len(links) == 0:
         return None
-    
+
     image = links[index].from_node
-    
+
     if image.type == "TEX_IMAGE":
         image.color_space = "NONE"
- 
- 
+
+
 @persistent
-def correct_all_color_spaces_to_non_color(context):    
+def correct_all_color_spaces_to_non_color(context):
     user_preferences = bpy.context.preferences
     addon_prefs = user_preferences.addons[hifi_tools.__name__].preferences
     colorspaces_on_save = addon_prefs.get("automatic_color_space_fix")
@@ -394,21 +396,46 @@ def correct_all_color_spaces_to_non_color(context):
         for mat in bpy.data.materials:
             node = get_hifi_shader_node(mat)
             if node is not None:
-                correct_node_color_space_to_non_color(node.inputs.get("Metallic"))
-                correct_node_color_space_to_non_color(node.inputs.get("Roughness"))
-                correct_node_color_space_to_non_color(node.inputs.get("Subsurface Scattering"))
+                correct_node_color_space_to_non_color(
+                    node.inputs.get("Metallic"))
+                correct_node_color_space_to_non_color(
+                    node.inputs.get("Roughness"))
+                correct_node_color_space_to_non_color(
+                    node.inputs.get("Subsurface Scattering"))
                 normal_map_socket = node.inputs.get("Normal")
-                
+
                 if normal_map_socket is not None:
                     normal_map = normal_map_socket.links[0].from_node
-                    correct_node_color_space_to_non_color(normal_map.inputs.get("Color"))
-                
+                    correct_node_color_space_to_non_color(
+                        normal_map.inputs.get("Color"))
 
 
 class HifiShaderWrapper(ShaderWrapper):
+    """
+    Hard coded shader setup, based in Principled BSDF.
+    Should cover most common cases on import, and gives a basic nodal shaders support for export.
+    Supports basic: diffuse/spec/reflect/transparency/normal, with texturing.
+    """
+
+    NODES_LIST = (
+        "node_out",
+        "node_principled_bsdf",
+
+        "_node_normalmap",
+        "_node_texcoords",
+    )
+
+    __slots__ = (
+        "is_readonly",
+        "material",
+        *NODES_LIST,
+    )
+
+    NODES_LIST = ShaderWrapper.NODES_LIST + NODES_LIST
 
     def __init__(self, material, is_readonly=True, use_nodes=True):
-        super(HifiShaderWrapper, self).__init__(material, is_readonly, use_nodes)
+        super(HifiShaderWrapper, self).__init__(
+            material, is_readonly, use_nodes)
 
     def update(self):
         super(HifiShaderWrapper, self).update()
@@ -417,177 +444,298 @@ class HifiShaderWrapper(ShaderWrapper):
             return
 
         tree = self.material.node_tree
+
         nodes = tree.nodes
+        links = tree.links
 
+        # --------------------------------------------------------------------
+        # Main output and shader.
         node_out = None
-        node_group = None
+        node_principled = None
+        for n in nodes:
+            if n.bl_idname == 'ShaderNodeOutputMaterial' and n.inputs[0].is_linked:
+                node_out = n
+                node_principled = n.inputs[0].links[0].from_node
+            elif n.bl_idname == 'ShaderNodeBsdfPrincipled' and n.outputs[0].is_linked:
+                node_principled = n
+                for lnk in n.outputs[0].links:
+                    node_out = lnk.to_node
+                    if node_out.bl_idname == 'ShaderNodeOutputMaterial':
+                        break
+            if (
+                    node_out is not None and node_principled is not None and
+                    node_out.bl_idname == 'ShaderNodeOutputMaterial' and
+                    node_principled.bl_idname == 'ShaderNodeBsdfPrincipled'
+            ):
+                break
+            node_out = node_principled = None  # Could not find a valid pair, let's try again
 
-        for node in nodes:
-            if node.bl_idname == 'ShaderNodeOutputMaterial' and node.inputs[0].is_linked:
-                node_out = node
-                node_group = node.inputs[0].links[0].from_node
-                # Check Links
+        if node_out is not None:
+            self._grid_to_location(0, 0, ref_node=node_out)
+        elif not self.is_readonly:
+            node_out = nodes.new(type='ShaderNodeOutputMaterial')
+            node_out.label = "Material Out"
+            node_out.target = 'ALL'
+            self._grid_to_location(1, 1, dst_node=node_out)
+        self.node_out = node_out
 
-            elif node.bl_idname == 'ShaderNodeGroup' and node.node_tree == bpy.data.node_groups[CUSTOM_SHADER_NAME]:
-                node_group = node
-                node_out = node.outputs[0].links[0].to_node
+        if node_principled is not None:
+            self._grid_to_location(0, 0, ref_node=node_principled)
+        elif not self.is_readonly:
+            node_principled = nodes.new(type='ShaderNodeBsdfPrincipled')
+            node_principled.label = "Principled BSDF"
+            self._grid_to_location(0, 1, dst_node=node_principled)
+            # Link
+            links.new(node_principled.outputs["BSDF"],
+                      self.node_out.inputs["Surface"])
+        self.node_principled_bsdf = node_principled
 
-            if node_group is not None and node_out is not None:
-                if node_group.outputs[0].links[0].to_node == node_out:
-                    break
-
-            node_out = node_group = None  # Reset, No valid pair found yet.
-
-        self.node_group = node_group
-        # If No Texture is set, fall back on default.
-
+        # --------------------------------------------------------------------
+        # Normal Map, lazy initialization...
         self._node_normalmap = ...
+
+        # --------------------------------------------------------------------
+        # Tex Coords, lazy initialization...
         self._node_texcoords = ...
 
-    def normalmap_get(self):
-        if not self.use_nodes or self.node_group is None:
+    def node_normalmap_get(self):
+        if not self.use_nodes or self.node_principled_bsdf is None:
             return None
-
-        node_group = self.node_group
+        node_principled = self.node_principled_bsdf
         if self._node_normalmap is ...:
-            if node_group.inputs["Normal"].is_linked:
-                node_normalmap = node_group.inputs["Normal"].links[0].from_node
+            # Running only once, trying to find a valid normalmap node.
+            if node_principled.inputs["Normal"].is_linked:
+                node_normalmap = node_principled.inputs["Normal"].links[0].from_node
                 if node_normalmap.bl_idname == 'ShaderNodeNormalMap':
                     self._node_normalmap = node_normalmap
-                    #self._grid_to_location(0, 0, ref_node=node_normalmap)
+                    self._grid_to_location(0, 0, ref_node=node_normalmap)
             if self._node_normalmap is ...:
                 self._node_normalmap = None
+        if self._node_normalmap is None and not self.is_readonly:
+            tree = self.material.node_tree
+            nodes = tree.nodes
+            links = tree.links
 
+            node_normalmap = nodes.new(type='ShaderNodeNormalMap')
+            node_normalmap.label = "Normal/Map"
+            self._grid_to_location(-1, -2, dst_node=node_normalmap,
+                                   ref_node=node_principled)
+            # Link
+            links.new(node_normalmap.outputs["Normal"],
+                      node_principled.inputs["Normal"])
+            self._node_normalmap = node_normalmap
         return self._node_normalmap
 
-    normalmap = property(normalmap_get)  # this is found by hifi.
+    node_normalmap = property(node_normalmap_get)
+
+    # --------------------------------------------------------------------
+    # Base Color.
 
     def base_color_get(self):
-        if not self.use_nodes or self.node_group is None:
+        if not self.use_nodes or self.node_principled_bsdf is None:
             return self.material.diffuse_color
-        return rgba_to_rgb(self.node_group.inputs["Diffuse"].default_value)
+        return rgba_to_rgb(self.node_principled_bsdf.inputs["Base Color"].default_value)
 
     @_set_check
     def base_color_set(self, color):
         color = rgb_to_rgba(color)
         self.material.diffuse_color = color
-        if self.use_nodes and self.node_group is not None:
-            self.node_group.inputs["Diffuse"].default_value = color
+        if self.use_nodes and self.node_principled_bsdf is not None:
+            self.node_principled_bsdf.inputs["Base Color"].default_value = color
 
     base_color = property(base_color_get, base_color_set)
 
     def base_color_texture_get(self):
-        if not self.use_nodes or self.node_group is None:
+        if not self.use_nodes or self.node_principled_bsdf is None:
             return None
         return ShaderImageTextureWrapper(
-            self, self.node_group,
-            self.node_group.inputs["Diffuse"],
+            self, self.node_principled_bsdf,
+            self.node_principled_bsdf.inputs["Base Color"],
             grid_row_diff=1,
         )
 
-    color_map = property(base_color_texture_get)
+    base_color_texture = property(base_color_texture_get)
+
+    # --------------------------------------------------------------------
+    # Specular.
+
+    def specular_get(self):
+        if not self.use_nodes or self.node_principled_bsdf is None:
+            return self.material.specular_intensity
+        return self.node_principled_bsdf.inputs["Specular"].default_value
+
+    @_set_check
+    def specular_set(self, value):
+        self.material.specular_intensity = value
+        if self.use_nodes and self.node_principled_bsdf is not None:
+            self.node_principled_bsdf.inputs["Specular"].default_value = value
+
+    specular = property(specular_get, specular_set)
+
+    def specular_tint_get(self):
+        if not self.use_nodes or self.node_principled_bsdf is None:
+            return 0.0
+        return self.node_principled_bsdf.inputs["Specular Tint"].default_value
+
+    @_set_check
+    def specular_tint_set(self, value):
+        if self.use_nodes and self.node_principled_bsdf is not None:
+            self.node_principled_bsdf.inputs["Specular Tint"].default_value = value
+
+    specular_tint = property(specular_tint_get, specular_tint_set)
+
+    # Will only be used as gray-scale one...
+
+    def specular_texture_get(self):
+        if not self.use_nodes or self.node_principled_bsdf is None:
+            print("NO NODES!")
+            return None
+        return ShaderImageTextureWrapper(
+            self, self.node_principled_bsdf,
+            self.node_principled_bsdf.inputs["Specular"],
+            grid_row_diff=0,
+        )
+
+    specular_texture = property(specular_texture_get)
+
+    # --------------------------------------------------------------------
+    # Roughness (also sort of inverse of specular hardness...).
 
     def roughness_get(self):
-        if not self.use_nodes or self.node_group is None:
-            return None
-        return rgb_to_bw(self.node_group.inputs["Roughness"].default_value)
+        if not self.use_nodes or self.node_principled_bsdf is None:
+            return self.material.roughness
+        return self.node_principled_bsdf.inputs["Roughness"].default_value
 
     @_set_check
     def roughness_set(self, value):
         self.material.roughness = value
-        if self.use_nodes and self.node_group is not None:
-            self.node_group.inputs["Roughness"].default_value = value
+        if self.use_nodes and self.node_principled_bsdf is not None:
+            self.node_principled_bsdf.inputs["Roughness"].default_value = value
 
     roughness = property(roughness_get, roughness_set)
 
+    # Will only be used as gray-scale one...
+
     def roughness_texture_get(self):
-        if not self.use_nodes or self.node_group is None:
+        if not self.use_nodes or self.node_principled_bsdf is None:
             return None
         return ShaderImageTextureWrapper(
-            self, self.node_group,
-            self.node_group.inputs["Roughness"],
+            self, self.node_principled_bsdf,
+            self.node_principled_bsdf.inputs["Roughness"],
             grid_row_diff=0,
         )
 
-    roughness_map = property(roughness_texture_get)
+    roughness_texture = property(roughness_texture_get)
+
+    # --------------------------------------------------------------------
+    # Metallic (a.k.a reflection, mirror).
 
     def metallic_get(self):
-        if not self.use_nodes or self.node_group is None:
-            return rgb_to_bw(self.material.metallic)
-        return rgb_to_bw(self.node_group.inputs["Metallic"].default_value)
+        if not self.use_nodes or self.node_principled_bsdf is None:
+            return self.material.metallic
+        return self.node_principled_bsdf.inputs["Metallic"].default_value
 
     @_set_check
     def metallic_set(self, value):
         self.material.metallic = value
-        if self.use_nodes and self.node_group is not None:
-            self.node_group.inputs["Metallic"].default_value = value
+        if self.use_nodes and self.node_principled_bsdf is not None:
+            self.node_principled_bsdf.inputs["Metallic"].default_value = value
 
     metallic = property(metallic_get, metallic_set)
 
     # Will only be used as gray-scale one...
 
     def metallic_texture_get(self):
-        if not self.use_nodes or self.node_group is None:
+        if not self.use_nodes or self.node_principled_bsdf is None:
             return None
         return ShaderImageTextureWrapper(
-            self, self.node_group,
-            self.node_group.inputs["Metallic"],
+            self, self.node_principled_bsdf,
+            self.node_principled_bsdf.inputs["Metallic"],
             grid_row_diff=0,
         )
 
-    metallic_map = property(metallic_texture_get)
+    metallic_texture = property(metallic_texture_get)
 
-    def transparency_get(self):
-        if not self.use_nodes or self.node_group is None:
-            return 0.0
-        return self.node_group.inputs["Alpha"].default_value
+    # --------------------------------------------------------------------
+    # Transparency settings.
+
+    def ior_get(self):
+        if not self.use_nodes or self.node_principled_bsdf is None:
+            return 1.0
+        return self.node_principled_bsdf.inputs["IOR"].default_value
 
     @_set_check
-    def transparency_set(self, value):
-        self.material.metallic = value
-        if self.use_nodes and self.node_group is not None:
-            self.node_group.inputs["Alpha"].default_value = value
+    def ior_set(self, value):
+        if self.use_nodes and self.node_principled_bsdf is not None:
+            self.node_principled_bsdf.inputs["IOR"].default_value = value
 
-    transparency = property(transparency_get, transparency_set)
+    ior = property(ior_get, ior_set)
 
     # Will only be used as gray-scale one...
 
-    def transparency_texture_get(self):
-        if not self.use_nodes or self.node_group is None:
+    def ior_texture_get(self):
+        if not self.use_nodes or self.node_principled_bsdf is None:
             return None
         return ShaderImageTextureWrapper(
-            self, self.node_group,
-            self.node_group.inputs["Alpha"],
-            grid_row_diff=0,
+            self, self.node_principled_bsdf,
+            self.node_principled_bsdf.inputs["IOR"],
+            grid_row_diff=-1,
         )
-    # dubious
-    transparency_texture = property(transparency_texture_get)
 
-    def emissive_get(self):
-        if not self.use_nodes or self.node_group is None:
+    ior_texture = property(ior_texture_get)
+
+    def transmission_get(self):
+        if not self.use_nodes or self.node_principled_bsdf is None:
             return 0.0
-        return self.node_group.inputs["Emission"].default_value
+        return self.node_principled_bsdf.inputs["Transmission"].default_value
 
     @_set_check
-    def emissive_set(self, value):
-        self.material.metallic = value
-        if self.use_nodes and self.node_group is not None:
-            self.node_group.inputs["Emission"].default_value = value
+    def transmission_set(self, value):
+        if self.use_nodes and self.node_principled_bsdf is not None:
+            self.node_principled_bsdf.inputs["Transmission"].default_value = value
 
-    emissive = property(emissive_get, emissive_set)
+    transmission = property(transmission_get, transmission_set)
 
     # Will only be used as gray-scale one...
 
-    def emissive_texture_get(self):
-        if not self.use_nodes or self.node_group is None:
+    def transmission_texture_get(self):
+        if not self.use_nodes or self.node_principled_bsdf is None:
             return None
         return ShaderImageTextureWrapper(
-            self, self.node_group,
-            self.node_group.inputs["Emission"],
-            grid_row_diff=0,
+            self, self.node_principled_bsdf,
+            self.node_principled_bsdf.inputs["Transmission"],
+            grid_row_diff=-1,
         )
 
-    emissive_map = property(emissive_texture_get)
+    transmission_texture = property(transmission_texture_get)
+
+    def alpha_get(self):
+        if not self.use_nodes or self.node_principled_bsdf is None:
+            return 1.0
+        return self.node_principled_bsdf.inputs["Alpha"].default_value
+
+    @_set_check
+    def alpha_set(self, value):
+        if self.use_nodes and self.node_principled_bsdf is not None:
+            self.node_principled_bsdf.inputs["Alpha"].default_value = value
+
+    alpha = property(alpha_get, alpha_set)
+
+    # Will only be used as gray-scale one...
+
+    def alpha_texture_get(self):
+        if not self.use_nodes or self.node_principled_bsdf is None:
+            return None
+        return ShaderImageTextureWrapper(
+            self, self.node_principled_bsdf,
+            self.node_principled_bsdf.inputs["Alpha"],
+            grid_row_diff=-1,
+        )
+
+    alpha_texture = property(alpha_texture_get)
+
+    # --------------------------------------------------------------------
+    # Normal map.
 
     def normalmap_strength_get(self):
         if not self.use_nodes or self.node_normalmap is None:
@@ -603,15 +751,37 @@ class HifiShaderWrapper(ShaderWrapper):
         normalmap_strength_get, normalmap_strength_set)
 
     def normalmap_texture_get(self):
-        if not self.use_nodes or self.normalmap is None:
+        if not self.use_nodes or self.node_normalmap is None:
             return None
         return ShaderImageTextureWrapper(
-            self, self.normalmap,
-            self.normalmap.inputs["Color"],
+            self, self.node_normalmap,
+            self.node_normalmap.inputs["Color"],
             grid_row_diff=-2,
         )
 
-    normal_map = property(normalmap_texture_get)
+    normalmap_texture = property(normalmap_texture_get)
 
+    def emission_get(self):
+        if not self.use_nodes or self.node_principled_bsdf is None:
+            return 1.0
+        return self.node_principled_bsdf.inputs["Emission"].default_value
 
+    @_set_check
+    def emission_set(self, value):
+        if self.use_nodes and self.node_principled_bsdf is not None:
+            self.node_principled_bsdf.inputs["Emission"].default_value = value
 
+    emissive = property(emission_get, emission_set)
+
+    # Will only be used as gray-scale one...
+
+    def emission_texture_get(self):
+        if not self.use_nodes or self.node_principled_bsdf is None:
+            return None
+        return ShaderImageTextureWrapper(
+            self, self.node_principled_bsdf,
+            self.node_principled_bsdf.inputs["Emission"],
+            grid_row_diff=-1,
+        )
+
+    emission_texture = property(emission_texture_get)

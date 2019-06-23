@@ -23,9 +23,8 @@
 import bpy
 from hashlib import md5
 from mathutils import Quaternion, Vector, Euler, Matrix
-
 from hifi_tools.world import primitives as prims
-from hifi_tools.utils.helpers import PIVOT_VECTOR, swap_nyz, swap_nzy, parse_dict_quaternion, parse_dict_vector, swap_yz, swap_pivot, quat_swap_nyz
+from hifi_tools.utils.helpers.extra_math import PIVOT_VECTOR, swap_nyz, swap_nzy, parse_dict_quaternion, parse_dict_vector, swap_yz, swap_pivot, quat_swap_nyz
 
 
 class HifiScene:

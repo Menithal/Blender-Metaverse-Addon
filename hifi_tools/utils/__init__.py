@@ -19,14 +19,9 @@
 # Copyright 2019 Matti 'Menithal' Lahtinen
 
 from . import (
-    panels,
-    helpers,
-    mesh,
+    bpyutil,
+    ui,
     bones,
-    custom,
-    mmd,
-    mixamo,
-    materials,
-    bake_tool
+    dev,
+    helpers
 )
-import bpy

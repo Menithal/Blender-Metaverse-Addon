@@ -21,7 +21,10 @@
 # Copyright 2019 Matti 'Menithal' Lahtinen
 import bpy
 import re
-from hifi_tools.utils import bones, mesh, materials, bpyutil
+from . import bones_builder
+from hifi_tools.utils import bpyutil
+from hifi_tools.utils.helpers import mesh, materials
+
 from bpy.props import StringProperty, BoolProperty, PointerProperty
 
 
@@ -108,7 +111,7 @@ def automatic_bind_bones(self, avatar_bones):
     knee_check = False
     cleaned_bones = dict()
     for bone in avatar_bones:
-        cleaned_bones[bones.clean_up_bone_name(bone.name).lower()] = bone
+        cleaned_bones[bones_builder.clean_up_bone_name(bone.name).lower()] = bone
 
     keys = list(cleaned_bones.keys())
     for cleaned_name in keys:
@@ -197,7 +200,7 @@ def update_bone_name(edit_bones, from_name, to_name):
 
 def update_bone_name_mirrored(edit_bones, from_name, to_name):
     print(' - update_bone_name_mirrored', from_name, to_name)
-    mirrored = bones.get_bone_side_and_mirrored(from_name)
+    mirrored = bones_builder.get_bone_side_and_mirrored(from_name)
     if mirrored is not None:
         update_bone_name(edit_bones, from_name, mirrored.side + to_name)
         update_bone_name(edit_bones, mirrored.mirror_name,
@@ -206,7 +209,7 @@ def update_bone_name_mirrored(edit_bones, from_name, to_name):
 
 def update_bone_name_chained_mirrored(edit_bones, from_name, to_name):
     print(' - update_bone_name_chained_mirrored', from_name, to_name)
-    bone = bones.get_bone_side_and_mirrored(from_name)
+    bone = bones_builder.get_bone_side_and_mirrored(from_name)
 
     if bone is not None and bone.index is not None:
         update_bone_name(edit_bones, bone.name,
@@ -297,7 +300,7 @@ def rename_bones_and_fix_most_things(self, context):
             object_armature = obj
             break
 
-    bones.reset_scale_rotation(object_armature)
+    bones_builder.reset_scale_rotation(object_armature)
 
     # Fixing Rotations and Scales
     # Now Refresh datablocks
@@ -312,11 +315,11 @@ def rename_bones_and_fix_most_things(self, context):
 
     for bone in ebones:
         bone.hide = False
-        bone.name = bones.clean_up_bone_name(bone.name)
-        bones.correct_bone_rotations(bone)
-        bones.correct_bone(bone, ebones)
+        bone.name = bones_builder.clean_up_bone_name(bone.name)
+        bones_builder.correct_bone_rotations(bone)
+        bones_builder.correct_bone(bone, ebones)
 
-    bones.correct_bone_parents(armature.edit_bones)
+    bones_builder.correct_bone_parents(armature.edit_bones)
     bpy.ops.object.mode_set(mode="OBJECT")
     bpy.ops.object.select_all(action="DESELECT")
     # TODO: This should be more selective and only affect the armature object's children.
@@ -325,7 +328,7 @@ def rename_bones_and_fix_most_things(self, context):
     for child in children:
         if child.type == "ARMATURE":
             child.select_set(state=True)
-            bones.correct_scale_rotation(child, True)
+            bones_builder.correct_scale_rotation(child, True)
             bpy.ops.object.mode_set(mode="POSE")
             bpy.ops.pose.select_all(action="SELECT")
             bpy.ops.pose.transforms_clear()
@@ -335,11 +338,11 @@ def rename_bones_and_fix_most_things(self, context):
             if self.pin_problems:
                 print("PIN PROBLEM")
                 bpy.ops.object.mode_set(mode="EDIT")
-                bones.pin_common_bones(child, self.fix_rolls)
+                bones_builder.pin_common_bones(child, self.fix_rolls)
 
         if child.type == "MESH":
             #        mesh.clean_unused_vertex_groups(child)
-            bones.reset_scale_rotation(child)
+            bones_builder.reset_scale_rotation(child)
             if spine_was_split:
                 print("Dealing with the Spine split for" + child.name)
                 spine1_weights = child.vertex_groups["Spine1"]
@@ -375,7 +378,7 @@ def rename_bones_and_fix_most_things(self, context):
         bpy.context.area.type = mode
         bpy.ops.object.mode_set(mode="OBJECT")
         bpy.ops.object.mode_set(mode="EDIT")
-        bones.clean_ends(child)
+        bones_builder.clean_ends(child)
 
     # for material in bpy.data.materials:
     #    materials.flip_material_specular(material)
@@ -399,8 +402,8 @@ def rename_bones_and_fix_most_things(self, context):
     return {"FINISHED"}
 
 
-class HifiCustomAvatarBinderOperator(bpy.types.Operator):
-    bl_idname = "hifi.mirror_custom_avatar_bind"
+class AVATAR_OT_HIFI_Custom_Avatar_Binder_Operator(bpy.types.Operator):
+    bl_idname = "hifi.open_custom_avatar_binder"
     bl_label = "Custom Avatar Binding Tool"
 
     custom_armature_name: bpy.props.StringProperty()
@@ -469,7 +472,7 @@ class HifiCustomAvatarBinderOperator(bpy.types.Operator):
             data = armature.data
             self.armature = data.name
 
-            bones.nuke_mixamo_prefix(data.edit_bones)
+            bones_builder.nuke_mixamo_prefix(data.edit_bones)
 
             bpy.ops.object.mode_set(mode="OBJECT")
             automatic_bind_bones(self, data.bones)
@@ -576,8 +579,8 @@ def scene_delete():
 
 
 def custom_register():
-    bpy.utils.register_class(HifiCustomAvatarBinderOperator)
+    bpy.utils.register_class(AVATAR_OT_HIFI_Custom_Avatar_Binder_Operator)
 
 
 def custom_unregister():
-    bpy.utils.unregister_class(HifiCustomAvatarBinderOperator)
+    bpy.utils.unregister_class(AVATAR_OT_HIFI_Custom_Avatar_Binder_Operator)

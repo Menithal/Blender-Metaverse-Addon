@@ -28,7 +28,7 @@ import os
 import mimetypes
 
 # TODO: Better way would be to use stuff like requests. but finding a way to automate installation  for the blender plugin would be good to have
-# Unfortunately, BLender doenst support pip natively, so anyone installing would have to follow some very convoluted steps just to install the plugin
+# Unfortunately, Blender doenst support pip natively, so anyone installing would have to follow some very convoluted steps just to install the plugin
 
 # Thus, doing is by hand.
 

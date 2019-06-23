@@ -18,8 +18,6 @@
 # Original copyright (C) Campbell Barton, Bastien Montagne
 # imported to use modified version by Matti Lahtinen
 
-
-
 import bpy
 from bpy_extras.io_utils import (
         ImportHelper,
@@ -37,10 +35,10 @@ from bpy.types import AddonPreferences
 from bpy.app.handlers import persistent
 
 @orientation_helper(axis_forward='-Z', axis_up='Y')
-class ExportHifiFBX(bpy.types.Operator, ExportHelper):
+class EXPORT_OT_HIFI_FBX(bpy.types.Operator, ExportHelper):
     """Write a FBX file"""
     bl_idname = "hifi.export_scene_fbx"
-    bl_label = "Export FBX"
+    bl_label = "Export FBX (HIFI)"
     bl_options = {'UNDO', 'PRESET'}
 
     filename_ext = ".fbx"

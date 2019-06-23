@@ -27,12 +27,12 @@ import array
 import math
 import os
 import time
-
-from hifi_tools.utils.materials import HifiShaderWrapper, get_hifi_shader_node
-from itertools import chain
-
 import bpy
 import bpy_extras
+
+from hifi_tools.utils.helpers.materials import HifiShaderWrapper, get_hifi_shader_node
+from itertools import chain
+
 from bpy_extras import node_shader_utils
 
 from mathutils import Vector, Matrix
@@ -120,16 +120,16 @@ from io_scene_fbx.export_fbx_bin import (
 
 
 # Mapping Blender -> FBX (principled_socket_name, fbx_name).
-EXTENDED_PRINCIPLED_TEXTURE_SOCKETS_TO_FBX = (
+HIFI_SPECIFIC_SOCKETS_FBX = (
     # Hifi takes alpha from the diffuse!, so no need to attach
-    ("color_map", b"tex_color_map"),
-    ("metallic_map", b"tex_metallic_map"),
-    ("normal_map", b"tex_normal_map"),
-    ("roughness_map", b"tex_roughness_map"),
-    ("emissive_map", b"tex_emissive_map"), 
+    ("base_color_texture", b"tex_color_map"),
+    ("metallic_texture", b"tex_metallic_map"),
+    ("normalmap_texture", b"tex_normal_map"),
+    ("roughness_texture", b"tex_roughness_map"),
+    ("emission_texture", b"tex_emissive_map"), 
 )
 
-def fbx_epbdsf_data_material_elements(root, ma, scene_data):
+def fbx_hifi_data_material_elements(root, ma, scene_data):
     """
     Write the Material data block.
     """
@@ -139,6 +139,7 @@ def fbx_epbdsf_data_material_elements(root, ma, scene_data):
         ambient_color = next(iter(scene_data.data_world.keys())).color
 
     ma_wrap = HifiShaderWrapper(ma, is_readonly=True)
+   # ma_wrap = HifiShaderWrapper(ma, is_readonly=True)
     ma_key, _objs = scene_data.data_materials[ma]
     ma_type = b"Phong"
 
@@ -158,14 +159,11 @@ def fbx_epbdsf_data_material_elements(root, ma, scene_data):
     # This Avoids also any issues with the hifi reading some stuff proper
     # Basically Forcing thee FBX Serializer to actually just think this is an PBS material, not a "Blender one."  
 
-
     elem_props_template_set(tmpl, props, "p_string", b"ShadingModel", ma_type.decode())
-
 
     elem_props_template_set(tmpl, props, "p_color", b"DiffuseColor", ma_wrap.base_color)
     # Not in Principled BSDF, so assuming always 1
     elem_props_template_set(tmpl, props, "p_number", b"DiffuseFactor", 1.0)
-
     
     # --------
     # https://github.com/highfidelity/hifi/blob/d88bee89e4204c5dd167e0e10ff8ba3d91a26696/libraries/fbx/src/FBXSerializer.cpp
@@ -180,7 +178,7 @@ def fbx_epbdsf_data_material_elements(root, ma, scene_data):
 
     elem_props_template_set(tmpl, props, "p_vector_3d", b"NormalMap", (0.0, 0.0, 0.0))
     
-    if ma_wrap.normal_map is not None:
+    if ma_wrap.normalmap_texture is not None:
         elem_props_template_set(tmpl, props, "p_bool", b"Maya|use_normal_map", True)
    
     # TODO: Perhaps Additional someday ? -matti
@@ -191,33 +189,35 @@ def fbx_epbdsf_data_material_elements(root, ma, scene_data):
     elem_props_template_set(tmpl, props, "p_color", b"DiffuseColor", ma_wrap.base_color)
     elem_props_template_set(tmpl, props, "p_color", b"Maya|base_color", ma_wrap.base_color)
     
-    if ma_wrap.color_map is not None:
+    if ma_wrap.base_color_texture is not None:
         elem_props_template_set(tmpl, props, "p_bool", b"Maya|use_color_map", True)
 
     elem_props_template_set(tmpl, props, "p_number", b"Roughness", ma_wrap.roughness)
     elem_props_template_set(tmpl, props, "p_number", b"Maya|roughness", ma_wrap.roughness)
     shininess = (1.0 - ma_wrap.roughness) * 10
     shininess *= shininess
+
     elem_props_template_set(tmpl, props, "p_number", b"Shininess", shininess)
     elem_props_template_set(tmpl, props, "p_number", b"ShininessExponent", shininess)
 
-    if ma_wrap.roughness_map is not None:
+    if ma_wrap.roughness_texture is not None:
         elem_props_template_set(tmpl, props, "p_bool", b"Maya|use_roughness_map", True)
 
     elem_props_template_set(tmpl, props, "p_number", b"Metallic", ma_wrap.metallic)
     elem_props_template_set(tmpl, props, "p_number", b"Maya|metallic", ma_wrap.metallic)
     
-    if ma_wrap.metallic_map is not None:
+    if ma_wrap.metallic_texture is not None:
         elem_props_template_set(tmpl, props, "p_bool", b"Maya|use_metallic_map", True)
 
 
     elem_props_template_set(tmpl, props, "p_color", b"EmissiveColor", ma_wrap.emissive)
     elem_props_template_set(tmpl, props, "p_color", b"Emissive", ma_wrap.emissive)
     elem_props_template_set(tmpl, props, "p_color", b"Maya|emissive", ma_wrap.emissive)
+
     elem_props_template_set(tmpl, props, "p_number", b"EmissiveFactor", 1.0)
     elem_props_template_set(tmpl, props, "p_number", b"Maya|emissive_intensity", 1.0) #TODO: - matti Not apparently used by Hifi atm
     
-    if ma_wrap.emissive_map is not None:
+    if ma_wrap.emission_texture is not None:
         elem_props_template_set(tmpl, props, "p_bool", b"Maya|use_emissive_map", True)
         
     elem_props_template_finalize(tmpl, props)
@@ -228,7 +228,7 @@ def fbx_epbdsf_data_material_elements(root, ma, scene_data):
         fbx_data_element_custom_properties(props, ma)
 
 
-def fbx_epbdsf_data_texture_file_elements(root, blender_tex_key, scene_data):
+def fbx_hifi_data_texture_file_elements(root, blender_tex_key, scene_data):
     """
     Write the (file) Texture data block.
     """
@@ -240,7 +240,6 @@ def fbx_epbdsf_data_texture_file_elements(root, blender_tex_key, scene_data):
     
     ma_wrap = HifiShaderWrapper(ma, is_readonly=True)
     tex_key, _fbx_prop = scene_data.data_textures[blender_tex_key]
-
     tex = getattr(ma_wrap, sock_name)
     img = tex.image
     fname_abs, fname_rel = _gen_vid_path(img, scene_data)
@@ -257,7 +256,7 @@ def fbx_epbdsf_data_texture_file_elements(root, blender_tex_key, scene_data):
     elem_data_single_string_unicode(fbx_tex, b"RelativeFilename", fname_rel)
 
     alpha_source = 0  # None
-    if img.use_alpha:
+    if img.alpha_mode != 'NONE':
         # ~ if tex.texture.use_calculate_alpha:
             # ~ alpha_source = 1  # RGBIntensity as alpha.
         # ~ else:
@@ -304,16 +303,13 @@ def fbx_epbdsf_data_texture_file_elements(root, blender_tex_key, scene_data):
 
     # No custom properties, since that's not a data-block anymore.
 
+
 # Contains PrincipledBSDFWrapper
 def fbx_data_material_elements(root, ma, scene_data):
     """
     Write the Material data block.
     """
-    epbdsf_node = get_hifi_shader_node(ma)
-    if epbdsf_node is not None:
-        fbx_epbdsf_data_material_elements(root, ma, scene_data)
-    else:
-        io_scene_fbx.export_fbx_bin.fbx_data_material_elements(root, ma, scene_data)
+    fbx_hifi_data_material_elements(root, ma, scene_data)
         
 
 # Contains PrincipledBSDFWrapper
@@ -322,13 +318,7 @@ def fbx_data_texture_file_elements(root, blender_tex_key, scene_data):
     Write the (file) Texture data block.
     """
     ma, sock_name = blender_tex_key
-    
-    epbdsf_node = get_hifi_shader_node(ma)
-    if epbdsf_node is not None:
-        fbx_epbdsf_data_texture_file_elements(root, blender_tex_key, scene_data)
-    else:
-        io_scene_fbx.export_fbx_bin.fbx_data_texture_file_elements(root, (ma, sock_name), scene_data)
-
+    fbx_hifi_data_texture_file_elements(root, blender_tex_key, scene_data)
 
 # Contains PrincipledBSDFWrapper
 def fbx_data_from_scene(scene, depsgraph, settings):
@@ -515,18 +505,19 @@ def fbx_data_from_scene(scene, depsgraph, settings):
     data_videos = {}
     # For now, do not use world textures, don't think they can be linked to anything FBX wise...
     for ma in data_materials.keys():
-        has_extended_pricipled = get_hifi_shader_node(ma)
+        #has_extended_pricipled = get_hifi_shader_node(ma)
         ma_wrap = None
         sockets = None
-        if has_extended_pricipled is not None:
-            print("Do Stuff")
-            ma_wrap = HifiShaderWrapper(ma, is_readonly=True)
-            sockets = EXTENDED_PRINCIPLED_TEXTURE_SOCKETS_TO_FBX
-        else:
-            # Note: with nodal shaders, we'll could be generating much more textures, but that's kind of unavoidable,
-            #       given that textures actually do not exist anymore in material context in Blender...
-            ma_wrap = node_shader_utils.PrincipledBSDFWrapper(ma, is_readonly=True)
-            sockets = PRINCIPLED_TEXTURE_SOCKETS_TO_FBX
+        #if has_extended_pricipled is not None:
+        #    print("Do Stuff")
+        #    ma_wrap = HifiShaderWrapper(ma, is_readonly=True)
+        #    sockets = HIFI_SPECIFIC_SOCKETS_FBX
+        #else:
+        
+        # Note: with nodal shaders, we'll could be generating much more textures, but that's kind of unavoidable,
+        #       given that textures actually do not exist anymore in material context in Blender...
+        ma_wrap = HifiShaderWrapper(ma, is_readonly=True)
+        sockets = HIFI_SPECIFIC_SOCKETS_FBX
 
         for sock_name, fbx_name in sockets:
             tex = getattr(ma_wrap, sock_name)
@@ -1037,7 +1028,8 @@ def save(operator, context,
                 ctx_objects = context.view_layer.objects
         kwargs_mod["context_objects"] = ctx_objects
 
-        ret = save_single(operator, context.scene, context.depsgraph, filepath, **kwargs_mod)
+        depsgraph = context.evaluated_depsgraph_get()
+        ret = save_single(operator, context.scene, depsgraph, filepath, **kwargs_mod)
     else:
         # XXX We need a way to generate a depsgraph for inactive view_layers first...
         # XXX Also, what to do in case of batch-exporting scenes, when there is more than one view layer?

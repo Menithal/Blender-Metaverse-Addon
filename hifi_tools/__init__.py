@@ -29,7 +29,9 @@ bl_info = {
     "support": "COMMUNITY",
     "category": "Import-Export",
 }
-default_gateway_server = "http://206.189.208.218"
+
+
+default_gateway_server = ""
 oauth_api = "https://metaverse.highfidelity.com/user/tokens/new?for_identity=true"
 oauth_default = True
 
@@ -45,6 +47,7 @@ from bpy.app.handlers import persistent
 from hifi_tools.ext.throttle import throttle
 from hifi_tools.ext.modified_fbx_tools import *
 
+
 from . import armature
 from . import utils
 from . import world
@@ -53,7 +56,7 @@ from .files.hifi_json.operator import *
 from .files.fst.operator import *
 from .gateway import client as GatewayClient
 
-from hifi_tools.utils.custom import custom_register, custom_unregister, scene_define, scene_delete
+from hifi_tools.utils.bones.custom import custom_register, custom_unregister, scene_define, scene_delete
 
 # TODO: This is placeholder and will be shut down after more are available.
 
@@ -121,7 +124,7 @@ def on_token_update(self, context):
 
     addon_prefs["gateway_token"] = message
     addon_prefs["message_box"] = ""  # Success! Remember to Save Settings.
-    bpy.ops.auth_success.export('INVOKE_DEFAULT')
+    bpy.ops.hifi_messages.auth_success('INVOKE_DEFAULT')
 
     return None
 
@@ -132,9 +135,14 @@ def on_color_space_automation_update(self, context):
     addon_prefs["automatic_color_space_fix"] = self.colorspaces_on_save
 
 
-class IPFSFeatureInfo (bpy.types.Operator):
-    bl_idname = "hifi.ipfs_upload_feature"
+# Blender Naming convention is fucking bonkers. Operators must be bl_idname bmust specifically be <lower_case_plugin>.<lower_case_name> but naming Operators should be done using the NEW method. ARGH 
+# While PANELS must be named using their NEW convention https://wiki.blender.org/wiki/Reference/Release_Notes/2.80/Python_API/Addons
 
+# Honestly this goes AGAINST Class naming scheme of python imo, where as Class names should follow the UpperCaseCamelCase convention...
+
+
+class EXPORT_OT_HIFI_IPFS_Feature_Info (bpy.types.Operator):
+    bl_idname = "hifi.ipfs_feature_info"
     bl_label = "Enable IPFS"
     bl_options = {'REGISTER', 'INTERNAL'}
 
@@ -234,9 +242,8 @@ class IPFSFeatureInfo (bpy.types.Operator):
 
         return {'FINISHED'}
 
-
-class AuthSuccessOperator(bpy.types.Operator):
-    bl_idname = "hifi.auth_success_export"
+class AUTH_OT_HIFI_Message_Auth_Success(bpy.types.Operator):
+    bl_idname = "hifi_messages.auth_success"
     bl_label = ""
     bl_options = {'REGISTER', 'INTERNAL'}
 
@@ -314,22 +321,22 @@ class HifiAddOnPreferences(AddonPreferences):
                 row.prop(self, "hifi_oauth")
 
                 if len(self.hifi_oauth) == 0:
-                    row.operator(HifiGenerateToken.bl_idname)
+                    row.operator("hifi.open_token_link")
             else:
                 row = layout.row()
                 row.prop(self, "gateway_token")
 
                 if len(self.gateway_token) == 0:
-                    row.operator(GatewayGenerateToken.bl_idname)
+                    row.operator("hifi.gateway_generate_token")
 
             if len(self.message_box):
                 layout.prop(self, "message_box")
         else:
-            layout.operator(IPFSFeatureInfo.bl_idname)
+            layout.operator("hifi.ipfs_feature_info")
 
 
-class HifiGenerateToken(bpy.types.Operator):
-    bl_idname = "hifi.generate_token"
+class AUTH_OT_HIFI_Open_Token_Link(bpy.types.Operator):
+    bl_idname = "hifi.open_token_link"
     bl_label = "Get Hifi Identity Token"
 
     def execute(self, context):
@@ -348,7 +355,7 @@ class HifiGenerateToken(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class GatewayGenerateToken(bpy.types.Operator):
+class AUTH_OT_HIFI_Gateway_Generate_Token(bpy.types.Operator):
     bl_idname = "hifi.gateway_generate_token"
     bl_label = "Generate Token"
 
@@ -372,49 +379,42 @@ def reload_module(name):
 
 
 def menu_func_import(self, context):
-    self.layout.operator(JSONLoaderOperator.bl_idname,
+    self.layout.operator(IMPORT_OT_HIFI_Scene_From_JSON.bl_idname,
                          text="HiFi Metaverse Scene JSON (.json)")
 
 
 def menu_func_export(self, context):
-    self.layout.operator(ExportHifiFBX.bl_idname, text="Hifi FBX (.fbx)")
-    self.layout.operator(FSTWriterOperator.bl_idname,
+    
+    self.layout.operator(EXPORT_OT_HIFI_FBX.bl_idname, text="Hifi FBX (.fbx)")
+    self.layout.operator(EXPORT_OT_HIFI_FST_Writer_Operator.bl_idname,
                          text="HiFi Avatar FST (.fst)")
-    self.layout.operator(JSONWriterOperator.bl_idname,
+    self.layout.operator(EXPORT_OT_HIFI_Export_FBX_JSON.bl_idname,
                          text="HiFi Metaverse Scene JSON / FBX (.json/.fbx)")
 
 
 classes = (
-    ATPReminderOperator,
-    ExportHifiFBX,
-    IPFSFeatureInfo,
-    FSTWriterOperator,
-    JSONWriterOperator,
-    JSONLoaderOperator,
-    AuthSuccessOperator,
+    EXPORT_OT_HIFI_Message_Error_Missing_ATP_Override,
+    EXPORT_OT_HIFI_IPFS_Feature_Info,
+    EXPORT_OT_HIFI_FST_Writer_Operator,
+    EXPORT_OT_HIFI_Export_FBX_JSON,
+    EXPORT_OT_HIFI_FBX,
+    EXPORT_OT_HIFI_Message_Success,
+    IMPORT_OT_HIFI_Scene_From_JSON,
+    AUTH_OT_HIFI_Open_Token_Link,
+    AUTH_OT_HIFI_Gateway_Generate_Token,
+    AUTH_OT_HIFI_Message_Auth_Success,
     HifiAddOnPreferences,
-    HifiGenerateToken,
-    GatewayGenerateToken,
 )
 
-module_register, module_unregister = bpy.utils.register_classes_factory(classes)
-
-@persistent
-def startup_handler(scene):
-    print("Load detected. Attempt to create stuff")
-    utils.materials.create_helper_shfpbr_shader_group()
-    
-
-bpy.app.handlers.save_pre.append(startup_handler)
-bpy.app.handlers.load_post.append(startup_handler)
-bpy.app.handlers.save_pre.append(utils.materials.correct_all_color_spaces_to_non_color)
+module_register, module_unregister = bpy.utils.register_classes_factory(classes)    
+bpy.app.handlers.save_pre.append(utils.helpers.materials.correct_all_color_spaces_to_non_color)
 
 def register():
     scene_define()
     module_register()
     bpy.types.TOPBAR_MT_file_import.append(menu_func_import)
     bpy.types.TOPBAR_MT_file_export.append(menu_func_export)
-    utils.panels.register()
+    utils.ui.panels.register()
 
 
 def unregister():
@@ -422,6 +422,6 @@ def unregister():
     module_unregister()
     bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
     bpy.types.TOPBAR_MT_file_export.remove(menu_func_export)
-    utils.panels.unregister()
+    utils.ui.panels.unregister()
 
 

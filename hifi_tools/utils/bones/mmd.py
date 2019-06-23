@@ -25,7 +25,8 @@ import re
 import os
 import copy
 from mathutils import Vector
-from hifi_tools.utils import materials, mesh, bones
+from hifi_tools.utils.helpers import materials, mesh
+from hifi_tools.utils.bones import bones_builder
 # This part is Based on powroupi the MMD Translation script combined with a Hogarth-MMD Translation csv that has been modified to select names as close as possible
 # This instead uses a predefined list that is Hifi Compatable.
 
@@ -298,7 +299,7 @@ def clean_up_bones(obj):
         spine.select_set(state=False)
 
     edit_bones = updated_context.data.edit_bones
-    bones.correct_bone_parents(edit_bones)
+    bones_builder.correct_bone_parents(edit_bones)
 
     bpy.ops.object.mode_set(mode='OBJECT')
 
@@ -420,7 +421,7 @@ def convert_mmd_avatar_hifi():
 
     if not bpy.data.is_saved:
         print("Select a Directory")
-        bpy.ops.hifi.error_save_file('INVOKE_DEFAULT')
+        bpy.ops.hifi_messages.remind_save('INVOKE_DEFAULT')
         return
 
     try:
@@ -466,7 +467,7 @@ def convert_mmd_avatar_hifi():
 
                 elif obj.type == 'ARMATURE':
                     convert_bones(Translator, obj)
-                    bones.scale_helper(obj)
+                    bones_builder.scale_helper(obj)
 
                 elif obj.type == 'MESH' and obj.parent is not None and obj.parent.type == 'ARMATURE':
                     clean_mesh(Translator, obj)

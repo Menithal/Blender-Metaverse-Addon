@@ -8,7 +8,9 @@ from math import pi
 import math
 import copy
 from mathutils import Vector
-from hifi_tools.utils import materials, mesh, bones
+
+from hifi_tools.utils.bones import bones_builder
+from hifi_tools.utils.helpers import materials, mesh
 
 bones_to_correct_spine_position = [
     ("Hips",       "tail", "Hips", "head", "y"),
@@ -111,7 +113,7 @@ def clean_up_bones(obj):
             	pose_bone.constraints.remove(constraint)
 
             print(" # Check Rotations")
-            bones.correct_bone_rotations(edit_bone)
+            bones_builder.correct_bone_rotations(edit_bone)
 
             if "Thumb" in edit_bone.name:
                 bpy.ops.object.mode_set(mode='EDIT')

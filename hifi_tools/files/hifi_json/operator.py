@@ -35,9 +35,8 @@ from bpy.props import (
     EnumProperty
 )
 
-
-class ATPReminderOperator(bpy.types.Operator):
-    bl_idname = "hifi.error_atp_or_override_not_in_use"
+class EXPORT_OT_HIFI_Message_Error_Missing_ATP_Override(bpy.types.Operator):
+    bl_idname = "hifi_messages.export_missing_atp_override"
     bl_label = "You must either select ATP export or override a baseURL for your host (be it marketplace or your own)"
     bl_options = {'REGISTER', 'INTERNAL'}
 
@@ -66,8 +65,8 @@ class ATPReminderOperator(bpy.types.Operator):
         row.label(text=" (be it marketplace or your own)")
 
 
-class JSONWriterOperator(bpy.types.Operator, ExportHelper):
-    bl_idname = "hifi.export_hifi_scene_fbx_json"
+class EXPORT_OT_HIFI_Export_FBX_JSON(bpy.types.Operator, ExportHelper):
+    bl_idname = "hifi.export_fbx_json"
     bl_label = "Export HiFi Scene"
     bl_options = {'UNDO'}
 
@@ -110,7 +109,8 @@ class JSONWriterOperator(bpy.types.Operator, ExportHelper):
             raise Exception("filepath not set")
 
         if not self.url_override and not self.atp:
-            bpy.ops.hifi.error_atp_or_override_not_in_use('INVOKE_DEFAULT')
+            
+            bpy.ops.hifi_messages.export_missing_atp_override('INVOKE_DEFAULT')
             return {'CANCELLED'}
            # raise Exception("You must Use ATP or Set the Marketplace / base URL to make sure that the content can be reached after you upload it. ATP currently not supported")
 
@@ -119,10 +119,9 @@ class JSONWriterOperator(bpy.types.Operator, ExportHelper):
         return {'FINISHED'}
 
 
-class JSONLoaderOperator(bpy.types.Operator, ImportHelper):
-
+class IMPORT_OT_HIFI_Scene_From_JSON(bpy.types.Operator, ImportHelper):
     # Load a Hifi File
-    bl_idname = "hifi.import_scene"
+    bl_idname = "hifi.import_scene_from_json"
     bl_label = "Import Hifi Json"
     bl_options = {"UNDO", "PRESET"}
 

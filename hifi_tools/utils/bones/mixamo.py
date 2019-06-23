@@ -17,30 +17,35 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 # Copyright 2019 Matti 'Menithal' Lahtinen
+
+
 import bpy
 
-from hifi_tools.utils import materials, mesh, bones
+from hifi_tools.utils.helpers import materials, mesh
+from hifi_tools.utils.bones import bones_builder
+
+# POSSIBLY DEPRICATED... :( Custom Avatar should be able to do the same thing but better.
 
 
 def convert_mixamo_avatar_hifi():
     if not bpy.data.is_saved:
         print("Select a Directory")
-        bpy.ops.hifi.error_save_file('INVOKE_DEFAULT')
+        bpy.ops.hifi_messages.remind_save('INVOKE_DEFAULT')
         return
-    
+
     try:
         bpy.ops.wm.console_toggle()
     except:
         print("Console was toggled")
-    
+
     print("Converting Mixamo Avatar to be Blender- High Fidelity compliant")
     print("Searching for  mixamo:: prefix bones")
-    bones.remove_all_actions()
+    bones_builder.remove_all_actions()
 
     for obj in bpy.data.objects:
         if obj.type == "ARMATURE":
-          
-            bones.scale_helper(obj)
+
+            bones_builder.scale_helper(obj)
 
             for bone in obj.data.edit_bones:
                 print(" - Renaming", bone.name)
@@ -50,7 +55,7 @@ def convert_mixamo_avatar_hifi():
             print("Cleaning unused vertex groups")
             mesh.clean_unused_vertex_groups(obj)
 
-    #for material in bpy.data.materials:
+    # for material in bpy.data.materials:
     #    materials.flip_material_specular(material)
 
     print("Texture pass")

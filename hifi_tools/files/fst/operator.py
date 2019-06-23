@@ -34,11 +34,11 @@ from bpy.props import (
     EnumProperty
 )
 import hifi_tools.files.fst.writer as FSTWriter
-from hifi_tools.utils.bones import find_armatures
+from hifi_tools.utils.bones.bones_builder import find_armatures
 
 
-class HifiBoneOperator(bpy.types.Operator):
-    bl_idname = "hifi.export_warn.bone_count"
+class EXPORT_OT_HIFI_Message_Warn_Bone(bpy.types.Operator):
+    bl_idname = "hifi_messages.export_warn_bone"
     bl_label = ""
     bl_options = {'REGISTER', 'INTERNAL'}
 
@@ -70,8 +70,8 @@ class HifiBoneOperator(bpy.types.Operator):
         row.label(text="Try combining some if you have issues in HiFi.")
 
 
-class HifiExportErrorOperator(bpy.types.Operator):
-    bl_idname = "hifi.export_error"
+class EXPORT_OT_HIFI_Message_Error(bpy.types.Operator):
+    bl_idname = "hifi_messages.export_error"
     bl_label = ""
     bl_options = {'REGISTER', 'INTERNAL'}
 
@@ -96,8 +96,8 @@ class HifiExportErrorOperator(bpy.types.Operator):
         row.label(text="Avatar Export Failed. Please Check the console logs")
 
 
-class HifiExportErrorNoArmatureOperator(bpy.types.Operator):
-    bl_idname = "hifi.export_error_no_armature"
+class EXPORT_OT_HIFI_Message_Error_No_Armature(bpy.types.Operator):
+    bl_idname = "hifi_messages.export_error_no_armature"
     bl_label = ""
     bl_options = {'REGISTER', 'INTERNAL'}
 
@@ -122,8 +122,8 @@ class HifiExportErrorNoArmatureOperator(bpy.types.Operator):
         row.label(text="Avatar Export Failed. Please have 1 armature on selected")
 
 
-class HifiExportSucccessOperator(bpy.types.Operator):
-    bl_idname = "hifi.export_success"
+class EXPORT_OT_HIFI_Message_Success(bpy.types.Operator):
+    bl_idname = "hifi_messages.export_success"
     bl_label = ""
     bl_options = {'REGISTER', 'INTERNAL'}
 
@@ -148,8 +148,8 @@ class HifiExportSucccessOperator(bpy.types.Operator):
         row.label(text="Avatar Export Successful.")
 
 
-class FSTWriterOperator(bpy.types.Operator, ExportHelper):
-    bl_idname = "hifi.export_avatar_hifi_fbx_fst"
+class EXPORT_OT_HIFI_FST_Writer_Operator(bpy.types.Operator, ExportHelper):
+    bl_idname = "hifi.export_fst"
     bl_label = "Export Hifi Avatar"
     bl_options = {'UNDO'}
 
@@ -247,18 +247,30 @@ class FSTWriterOperator(bpy.types.Operator, ExportHelper):
 
         armatures = find_armatures(to_export)
         if len(armatures) > 1 or len(armatures) == 0:
-            bpy.ops.hifi.export_error_no_armature.export('INVOKE_DEFAULT')
+            bpy.ops.hifi_messages.export_error_no_armature('INVOKE_DEFAULT')
             return {'CANCELLED'}
 
         val = FSTWriter.fst_export(self, to_export)
 
         if val == {'FINISHED'}:
             if len(armatures[0].data.edit_bones) > 100:
-                bpy.ops.hifi.export_warn.bone_count('INVOKE_DEFAULT')
+                bpy.ops.hifi_messages.export_warn_bone('INVOKE_DEFAULT')
             else:
-                bpy.ops.hifi.export_success('INVOKE_DEFAULT')
+                bpy.ops.hifi_messages.export_success('INVOKE_DEFAULT')
             return {'FINISHED'}
         else:
-            bpy.ops.hifi.export_error('INVOKE_DEFAULT')
+            bpy.ops.hifi_messages.export_success('INVOKE_DEFAULT')
             return val
 
+
+
+
+classes = (
+    EXPORT_OT_HIFI_FST_Writer_Operator,
+    EXPORT_OT_HIFI_Message_Warn_Bone,
+    EXPORT_OT_HIFI_Message_Error,
+    EXPORT_OT_HIFI_Message_Error_No_Armature,
+    EXPORT_OT_HIFI_Message_Success
+)
+
+module_register, module_unregister = bpy.utils.register_classes_factory(classes)    
