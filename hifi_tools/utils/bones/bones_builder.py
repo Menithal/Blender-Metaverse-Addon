@@ -540,7 +540,7 @@ def reset_scale_rotation(obj):
     bpy.ops.object.select_all(action="DESELECT")
 
     obj.select_set(state=True)
-    bpy.context.view_layer.objects.active = obj
+
     bpy.ops.object.origin_set(type="ORIGIN_CURSOR")
     bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
 
@@ -551,7 +551,9 @@ def correct_scale_rotation(obj, rotation):
     str_angle = -90 * pi/180
     if rotation:
         obj.rotation_euler = Euler((str_angle, 0, 0), "XYZ")
-    bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
+    
+    reset_scale_rotation(obj)
+    
     obj.scale = Vector((0.01, 0.01, 0.01))
     if rotation:
         obj.rotation_euler = Euler((-str_angle, 0, 0), "XYZ")
@@ -610,7 +612,6 @@ def clear_pose(selected):
 
 
 def retarget_armature(options, selected, selected_only=False):
-
     armature = find_armature(selected)
     if armature is not None:
         # Center Children First

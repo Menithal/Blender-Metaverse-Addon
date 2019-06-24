@@ -20,3 +20,4 @@ for path, dirnames, filenames in os.walk(script_dir):
 		zip.write(os.path.realpath(f),f)
 
 zip.close()
+print("Packaged into Projects Folder")

@@ -310,9 +310,13 @@ class OBJECT_OT_METAV_TOOLSET_Fix_Scale_Operator(bpy.types.Operator):
     bl_category = "High Fidelity"
 
     def execute(self, context):
-
-        for selected in context.selected_objects:
+        selected_objects = bpy.context.selected_objects
+        for selected in selected_objects:
             bones_builder.correct_scale_rotation(selected, True)
+            
+        bpy.ops.object.select_all(action="DESELECT")
+        for selected in selected_objects:
+            selected.select_set(state=True)
 
         return {'FINISHED'}
 
