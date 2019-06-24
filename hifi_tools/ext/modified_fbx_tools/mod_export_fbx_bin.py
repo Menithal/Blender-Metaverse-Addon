@@ -129,7 +129,7 @@ HIFI_SPECIFIC_SOCKETS_FBX = (
     ("emission_texture", b"tex_emissive_map"), 
 )
 
-def fbx_METAV_TOOLSET_data_material_elements(root, ma, scene_data):
+def fbx_metav_toolset_data_material_elements(root, ma, scene_data):
     """
     Write the Material data block.
     """
@@ -185,10 +185,13 @@ def fbx_METAV_TOOLSET_data_material_elements(root, ma, scene_data):
     elem_props_template_set(tmpl, props, "p_number", b"SpecularFactor", 0.0)
     # elem_props_template_set(tmpl, props, "p_number", b"SpecularFactor", ma_wrap.specular / 2.0)
 
-    elem_props_template_set(tmpl, props, "p_color", b"DiffuseColor", ma_wrap.base_color)
-    elem_props_template_set(tmpl, props, "p_color", b"Maya|base_color", ma_wrap.base_color)
     if ma_wrap.base_color_texture is not None:
+        elem_props_template_set(tmpl, props, "p_color", b"DiffuseColor", (1.0, 1.0, 1.0))
+        elem_props_template_set(tmpl, props, "p_color", b"Maya|base_color", (1.0, 1.0, 1.0))
         elem_props_template_set(tmpl, props, "p_bool", b"Maya|use_color_map", True)
+    else: 
+        elem_props_template_set(tmpl, props, "p_color", b"DiffuseColor", ma_wrap.base_color)
+        elem_props_template_set(tmpl, props, "p_color", b"Maya|base_color", ma_wrap.base_color)
 
     elem_props_template_set(tmpl, props, "p_number", b"Roughness", ma_wrap.roughness)
     elem_props_template_set(tmpl, props, "p_number", b"Maya|roughness", ma_wrap.roughness)
@@ -225,7 +228,7 @@ def fbx_METAV_TOOLSET_data_material_elements(root, ma, scene_data):
         fbx_data_element_custom_properties(props, ma)
 
 
-def fbx_METAV_TOOLSET_data_texture_file_elements(root, blender_tex_key, scene_data):
+def fbx_metav_toolset_data_texture_file_elements(root, blender_tex_key, scene_data):
     """
     Write the (file) Texture data block.
     """
@@ -306,7 +309,7 @@ def fbx_data_material_elements(root, ma, scene_data):
     """
     Write the Material data block.
     """
-    fbx_METAV_TOOLSET_data_material_elements(root, ma, scene_data)
+    fbx_metav_toolset_data_material_elements(root, ma, scene_data)
         
 
 # Contains PrincipledBSDFWrapper
@@ -315,7 +318,7 @@ def fbx_data_texture_file_elements(root, blender_tex_key, scene_data):
     Write the (file) Texture data block.
     """
     ma, sock_name = blender_tex_key
-    fbx_METAV_TOOLSET_data_texture_file_elements(root, blender_tex_key, scene_data)
+    fbx_metav_toolset_data_texture_file_elements(root, blender_tex_key, scene_data)
 
 # Contains PrincipledBSDFWrapper
 def fbx_data_from_scene(scene, depsgraph, settings):
@@ -378,27 +381,40 @@ def fbx_data_from_scene(scene, depsgraph, settings):
         if settings.use_mesh_modifiers or ob.type in BLENDER_OTHER_OBJECT_TYPES or is_ob_material:
             # We cannot use default mesh in that case, or material would not be the right ones...
             use_org_data = not (is_ob_material or ob.type in BLENDER_OTHER_OBJECT_TYPES)
-            tmp_mods = []
+            backup_pose_positions = []
             if use_org_data and ob.type == 'MESH':
                 # No need to create a new mesh in this case, if no modifier is active!
                 for mod in ob.modifiers:
                     # For meshes, when armature export is enabled, disable Armature modifiers here!
                     # XXX Temp hacks here since currently we only have access to a viewport depsgraph...
+                    #
+                    # NOTE: We put armature to the rest pose instead of disabling it so we still
+                    # have vertex groups in the evaluated mesh.
                     if mod.type == 'ARMATURE' and 'ARMATURE' in settings.object_types:
-                        tmp_mods.append((mod, mod.show_render, mod.show_viewport))
-                        mod.show_render = False
-                        mod.show_viewport = False
-                    if mod.show_render or mod.show_viewport:
+                        object = mod.object
+                        if object and object.type == 'ARMATURE':
+                            armature = object.data
+                            backup_pose_positions.append((armature, armature.pose_position))
+                            armature.pose_position = 'REST'
+                    elif mod.show_render or mod.show_viewport:
                         use_org_data = False
             if not use_org_data:
-                tmp_me = ob.to_mesh(
-                    depsgraph,
-                    apply_modifiers=settings.use_mesh_modifiers)
+                # If modifiers has been altered need to update dependency graph.
+                if backup_pose_positions:
+                    depsgraph.update()
+                ob_to_convert = ob.evaluated_get(depsgraph) if settings.use_mesh_modifiers else ob
+                # NOTE: The dependency graph might be re-evaluating multiple times, which could
+                # potentially free the mesh created early on. So we put those meshes to bmain and
+                # free them afterwards. Not ideal but ensures correct ownerwhip.
+                tmp_me = bpy.data.meshes.new_from_object(
+                            ob_to_convert, preserve_all_data_layers=True, depsgraph=depsgraph)
                 data_meshes[ob_obj] = (get_blenderID_key(tmp_me), tmp_me, True)
-            # Re-enable temporary disabled modifiers.
-            for mod, show_render, show_viewport in tmp_mods:
-                mod.show_render = show_render
-                mod.show_viewport = show_viewport
+            # Change armatures back.
+            for armature, pose_position in backup_pose_positions:
+                print((armature, pose_position))
+                armature.pose_position = pose_position
+                # Update now, so we don't leave modified state after last object was exported.
+                depsgraph.update()
         if use_org_data:
             data_meshes[ob_obj] = (get_blenderID_key(ob.data), ob.data, False)
 
@@ -430,7 +446,6 @@ def fbx_data_from_scene(scene, depsgraph, settings):
 
         for shape in me.shape_keys.key_blocks[1:]:
             # Only write vertices really different from org coordinates!
-            # XXX FBX does not like empty shapes (makes Unity crash e.g.), so we have to do this here... :/
             shape_verts_co = []
             shape_verts_idx = []
 
@@ -443,8 +458,13 @@ def fbx_data_from_scene(scene, depsgraph, settings):
                     continue
                 shape_verts_co.extend(Vector(sv_co) - Vector(ref_co))
                 shape_verts_idx.append(idx)
+
+            # FBX does not like empty shapes (makes Unity crash e.g.).
+            # To prevent this, we add a vertex that does nothing, but it keeps the shape key intact
             if not shape_verts_co:
-                continue
+                shape_verts_co.extend((0, 0, 0))
+                shape_verts_idx.append(0)
+
             channel_key, geom_key = get_blender_mesh_shape_channel_key(me, shape)
             data = (channel_key, geom_key, shape_verts_co, shape_verts_idx)
             data_deformers_shape.setdefault(me, (me_key, shapes_key, {}))[2][shape] = data
@@ -502,21 +522,10 @@ def fbx_data_from_scene(scene, depsgraph, settings):
     data_videos = {}
     # For now, do not use world textures, don't think they can be linked to anything FBX wise...
     for ma in data_materials.keys():
-        #has_extended_pricipled = get_METAV_TOOLSET_shader_node(ma)
-        ma_wrap = None
-        sockets = None
-        #if has_extended_pricipled is not None:
-        #    print("Do Stuff")
-        #    ma_wrap = HifiShaderWrapper(ma, is_readonly=True)
-        #    sockets = HIFI_SPECIFIC_SOCKETS_FBX
-        #else:
-        
         # Note: with nodal shaders, we'll could be generating much more textures, but that's kind of unavoidable,
         #       given that textures actually do not exist anymore in material context in Blender...
         ma_wrap = HifiShaderWrapper(ma, is_readonly=True)
-        sockets = HIFI_SPECIFIC_SOCKETS_FBX
-
-        for sock_name, fbx_name in sockets:
+        for sock_name, fbx_name in HIFI_SPECIFIC_SOCKETS_FBX:
             tex = getattr(ma_wrap, sock_name)
             if tex is None or tex.image is None:
                 continue
@@ -715,10 +724,8 @@ def fbx_data_from_scene(scene, depsgraph, settings):
     del _objs_indices
 
     # Textures
-    print("FBX Texture Prep")
     for (ma, sock_name), (tex_key, fbx_prop) in data_textures.items():
         ma_key, _ob_objs = data_materials[ma]
-        print(ma_key, _ob_objs, ma, sock_name, fbx_prop)
         # texture -> material properties
         connections.append((b"OP", get_fbx_uuid_from_key(tex_key), get_fbx_uuid_from_key(ma_key), fbx_prop))
 
