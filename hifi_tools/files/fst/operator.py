@@ -16,7 +16,7 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
-# Created by Matti 'Menithal' Lahtinen
+# Copyright 2019 Matti 'Menithal' Lahtinen
 
 import bpy
 import os
@@ -34,11 +34,13 @@ from bpy.props import (
     EnumProperty
 )
 import hifi_tools.files.fst.writer as FSTWriter
-from hifi_tools.utils.bones import find_armatures
+from hifi_tools.utils.bones.bones_builder import find_armatures
 
 
-class HifiBoneOperator(bpy.types.Operator):
-    bl_idname = "hifi_warn.bone_count"
+class EXPORT_OT_METAV_TOOLSET_Message_Warn_Bone(bpy.types.Operator):
+    """ This Operator is used to warn if the armature may have too many bones for it to work properly in High Fidelity.
+    """
+    bl_idname = "metaverse_toolset_messages.export_warn_bone"
     bl_label = ""
     bl_options = {'REGISTER', 'INTERNAL'}
 
@@ -58,20 +60,22 @@ class HifiBoneOperator(bpy.types.Operator):
         layout = self.layout
 
         row = layout.row()
-        row.label("Avatar Successfully Exported: ")
+        row.label(text="Avatar Successfully Exported: ")
         row = layout.row()
         row.label(text="Warning:", icon="QUESTION")
         row = layout.row()
         row.label(
             "You may have issues with the avatars pose not being streamed with")
         row = layout.row()
-        row.label("So many bones.")
+        row.label(text="So many bones.")
         row = layout.row()
-        row.label("Try combining some if you have issues in HiFi.")
+        row.label(text="Try combining some if you have issues in metaverse_toolset.")
 
 
-class HifiExportErrorOperator(bpy.types.Operator):
-    bl_idname = "hifi_error.export"
+class EXPORT_OT_METAV_TOOLSET_Message_Error(bpy.types.Operator):
+    """ This Operator is used show that there has been an error while exporting an avatar.
+    """
+    bl_idname = "metaverse_toolset_messages.export_error"
     bl_label = ""
     bl_options = {'REGISTER', 'INTERNAL'}
 
@@ -93,11 +97,13 @@ class HifiExportErrorOperator(bpy.types.Operator):
         row = layout.row()
         row.label(text="Warning:", icon="ERROR")
         row = layout.row()
-        row.label("Avatar Export Failed. Please Check the console logs")
+        row.label(text="Avatar Export Failed. Please Check the console logs")
 
 
-class HifiExportErrorNoArmatureOperator(bpy.types.Operator):
-    bl_idname = "hifi_error_no_armature.export"
+class EXPORT_OT_METAV_TOOLSET_Message_Error_No_Armature(bpy.types.Operator):
+    """ This Operator is used show that exported avatar is missing an armature
+    """
+    bl_idname = "metaverse_toolset_messages.export_error_no_armature"
     bl_label = ""
     bl_options = {'REGISTER', 'INTERNAL'}
 
@@ -119,11 +125,13 @@ class HifiExportErrorNoArmatureOperator(bpy.types.Operator):
         row = layout.row()
         row.label(text="Warning:", icon="ERROR")
         row = layout.row()
-        row.label("Avatar Export Failed. Please have 1 armature on selected")
+        row.label(text="Avatar Export Failed. Please have 1 armature on selected")
 
 
-class HifiExportSucccessOperator(bpy.types.Operator):
-    bl_idname = "hifi_success.export"
+class EXPORT_OT_METAV_TOOLSET_Message_Success(bpy.types.Operator):
+    """ This Operator is used show that avatar was exported successfully
+    """
+    bl_idname = "metaverse_toolset_messages.export_success"
     bl_label = ""
     bl_options = {'REGISTER', 'INTERNAL'}
 
@@ -145,39 +153,41 @@ class HifiExportSucccessOperator(bpy.types.Operator):
         row = layout.row()
         row.label(text="Success:", icon="FILE_TICK")
         row = layout.row()
-        row.label("Avatar Export Successful.")
+        row.label(text="Avatar Export Successful.")
 
 
-class FSTWriterOperator(bpy.types.Operator, ExportHelper):
-    bl_idname = "export_avatar.hifi_fbx_fst"
+class EXPORT_OT_METAV_TOOLSET_FST_Writer_Operator(bpy.types.Operator, ExportHelper):
+    """ This Operator is export a HighFidelity compatible FST and FBX of the current avatar.
+    """
+    bl_idname = "metaverse_toolset.export_fst"
     bl_label = "Export Hifi Avatar"
     bl_options = {'UNDO'}
 
-    directory = StringProperty()
+    directory: StringProperty()
     filename_ext = ".fst"
 
     # TODO: instead create a new directory instead of a file.
 
-    filter_glob = StringProperty(default="*.fst", options={'HIDDEN'})
-    selected_only = BoolProperty(
+    filter_glob: StringProperty(default="*.fst", options={'HIDDEN'})
+    selected_only: BoolProperty(
         default=False, name="Selected Only", description="Selected Only")
 
     #anim_graph_url = StringProperty(default="", name="Animation JSON Url",
     #                                description="Avatar Animation JSON absolute url path")
 
-    script = StringProperty(default="", name="Avatar Script Path",
+    script: StringProperty(default="", name="Avatar Script Path",
                             description="Avatar Script absolute url path, Script that is run on avatar")
 
-    flow = BoolProperty(default=False, name="Add Flow Script",
+    flow: BoolProperty(default=False, name="Add Flow Script",
                         description="Adds flow script template as an additional Avatar script")
 
-    embed = BoolProperty(default=False, name="Embed Textures",
+    embed: BoolProperty(default=False, name="Embed Textures",
                          description="Embed Textures to Exported Model. Turn this off if you are having issues of Textures  not showing correctly in elsewhere.")
 
-    bake = BoolProperty(default=False, name="Oven Bake (Experimental)",
+    bake: BoolProperty(default=False, name="Oven Bake (Experimental)",
                         description="Use the HiFi Oven Tool to bake")
 
-    ipfs = BoolProperty(default=False, name="Yes, Upload to IPFS",
+    ipfs: BoolProperty(default=False, name="Yes, Upload to IPFS",
                         description="Upload files to the \n InterPlanetary File System Blockchain via a Gateway")
 
     def draw(self, context):
@@ -186,13 +196,13 @@ class FSTWriterOperator(bpy.types.Operator, ExportHelper):
        #layout.prop(self, "flow")
         layout.prop(self, "embed")
 
-        oven_tool = context.user_preferences.addons[hifi_tools.__name__].preferences.oventool
+        oven_tool = context.preferences.addons[hifi_tools.__name__].preferences.oventool
         
         #layout.prop(self, "anim_graph_url")
         layout.prop(self, "script")
 
         enabled_ipfs = len(
-            context.user_preferences.addons[hifi_tools.__name__].preferences.gateway_token) > 0
+            context.preferences.addons[hifi_tools.__name__].preferences.gateway_token) > 0
 
         if (oven_tool is not None and "oven" in oven_tool):
             layout.prop(self, "bake")
@@ -211,10 +221,10 @@ class FSTWriterOperator(bpy.types.Operator, ExportHelper):
                 "with the url to see / download and will be impossible to remove after ")
 
             row = layout.row()
-            row.label("being distributed to ipfs, unless links of it are forgotten.")
+            row.label(text="being distributed to ipfs, unless links of it are forgotten.")
 
             row = layout.row()
-            row.label("Distribution may take a while. You may need to refresh the page after a few minutes.")
+            row.label(text="Distribution may take a while. You may need to refresh the page after a few minutes.")
 
             row = layout.row()
             row.label(
@@ -228,7 +238,7 @@ class FSTWriterOperator(bpy.types.Operator, ExportHelper):
         if not self.filepath:
             raise Exception("filepath not set")
 
-        preferences = bpy.context.user_preferences.addons[hifi_tools.__name__].preferences
+        preferences = bpy.context.preferences.addons[hifi_tools.__name__].preferences
 
         if self.bake and (preferences.oventool is None or "oven" not in preferences.oventool):
             raise Exception(
@@ -247,17 +257,30 @@ class FSTWriterOperator(bpy.types.Operator, ExportHelper):
 
         armatures = find_armatures(to_export)
         if len(armatures) > 1 or len(armatures) == 0:
-            bpy.ops.hifi_error_no_armature.export('INVOKE_DEFAULT')
+            bpy.ops.metaverse_toolset_messages.export_error_no_armature('INVOKE_DEFAULT')
             return {'CANCELLED'}
 
         val = FSTWriter.fst_export(self, to_export)
 
         if val == {'FINISHED'}:
             if len(armatures[0].data.edit_bones) > 100:
-                bpy.ops.hifi_warn.bone_count('INVOKE_DEFAULT')
+                bpy.ops.metaverse_toolset_messages.export_warn_bone('INVOKE_DEFAULT')
             else:
-                bpy.ops.hifi_success.export('INVOKE_DEFAULT')
+                bpy.ops.metaverse_toolset_messages.export_success('INVOKE_DEFAULT')
             return {'FINISHED'}
         else:
-            bpy.ops.hifi_error.export('INVOKE_DEFAULT')
+            bpy.ops.metaverse_toolset_messages.export_success('INVOKE_DEFAULT')
             return val
+
+
+
+
+classes = (
+    EXPORT_OT_METAV_TOOLSET_FST_Writer_Operator,
+    EXPORT_OT_METAV_TOOLSET_Message_Warn_Bone,
+    EXPORT_OT_METAV_TOOLSET_Message_Error,
+    EXPORT_OT_METAV_TOOLSET_Message_Error_No_Armature,
+    EXPORT_OT_METAV_TOOLSET_Message_Success
+)
+
+module_register, module_unregister = bpy.utils.register_classes_factory(classes)    

@@ -16,16 +16,12 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
-# Created by Matti 'Menithal' Lahtinen
+# Copyright 2019 Matti 'Menithal' Lahtinen
 
 from . import (
-    helpers,
-    mesh,
+    bpyutil,
+    ui,
     bones,
-    custom,
-    mmd,
-    mixamo,
-    materials,
-    bake_tool
+    dev,
+    helpers
 )
-import bpy

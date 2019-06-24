@@ -25,7 +25,8 @@ import re
 import os
 import copy
 from mathutils import Vector
-from hifi_tools.utils import materials, mesh, bones
+from hifi_tools.utils.helpers import materials, mesh
+from hifi_tools.utils.bones import bones_builder
 # This part is Based on powroupi the MMD Translation script combined with a Hogarth-MMD Translation csv that has been modified to select names as close as possible
 # This instead uses a predefined list that is Hifi Compatable.
 
@@ -93,7 +94,7 @@ class MMDTranslator:
 
         try:
             local = os.path.dirname(os.path.abspath(__file__))
-            filename = os.path.join(local, 'mmd_hifi_dict.csv')
+            filename = os.path.join(local, 'mmd_METAV_TOOLSET_dict.csv')
             with open(filename, 'r', encoding='utf-8', errors='ignore') as f:
                 try:
                     stream = csv.reader(
@@ -105,7 +106,7 @@ class MMDTranslator:
                     print("Translation File Loaded")
         except FileNotFoundError:  # Probably just developing then
             print("Reading Editor file: This only should show when developing")
-            stream = bpy.data.texts["mmd_hifi_dict.csv"].lines
+            stream = bpy.data.texts["mmd_METAV_TOOLSET_dict.csv"].lines
             for line in stream:
                 body = line.body
                 body = body.replace('"', '')
@@ -165,13 +166,13 @@ def delete_self_and_children(me):
 
     me.hide = False
     me.hide_select = False
-    me.select = True
-    bpy.context.scene.objects.active = me
+    me.select_set(state=True)
+    bpy.context.view_layer.objects.active = me
 
     for child in me.children:
         child.hide = False
         child.hide_select = False
-        child.select = True
+        child.select_set(state=True)
 
     bpy.ops.object.delete()
 
@@ -279,26 +280,26 @@ def clean_up_bones(obj):
     if edit_bones.get("Spine1") is None and edit_bones.get("Spine2") is None:
         print("Couldnt Detect Spine1, Creating Out of Spine2")
         spine = edit_bones.get("Spine")
-        spine.select = True
+        spine.select_set(state=True)
         bpy.ops.armature.subdivide()
         spine.name = "Spine"
-        spine.select = False
+        spine.select_set(state=False)
         spine = edit_bones.get("Spine.001")
-        spine.select = True
+        spine.select_set(state=True)
         spine.name = "Spine2"
 
     if edit_bones.get("Spine1") is None:
         print("Couldnt Detect Spine1, Creating Out of Spine2")
         spine = edit_bones.get("Spine2")
-        spine.select = True
+        spine.select_set(state=True)
         bpy.ops.armature.subdivide()
         spine.name = "Spine1"
         spine = edit_bones.get("Spine2.001")
         spine.name = "Spine2"
-        spine.select = False
+        spine.select_set(state=False)
 
     edit_bones = updated_context.data.edit_bones
-    bones.correct_bone_parents(edit_bones)
+    bones_builder.correct_bone_parents(edit_bones)
 
     bpy.ops.object.mode_set(mode='OBJECT')
 
@@ -420,10 +421,13 @@ def convert_mmd_avatar_hifi():
 
     if not bpy.data.is_saved:
         print("Select a Directory")
-        bpy.ops.hifi_error.save_file('INVOKE_DEFAULT')
+        bpy.ops.metaverse_toolset_messages.remind_save('INVOKE_DEFAULT')
         return
 
-    bpy.ops.wm.console_toggle()
+    try:
+        bpy.ops.wm.console_toggle()
+    except:
+        print("Console was toggled")
 
     print("Converting MMD Avatar to be Blender-High Fidelity compliant")
     # Should Probably have a confirmation dialog when using this.
@@ -450,8 +454,8 @@ def convert_mmd_avatar_hifi():
         for obj in scene.objects:
             bpy.ops.object.select_all(action='DESELECT')
             if obj is not None:
-                obj.select = True
-                bpy.context.scene.objects.active = obj
+                obj.select_set(state=True)
+                bpy.context.view_layer.objects.active = obj
 
                 # Delete joints and rigid bodies items. Perhaps later convert this to flow.
                 print("Reading", obj.name)
@@ -463,18 +467,18 @@ def convert_mmd_avatar_hifi():
 
                 elif obj.type == 'ARMATURE':
                     convert_bones(Translator, obj)
-                    bones.scale_helper(obj)
+                    bones_builder.scale_helper(obj)
 
                 elif obj.type == 'MESH' and obj.parent is not None and obj.parent.type == 'ARMATURE':
                     clean_mesh(Translator, obj)
                     bpy.ops.object.mode_set(mode='OBJECT')
                     
-                    materials.clean_materials(obj.material_slots)
+                    #materials.clean_materials(obj.material_slots)
 
     bpy.ops.object.select_all(action='DESELECT')
     for deletion in marked_for_deletion:
-        deletion.select = True
-        bpy.context.scene.objects.active = deletion
+        deletion.select_set(state=True)
+        bpy.context.view_layer.objects.active = deletion
         bpy.ops.object.delete()
 
     bpy.ops.object.select_all(action='DESELECT')
@@ -483,11 +487,14 @@ def convert_mmd_avatar_hifi():
 
     materials.convert_to_png(bpy.data.images)
     materials.convert_images_to_mask(bpy.data.images)
-    materials.cleanup_alpha(bpy.data.materials)
-    materials.remove_materials_metallic(bpy.data.materials)
+    # materials.cleanup_alpha(bpy.data.materials)
+    # materials.remove_materials_metallic(bpy.data.materials)
 
     bpy.context.area.type = original_type
 
     bpy.ops.file.make_paths_absolute()
 
-    bpy.ops.wm.console_toggle()
+    try:
+        bpy.ops.wm.console_toggle()
+    except:
+        print("Console was toggled")

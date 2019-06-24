@@ -16,7 +16,7 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
-# Created by Matti 'Menithal' Lahtinen
+# Copyright 2019 Matti 'Menithal' Lahtinen
 
 import bpy
 import os
@@ -26,10 +26,10 @@ import datetime
 import os.path as ntpath
 import shutil
 
-from hifi_tools.utils.bones import find_armature, retarget_armature
-from hifi_tools.utils.mesh import get_mesh_from
-from hifi_tools.utils.materials import get_images_from
-from hifi_tools.utils.bake_tool import bake_fbx
+from hifi_tools.utils.bones.bones_builder import find_armature, retarget_armature
+from hifi_tools.utils.helpers.mesh import get_mesh_from
+from hifi_tools.utils.helpers.materials import get_images_from
+from hifi_tools.utils.helpers.bake_tool import bake_fbx
 from hifi_tools.gateway import client as GatewayClient
 
 import webbrowser
@@ -81,9 +81,10 @@ def default_blend_shape(selected):
 
 def fst_export(context, selected):
 
-    preferences = bpy.context.user_preferences.addons[hifi_tools.__name__].preferences
+    preferences = bpy.context.preferences.addons[hifi_tools.__name__].preferences
     # file = open
-    uuid_gen = uuid.uuid5(uuid.NAMESPACE_DNS, context.filepath + '?' + str(datetime.datetime.now()).replace(" ", ""))
+    uuid_gen = uuid.uuid5(uuid.NAMESPACE_DNS, context.filepath +
+                          '?' + str(datetime.datetime.now()).replace(" ", ""))
     scene_id = str(uuid_gen)
 
     print("Exporting file to filepath", context.filepath)
@@ -92,7 +93,7 @@ def fst_export(context, selected):
     directory = ntpath.join(os.path.dirname(
         os.path.realpath(context.filepath)), filename)
 
-    if os.path.isdir(directory) is False:
+    if os.path.isdir(directory) == False:
         os.mkdir(directory)
 
     filepath = ntpath.join(directory, filename + ".fst")
@@ -109,10 +110,10 @@ def fst_export(context, selected):
 
     f = open(filepath, "w")
 
-    mode = bpy.context.area.type
+    #mode = bpy.context.area.type
     try:
 
-        bpy.context.area.type = 'VIEW_3D'
+        #bpy.context.area.type = 'VIEW_3D'
 
         f.write(prefix_name.replace('$', context.name))
         f.write(prefix_type)
@@ -129,7 +130,7 @@ def fst_export(context, selected):
         if context.flow:
             print("Add Flow Script")
 
-        #if len(context.anim_graph_url) > 0:
+        # if len(context.anim_graph_url) > 0:
         #    f.write(prefix_anim_graph_url.replace('$', context.anim_graph_url))
 
         # Writing these in separate loops because they need to done in order.
@@ -145,23 +146,20 @@ def fst_export(context, selected):
                 print("Writing joint index", "freeJoint = " + bone.name + "\n")
                 f.write(prefix_free_joint.replace('$', bone.name))
 
+
         retarget_armature({"apply": True}, selected, context.selected_only)
 
-        if bpy.context.mode != 'OBJECT':
-            bpy.ops.object.mode_set(mode='OBJECT')
-
-        bpy.ops.object.select_all(action='DESELECT')
-    
         for select in selected:
-            select.select = True
+            select.select_set(state=True)
 
         if context.embed:
             path_mode = 'COPY'
         else:
             path_mode = 'AUTO'
 
-        print("Writing FBX with path_mode=", path_mode)
-        bpy.ops.export_scene.fbx(filepath=avatar_filepath, version='BIN7400', embed_textures=context.embed, path_mode=path_mode,
+        print("Writing FBX with path_mode=",
+              avatar_filepath, context.embed, path_mode)
+        bpy.ops.metaverse_toolset.export_scene_fbx(filepath=avatar_filepath, embed_textures=context.embed, path_mode=path_mode,
                                  use_selection=True, add_leaf_bones=False,  axis_forward='-Z', axis_up='Y')
 
         if not context.embed:
@@ -182,6 +180,7 @@ def fst_export(context, selected):
             images = get_images_from(get_mesh_from(selected))
             print(images)
             print("Copying Textures to export folder.")
+
             for image in images:
                 current_path = bpy.path.abspath(image.filepath)
                 shutil.copy(current_path, ntpath.join(
@@ -194,13 +193,15 @@ def fst_export(context, selected):
         print('Could not write to file.', e)
 
         f.close()
-        bpy.context.area.type = mode
         return {"CANCELLED"}
 
     f.close()
 
     if context.ipfs:
-        bpy.ops.wm.console_toggle()
+        try:
+            bpy.ops.wm.console_toggle()
+        except:
+            print("Console was toggled")
 
         print("IPFS Upload Enabled!")
 
@@ -246,8 +247,6 @@ def fst_export(context, selected):
                     webbrowser.open(gateway_default + file)
         else:
             print("ERROR")
-
-    bpy.context.area.type = mode
 
     return {"FINISHED"}
     # FST Exporter

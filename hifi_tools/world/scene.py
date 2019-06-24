@@ -17,15 +17,14 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # Scene Logic for Parsing and Navigating Content Tree
-# By Matti 'Menithal' Lahtinen
+# Copyright 2019 Matti 'Menithal' Lahtinen
 
 
 import bpy
 from hashlib import md5
 from mathutils import Quaternion, Vector, Euler, Matrix
-
 from hifi_tools.world import primitives as prims
-from hifi_tools.utils.helpers import PIVOT_VECTOR, swap_nyz, swap_nzy, parse_dict_quaternion, parse_dict_vector, swap_yz, swap_pivot, quat_swap_nyz
+from hifi_tools.utils.helpers.extra_math import PIVOT_VECTOR, swap_nyz, swap_nzy, parse_dict_quaternion, parse_dict_vector, swap_yz, swap_pivot, quat_swap_nyz
 
 
 class HifiScene:
@@ -95,9 +94,9 @@ class HifiScene:
         current_context = bpy.context.area.type
         bpy.context.area.type = 'VIEW_3D'
         # set context to 3D View and set Cursor
-        bpy.context.space_data.cursor_location[0] = 0.0
-        bpy.context.space_data.cursor_location[1] = 0.0
-        bpy.context.space_data.cursor_location[2] = 0.0
+        bpy.context.scene.cursor.location[0] = 0.0
+        bpy.context.scene.cursor.location[1] = 0.0
+        bpy.context.scene.cursor.location[2] = 0.0
         # return context back to earlier, and build scene.
         bpy.context.area.type = current_context
         print("Building Scene out of " + str(len(self.entities)) + ' Objects and '
@@ -185,7 +184,7 @@ class HifiObject:
         return False
 
     def select(self):
-        self.blender_object.select = True
+        self.blender_object.select_set(state=True)
 
     def build(self):
         # First places down the children (recursive)

@@ -1,30 +1,11 @@
-# -*- coding: utf-8 -*-
-# ##### BEGIN GPL LICENSE BLOCK #####
-#
-#  This program is free software; you can redistribute it and/or
-#  modify it under the terms of the GNU General Public License
-#  as published by the Free Software Foundation; either version 2
-#  of the License, or (at your option) any later version.
-#
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ##### END GPL LICENSE BLOCK #####
-# Created by Matti "Menithal" Lahtinen
 
 import bpy
 import re
 
 from math import pi
 from mathutils import Quaternion, Matrix, Vector, Euler
-from hifi_tools.utils import mesh, helpers
 
+from hifi_tools.utils.helpers import mesh, extra_math
 from hifi_tools.armature.skeleton import structure as base_armature
 
 
@@ -170,7 +151,7 @@ def combine_bones(selected_bones, active_bone, active_object, use_connect=True):
         if name != active_bone_name:
             for me in meshes:
                 print("Mesh: ", me.name)
-                bpy.context.scene.objects.active = me
+                bpy.context.view_layer.objects.active = me
 
                 vertex_group_b = me.vertex_groups.get(name)
                 vertex_group_a = me.vertex_groups.get(active_bone_name)
@@ -182,7 +163,7 @@ def combine_bones(selected_bones, active_bone, active_object, use_connect=True):
                     mesh.mix_weights(active_bone_name, name)
                     me.vertex_groups.remove(me.vertex_groups.get(name))
 
-    bpy.context.scene.objects.active = active_object
+    bpy.context.view_layer.objects.active = active_object
     bpy.ops.object.mode_set(mode="EDIT")
     print("Done")
 
@@ -199,7 +180,7 @@ def scale_helper(obj):
         bpy.ops.object.mode_set(mode='OBJECT')
         scale = 1.9/obj.dimensions.y
         obj.dimensions = obj.dimensions * scale
-        bpy.context.scene.objects.active = obj
+        bpy.context.view_layer.objects.active = obj
         bpy.ops.object.transform_apply(
             location=False, rotation=False, scale=True)
 
@@ -241,18 +222,18 @@ def clean_ends(obj):
     if obj.type == "ARMATURE":
         bpy.ops.object.mode_set(mode='EDIT')
         print("Cleaning Armature")
-        
+
         bpy.ops.object.mode_set(mode='OBJECT')
 
 
-def pin_common_bones(obj, fix_rolls = True):
+def pin_common_bones(obj, fix_rolls=True):
     # Edit Bones
 
     bpy.ops.object.mode_set(mode='OBJECT')
     reset_scale_rotation(obj)
     bpy.ops.object.mode_set(mode='EDIT')
     edit_bones = obj.data.edit_bones
-    
+
     print("Pinning Common Bones")
     for ebone in edit_bones:
         corrector = posterior_chain_correction.get(ebone.name)
@@ -274,26 +255,31 @@ def pin_common_bones(obj, fix_rolls = True):
                 z_dir = -1
 
             if corrector.theta < 0.001:
-                d = helpers.bone_length(ebone)
+                d = extra_math.bone_length(ebone)
 
                 if corrector.direction == "-y":
-                    ebone.tail = Vector([ebone.head.x, ebone.head.y - d, ebone.head.z])
+                    ebone.tail = Vector(
+                        [ebone.head.x, ebone.head.y - d, ebone.head.z])
                 elif corrector.direction == "y":
-                    ebone.tail = Vector([ebone.head.x, ebone.head.y + d, ebone.head.z])
+                    ebone.tail = Vector(
+                        [ebone.head.x, ebone.head.y + d, ebone.head.z])
 
                 if corrector.direction == "-x":
-                    ebone.tail = Vector([ebone.head.x - d , ebone.head.y, ebone.head.z])
+                    ebone.tail = Vector(
+                        [ebone.head.x - d, ebone.head.y, ebone.head.z])
                 elif corrector.direction == "x":
-                    ebone.tail = Vector([ebone.head.x + d, ebone.head.y, ebone.head.z])
-                
+                    ebone.tail = Vector(
+                        [ebone.head.x + d, ebone.head.y, ebone.head.z])
+
                 if corrector.direction == "-z":
-                    ebone.tail = Vector([ebone.head.x, ebone.head.y, ebone.head.z - d])
+                    ebone.tail = Vector(
+                        [ebone.head.x, ebone.head.y, ebone.head.z - d])
                 elif corrector.direction == "z":
-                    ebone.tail = Vector([ebone.head.x, ebone.head.y, ebone.head.z + d])
-                    
+                    ebone.tail = Vector(
+                        [ebone.head.x, ebone.head.y, ebone.head.z + d])
 
             else:
-                sides = helpers.get_sides(ebone, corrector.theta)
+                sides = extra_math.get_sides(ebone, corrector.theta)
                 h = sides[0]
                 a = sides[1]
                 o = sides[2]
@@ -314,6 +300,7 @@ def pin_common_bones(obj, fix_rolls = True):
             correct_bone_rotations(ebone)
 
     correct_scale_rotation(obj, True)
+
 
 def get_bone_side_and_mirrored(bone_name):
     cleaned_bones = camel_case_split(bone_name)
@@ -431,7 +418,7 @@ def correct_bone_parents(bones):
 
 
 def correct_bone_rotations(ebone):
-    
+
     bpy.ops.object.mode_set(mode="EDIT")
     name = ebone.name
 
@@ -511,9 +498,9 @@ def build_skeleton():
     try:
         bpy.context.area.type = "VIEW_3D"
         # set context to 3D View and set Cursor
-        bpy.context.space_data.cursor_location[0] = 0.0
-        bpy.context.space_data.cursor_location[1] = 0.0
-        bpy.context.space_data.cursor_location[2] = 0.0
+        bpy.context.scene.cursor.location[0] = 0.0
+        bpy.context.scene.cursor.location[1] = 0.0
+        bpy.context.scene.cursor.location[2] = 0.0
 
         print("----------------------")
         print("Creating Base Armature")
@@ -542,20 +529,21 @@ def build_skeleton():
 
 
 def reset_scale_rotation(obj):
-    current_context = bpy.context.area.type
-    bpy.context.area.type = "VIEW_3D"
+    #current_context = bpy.context.area.type
+    #bpy.context.area.type = "VIEW_3D"
     # set context to 3D View and set Cursor
-    bpy.context.space_data.cursor_location[0] = 0.0
-    bpy.context.space_data.cursor_location[1] = 0.0
-    bpy.context.space_data.cursor_location[2] = 0.0
-    bpy.context.area.type = current_context
+    bpy.context.scene.cursor.location[0] = 0.0
+    bpy.context.scene.cursor.location[1] = 0.0
+    bpy.context.scene.cursor.location[2] = 0.0
+    #bpy.context.area.type = current_context
     bpy.ops.object.mode_set(mode="OBJECT")
     bpy.ops.object.select_all(action="DESELECT")
 
-    obj.select = True
-    bpy.context.scene.objects.active = obj
+    obj.select_set(state=True)
+    bpy.context.view_layer.objects.active = obj
     bpy.ops.object.origin_set(type="ORIGIN_CURSOR")
     bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
+
 
 def correct_scale_rotation(obj, rotation):
     reset_scale_rotation(obj)
@@ -585,8 +573,8 @@ def navigate_armature(data, current_rest_node, world_matrix, parent, parent_node
             parent_matrix = Matrix()
             parent_inverted = Matrix()
             parent_destination = Matrix()
-        smat = inv_destination_matrix * \
-            (parent_destination * (parent_inverted * matrix))
+        smat = inv_destination_matrix @ \
+            (parent_destination @ (parent_inverted @ matrix))
         bone.rotation_quaternion = smat.to_quaternion().inverted()
         for child in current_rest_node["children"]:
             navigate_armature(data, child, world_matrix,
@@ -602,17 +590,15 @@ def navigate_armature(data, current_rest_node, world_matrix, parent, parent_node
 def clear_pose(selected):
     armature = find_armature(selected)
     if armature is not None:
-        mode = "OBJECT"
-        if bpy.context.mode != "OBJECT":
-            mode = bpy.context.mode
-            bpy.ops.object.mode_set(mode="OBJECT")
+        mode = bpy.context.mode
+        bpy.ops.object.mode_set(mode="OBJECT")
 
         print("Deselect all")
         bpy.ops.object.select_all(action="DESELECT")
         print("Selected")
 
-        bpy.context.scene.objects.active = armature
-        armature.select = True
+        bpy.context.view_layer.objects.active = armature
+        armature.select_set(state=True)
         bpy.context.object.data.pose_position = 'POSE'
 
         bpy.ops.object.mode_set(mode="POSE")
@@ -628,18 +614,11 @@ def retarget_armature(options, selected, selected_only=False):
     armature = find_armature(selected)
     if armature is not None:
         # Center Children First
-        print(bpy.context.mode, armature)
-        if bpy.context.mode != "OBJECT":
-            bpy.ops.object.mode_set(mode="OBJECT")
-
-        print("Deselect all")
-        bpy.ops.object.select_all(action="DESELECT")
-        print("Selected")
-
-        bpy.context.scene.objects.active = armature
-        armature.select = True
+        bpy.context.view_layer.objects.active = armature
+        armature.select_set(state=True)
         bpy.context.object.data.pose_position = 'POSE'
-
+        
+        bpy.ops.object.mode_set(mode="OBJECT")
         # Make sure to reset the bones first.
         bpy.ops.object.transform_apply(
             location=False, rotation=True, scale=True)
@@ -673,15 +652,12 @@ def retarget_armature(options, selected, selected_only=False):
 
             print(" Correcting child rotations and scale")
             for child in armature.children:
-                if selected_only is False or child.select:
+                if selected_only == False or child.select_get():
                     correct_scale_rotation(child, False)
 
-            bpy.context.scene.objects.active = armature
+            bpy.context.view_layer.objects.active = armature
 
-        armature.select = True
-
-        if bpy.context.mode != "OBJECT":
-            bpy.ops.object.mode_set(mode="OBJECT")
+        armature.select_set(state=True)
 
         print("Done")
     else:

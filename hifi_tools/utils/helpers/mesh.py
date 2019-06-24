@@ -16,10 +16,9 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
-# Created by Matti 'Menithal' Lahtinen
+# Copyright 2019 Matti 'Menithal' Lahtinen
 import bpy
 import copy
-
 
 
 def get_mesh_from(selected):
@@ -80,10 +79,10 @@ def clean_unused_vertex_groups(obj):
     _to_remove_bones = []
     if parent is not None and parent.type == "ARMATURE":
 
-        obj.select = False
+        obj.select_set(state=False)
 
-        bpy.context.scene.objects.active = parent
-        parent.select = True
+        bpy.context.view_layer.objects.active = parent
+        parent.select_set(state=True)
         mapped = [(x.name) for x in vertex_groups]
 
         bpy.ops.object.mode_set(mode='EDIT')
@@ -105,4 +104,5 @@ def clean_unused_vertex_groups(obj):
     bpy.ops.object.mode_set(mode='OBJECT')
     print(" Found", len(empty_vertex), " Unused Vertices")
 
-    bpy.context.scene.objects.active = obj
+    bpy.context.view_layer.objects.active = obj
+

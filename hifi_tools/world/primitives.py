@@ -17,11 +17,9 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # Primitive Logic for Content from High Fidelity to match source.
-# By Matti 'Menithal' Lahtinen
-
+# Copyright 2019 Matti 'Menithal' Lahtinen
 
 import bpy
-
 import addon_utils
 
 # Utility Script to debug selected edges
@@ -56,7 +54,7 @@ def select_polygons(uv_array):
     polygons = bpy.context.active_object.data.polygons
 
     for polygon in uv_array:
-        polygons[polygon].select = True
+        polygons[polygon].select_set(state=True)
         
         
 # Utility to select Edges from the uv_array
@@ -69,7 +67,7 @@ def select_edges(uv_array):
     edges = bpy.context.active_object.data.edges
 
     for edge in uv_array:
-        edges[edge].select = True
+        edges[edge].select_set(state=True)
 
 
 # Utility to mark selected and then unwrap
@@ -81,8 +79,8 @@ def mark_seams_and_uv_unwrap():
     bpy.ops.uv.unwrap(method='ANGLE_BASED', margin=0.001)
     
     bpy.context.area.type = 'IMAGE_EDITOR'
-    bpy.context.space_data.cursor_location[0] = 0
-    bpy.context.space_data.cursor_location[1] = 0
+    bpy.context.scene.cursor.location[0] = 0
+    bpy.context.scene.cursor.location[1] = 0
     
     
 def ___empty():
