@@ -326,8 +326,9 @@ def rename_bones_and_fix_most_things(self, context):
 
     children = bpy.data.objects
     for child in children:
+        
+        child.select_set(state=True)
         if child.type == "ARMATURE":
-            child.select_set(state=True)
             bones_builder.correct_scale_rotation(child, True)
             bpy.ops.object.mode_set(mode="POSE")
             bpy.ops.pose.select_all(action="SELECT")
@@ -357,7 +358,6 @@ def rename_bones_and_fix_most_things(self, context):
                 bpy.ops.object.mode_set(mode="OBJECT")
                 bpy.ops.object.select_all(action="DESELECT")
                 bpy.context.view_layer.objects.active = child
-                child.select_set(state=True)
                 blocks = child.data.shape_keys.key_blocks
 
                 for shape_key in blocks:

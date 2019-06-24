@@ -205,11 +205,43 @@ def find_armatures(selection):
     return armatures
 
 
+def find_armatures_parent(selection):
+    armatures = []
+    for selected in selection:
+        if selected.parent is not None and selected.type == "ARMATURE":
+            armatures.append(selected.parent)
+    return armatures
+
+
+def find_armature_or_armature_parent(selection):
+    armature = find_armatures(selection)
+    if armature is None:
+        armatures = find_armatures_parent(selection)
+        if len(armatures) > 0:
+            armature = armatures[0]
+
+    return armature
+
+
 def find_armature(selection):
     for selected in selection:
         if selected.type == "ARMATURE":
             return selected
     return None
+
+
+def find_select_armature_and_children(selection):
+    roots = find_armature_or_armature_parent(selection)
+    if len(roots) == 0:
+        return
+
+    bpy.ops.object.select_all(action='DESELECT')
+    for root in roots:
+        root.select_set(True)
+
+        if len(root.children) > 0:
+            for child in root.children:
+                child.select_set(True)
 
 
 def camel_case_split(name):
@@ -230,7 +262,6 @@ def pin_common_bones(obj, fix_rolls=True):
     # Edit Bones
 
     bpy.ops.object.mode_set(mode='OBJECT')
-    reset_scale_rotation(obj)
     bpy.ops.object.mode_set(mode='EDIT')
     edit_bones = obj.data.edit_bones
 
@@ -299,7 +330,7 @@ def pin_common_bones(obj, fix_rolls=True):
         if fix_rolls:
             correct_bone_rotations(ebone)
 
-    correct_scale_rotation(obj, True)
+    bpy.ops.object.mode_set(mode='OBJECT')
 
 
 def get_bone_side_and_mirrored(bone_name):
@@ -537,9 +568,6 @@ def reset_scale_rotation(obj):
     bpy.context.scene.cursor.location[2] = 0.0
     #bpy.context.area.type = current_context
     bpy.ops.object.mode_set(mode="OBJECT")
-    bpy.ops.object.select_all(action="DESELECT")
-
-    obj.select_set(state=True)
 
     bpy.ops.object.origin_set(type="ORIGIN_CURSOR")
     bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
@@ -551,9 +579,9 @@ def correct_scale_rotation(obj, rotation):
     str_angle = -90 * pi/180
     if rotation:
         obj.rotation_euler = Euler((str_angle, 0, 0), "XYZ")
-    
+
     reset_scale_rotation(obj)
-    
+
     obj.scale = Vector((0.01, 0.01, 0.01))
     if rotation:
         obj.rotation_euler = Euler((-str_angle, 0, 0), "XYZ")
@@ -618,7 +646,7 @@ def retarget_armature(options, selected, selected_only=False):
         bpy.context.view_layer.objects.active = armature
         armature.select_set(state=True)
         bpy.context.object.data.pose_position = 'POSE'
-        
+
         bpy.ops.object.mode_set(mode="OBJECT")
         # Make sure to reset the bones first.
         bpy.ops.object.transform_apply(

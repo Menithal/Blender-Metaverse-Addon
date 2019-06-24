@@ -310,19 +310,19 @@ class OBJECT_OT_METAV_TOOLSET_Fix_Scale_Operator(bpy.types.Operator):
     bl_category = "High Fidelity"
 
     def execute(self, context):
+        bones_builder.find_select_armature_and_children(bpy.context.selected_objects)
         selected_objects = bpy.context.selected_objects
         for selected in selected_objects:
             bones_builder.correct_scale_rotation(selected, True)
             
-        bpy.ops.object.select_all(action="DESELECT")
-        for selected in selected_objects:
-            selected.select_set(state=True)
+        
+        
 
         return {'FINISHED'}
 
 
 class BONES_OT_METAV_TOOLSET_Pin_Problem_Bones(bpy.types.Operator):
-    """ Pins usually problemative bones to match the HF reference skeleton. """
+    """ Correct Rolls AND Pins usually problemative bones to match the HF reference skeleton. """
     bl_idname = "metaverse_toolset.hf_pin_problem_bones"
     bl_label = "Pin Problem Bones"
 
@@ -331,13 +331,10 @@ class BONES_OT_METAV_TOOLSET_Pin_Problem_Bones(bpy.types.Operator):
     bl_category = "High Fidelity"
 
     def execute(self, context):
-        bpy.ops.object.mode_set(mode="EDIT")
-
         for obj in bpy.data.objects:
             if obj.type == "ARMATURE":
                 bones_builder.pin_common_bones(obj, False)
 
-        bpy.ops.object.mode_set(mode="OBJECT")
         return {'FINISHED'}
 
 
@@ -351,25 +348,33 @@ class BONES_OT_METAV_TOOLSET_Fix_Rolls(bpy.types.Operator):
     bl_category = "High Fidelity"
 
     def execute(self, context):
+        selected = bpy.context.selected_objects
+        
+        if selected is None:
+            selected = bpy.data.objects
+        bones_builder.find_select_armature_and_children(selected)
+        
+        selected = bpy.context.selected_objects
+
+
         bpy.ops.object.mode_set(mode="EDIT")
 
-        selected = bpy.context.selected_objects
         if selected is None:
             selected = bpy.data.objects
 
         for obj in selected:
             if obj.type == "ARMATURE":
-                print("Lets Do this shit ", obj)
-                bpy.ops.object.mode_set(mode="OBJECT")
-                bones_builder.correct_scale_rotation(obj, False)
                 bpy.ops.object.mode_set(mode="EDIT")
                 for ebone in obj.data.edit_bones:
                     bones_builder.correct_bone_rotations(ebone)
+            
+            bones_builder.correct_scale_rotation(obj, False)
 
         bpy.ops.object.mode_set(mode="OBJECT")
         bones_builder.clear_pose(selected)
-
+        
         bpy.ops.object.mode_set(mode="OBJECT")
+
         return {'FINISHED'}
 
 
