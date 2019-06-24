@@ -147,7 +147,7 @@ def fst_export(context, selected):
                 f.write(prefix_free_joint.replace('$', bone.name))
 
 
-        retarget_armature({"apply": True}, selected, context.selected_only)
+        # retarget_armature({"apply": True}, selected, context.selected_only)
 
         for select in selected:
             select.select_set(state=True)
