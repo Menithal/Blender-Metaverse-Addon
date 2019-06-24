@@ -156,6 +156,7 @@ def create_blink_shapes(shapekey, armature1, armature2):
     armature = None
     old_meshes = {}
     meshes = {}
+    selected = bpy.context.selected_objects
 
     # duplicate avatar
     bpy.ops.object.mode_set(mode='OBJECT')
@@ -171,7 +172,7 @@ def create_blink_shapes(shapekey, armature1, armature2):
     bpy.ops.object.duplicate()
 
     # pose eyelids
-    for obj in bpy.context.selected_objects:
+    for obj in selected:
         if obj.type == 'ARMATURE':
             armature = obj
             bpy.context.view_layer.objects.active = obj

@@ -204,6 +204,15 @@ def find_armatures(selection):
 
     return armatures
 
+def find_armature(selection):
+    for selected in selection:
+        print(selected, selected.parent)
+        if selected.type == "ARMATURE":
+            return selected
+        if selected.type == "MESH" and selected.parent is not None and selected.parent.type == "ARMATURE":
+            return selected.parent
+    return None
+
 
 def find_armatures_parent(selection):
     armatures = []
@@ -214,7 +223,7 @@ def find_armatures_parent(selection):
 
 
 def find_armature_or_armature_parent(selection):
-    armature = find_armatures(selection)
+    armature = find_armature(selection)
     if armature is None:
         armatures = find_armatures_parent(selection)
         if len(armatures) > 0:
@@ -223,25 +232,18 @@ def find_armature_or_armature_parent(selection):
     return armature
 
 
-def find_armature(selection):
-    for selected in selection:
-        if selected.type == "ARMATURE":
-            return selected
-    return None
-
 
 def find_select_armature_and_children(selection):
-    roots = find_armature_or_armature_parent(selection)
-    if len(roots) == 0:
+    root = find_armature_or_armature_parent(selection)
+    if root is None:
         return
 
     bpy.ops.object.select_all(action='DESELECT')
-    for root in roots:
-        root.select_set(True)
+    root.select_set(True)
 
-        if len(root.children) > 0:
-            for child in root.children:
-                child.select_set(True)
+    if len(root.children) > 0:
+        for child in root.children:
+            child.select_set(True)
 
 
 def camel_case_split(name):
@@ -560,22 +562,24 @@ def build_skeleton():
 
 
 def reset_scale_rotation(obj):
-    #current_context = bpy.context.area.type
-    #bpy.context.area.type = "VIEW_3D"
-    # set context to 3D View and set Cursor
-    bpy.context.scene.cursor.location[0] = 0.0
-    bpy.context.scene.cursor.location[1] = 0.0
-    bpy.context.scene.cursor.location[2] = 0.0
-    #bpy.context.area.type = current_context
+    mode = bpy.context.area.type 
+    bpy.context.area.type = "VIEW_3D"
     bpy.ops.object.mode_set(mode="OBJECT")
+    bpy.ops.view3d.snap_cursor_to_center('INVOKE_DEFAULT')
+    bpy.context.area.type = mode
+    bpy.ops.object.select_all(action="DESELECT")
 
-    bpy.ops.object.origin_set(type="ORIGIN_CURSOR")
+    obj.select_set(True)
     bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
+    
+    mode = mode
+
 
 
 def correct_scale_rotation(obj, rotation):
     reset_scale_rotation(obj)
-    obj.scale = Vector((100, 100, 100))
+    obj.scale = Vector((100.0, 100.0, 100.0))
+    print(obj.scale)
     str_angle = -90 * pi/180
     if rotation:
         obj.rotation_euler = Euler((str_angle, 0, 0), "XYZ")
@@ -585,6 +589,7 @@ def correct_scale_rotation(obj, rotation):
     obj.scale = Vector((0.01, 0.01, 0.01))
     if rotation:
         obj.rotation_euler = Euler((-str_angle, 0, 0), "XYZ")
+
 
 
 def navigate_armature(data, current_rest_node, world_matrix, parent, parent_node):

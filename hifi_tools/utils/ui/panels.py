@@ -310,14 +310,8 @@ class OBJECT_OT_METAV_TOOLSET_Fix_Scale_Operator(bpy.types.Operator):
     bl_category = "High Fidelity"
 
     def execute(self, context):
-        bones_builder.find_select_armature_and_children(bpy.context.selected_objects)
-        selected_objects = bpy.context.selected_objects
-        for selected in selected_objects:
-            bones_builder.correct_scale_rotation(selected, True)
-            
-        
-        
-
+        armature = bones_builder.find_armature_or_armature_parent(bpy.context.selected_objects)
+        bones_builder.correct_scale_rotation(armature, True)    
         return {'FINISHED'}
 
 
@@ -352,6 +346,7 @@ class BONES_OT_METAV_TOOLSET_Fix_Rolls(bpy.types.Operator):
         
         if selected is None:
             selected = bpy.data.objects
+        
         bones_builder.find_select_armature_and_children(selected)
         
         selected = bpy.context.selected_objects
@@ -781,7 +776,7 @@ classes = (
     BONES_OT_METAV_TOOLSET_Combine_Disconnected,
     BONES_OT_METAV_TOOLSET_Connect_Selected,
     BONES_OT_METAV_TOOLSET_Fix_Rolls,
-
+    BONES_OT_METAV_TOOLSET_Disconnect_Selected,
     BONES_OT_METAV_TOOLSET_Pin_Problem_Bones,
     OBJECT_PT_METAV_TOOLSET,
     OBJECT_PT_METAV_TOOLSET_Assets_Display,

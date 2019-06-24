@@ -111,7 +111,8 @@ def automatic_bind_bones(self, avatar_bones):
     knee_check = False
     cleaned_bones = dict()
     for bone in avatar_bones:
-        cleaned_bones[bones_builder.clean_up_bone_name(bone.name).lower()] = bone
+        cleaned_bones[bones_builder.clean_up_bone_name(
+            bone.name).lower()] = bone
 
     keys = list(cleaned_bones.keys())
     for cleaned_name in keys:
@@ -236,12 +237,15 @@ def rename_bones_and_fix_most_things(self, context):
         bpy.ops.wm.console_toggle()
     except:
         print("Console Toggle")
-    
-    mode = bpy.context.area.type
 
+    armature_obj = context.scene.objects[self.armatures]
+    mode = bpy.context.area.type
+    
     # Naming Converted
-    bpy.ops.object.mode_set(mode="EDIT")
+
     armature = bpy.data.armatures[self.armature]
+
+    bpy.ops.object.mode_set(mode="EDIT")
     ebones = armature.edit_bones
 
     print("--------")
@@ -254,7 +258,7 @@ def rename_bones_and_fix_most_things(self, context):
     if len(self.spine1) < 1:
         # Get what is supposed to be the last spine.
         spine1 = ebones.get("Spine2")
-        spine1.select_set(state=True)
+        spine1.select = True
         bpy.ops.armature.subdivide()
 
         # Spine2.001 = new spine 2
@@ -294,14 +298,6 @@ def rename_bones_and_fix_most_things(self, context):
     bpy.ops.object.mode_set(mode="OBJECT")
     armature = bpy.data.armatures[self.armature]
 
-    object_armature = None
-    for obj in bpy.data.objects:
-        if obj.type == "ARMATURE" and obj.data == armature:
-            object_armature = obj
-            break
-
-    bones_builder.reset_scale_rotation(object_armature)
-
     # Fixing Rotations and Scales
     # Now Refresh datablocks
 
@@ -316,7 +312,6 @@ def rename_bones_and_fix_most_things(self, context):
     for bone in ebones:
         bone.hide = False
         bone.name = bones_builder.clean_up_bone_name(bone.name)
-        bones_builder.correct_bone_rotations(bone)
         bones_builder.correct_bone(bone, ebones)
 
     bones_builder.correct_bone_parents(armature.edit_bones)
@@ -326,24 +321,17 @@ def rename_bones_and_fix_most_things(self, context):
 
     children = bpy.data.objects
     for child in children:
-        
+
         child.select_set(state=True)
         if child.type == "ARMATURE":
-            bones_builder.correct_scale_rotation(child, True)
             bpy.ops.object.mode_set(mode="POSE")
             bpy.ops.pose.select_all(action="SELECT")
             bpy.ops.pose.transforms_clear()
             bpy.ops.pose.select_all(action="DESELECT")
             bpy.ops.object.mode_set(mode="OBJECT")
 
-            if self.pin_problems:
-                print("PIN PROBLEM")
-                bpy.ops.object.mode_set(mode="EDIT")
-                bones_builder.pin_common_bones(child, self.fix_rolls)
-
         if child.type == "MESH":
             # mesh.clean_unused_vertex_groups(child)
-            bones_builder.reset_scale_rotation(child)
             if spine_was_split:
                 print("Dealing with the Spine split for" + child.name)
                 spine1_weights = child.vertex_groups["Spine1"]
@@ -375,29 +363,30 @@ def rename_bones_and_fix_most_things(self, context):
                             block.value = 0
 
     if self.remove_ends:
-        bpy.context.area.type = mode
-        bpy.ops.object.mode_set(mode="OBJECT")
         bpy.ops.object.mode_set(mode="EDIT")
         bones_builder.clean_ends(child)
 
-    # for material in bpy.data.materials:
-    #    materials.flip_material_specular(material)
-
-    # if self.remove_metallic:
-    #    materials.remove_materials_metallic(bpy.data.materials)
 
     if self.mask_textures:
         materials.convert_images_to_mask(bpy.data.images)
 
     bpy.ops.object.mode_set(mode="OBJECT")
 
-    bpy.context.area.type = mode
-    bpy.ops.object.mode_set(mode="OBJECT")
-
     try:
         bpy.ops.wm.console_toggle()
     except:
         print("Console was toggled")
+
+    if self.fix_rolls:
+        bpy.ops.metaverse_toolset.hf_fix_bone_rolls('INVOKE_DEFAULT')
+        
+    if self.pin_problems:
+        bpy.ops.metaverse_toolset.hf_pin_problem_bones('INVOKE_DEFAULT')
+
+    print(armature_obj)
+    armature_obj.select_set(True)
+
+    bpy.ops.metaverse_toolset.hf_objects_fix_scale_and_rotation('INVOKE_DEFAULT')
 
     return {"FINISHED"}
 
@@ -547,23 +536,16 @@ class AVATAR_OT_METAV_TOOLSET_Custom_Avatar_Binder_Operator(bpy.types.Operator):
             column.prop_search(self, 'toe', data, 'bones',
                                icon='BONE_DATA', text='Toe')
 
-            column.prop(self, "cats_convert")
+            #column.prop(self, "cats_convert")
             column.label(text="Bones")
 
             row = column.row()
             row.prop(self, "pin_problems")
             row.prop(self, "fix_rolls")
 
-            column.label(text="Materials")
-
-            row = column.row()
-            row.prop(self, "remove_metallic")
-            row.prop(self, "mask_textures")
-
         else:
             print(" No Armatures")
 
-        print("custom_armature_name", self.custom_armature_name)
         # After selecting armature, iterate through bones.
 
 # https://blender.stackexchange.com/questions/19293/prop-search-armature-bones
@@ -581,8 +563,10 @@ def scene_delete():
 
 
 def custom_register():
-    bpy.utils.register_class(AVATAR_OT_METAV_TOOLSET_Custom_Avatar_Binder_Operator)
+    bpy.utils.register_class(
+        AVATAR_OT_METAV_TOOLSET_Custom_Avatar_Binder_Operator)
 
 
 def custom_unregister():
-    bpy.utils.unregister_class(AVATAR_OT_METAV_TOOLSET_Custom_Avatar_Binder_Operator)
+    bpy.utils.unregister_class(
+        AVATAR_OT_METAV_TOOLSET_Custom_Avatar_Binder_Operator)
