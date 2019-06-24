@@ -159,7 +159,7 @@ def fst_export(context, selected):
 
         print("Writing FBX with path_mode=",
               avatar_filepath, context.embed, path_mode)
-        bpy.ops.hifi.export_scene_fbx(filepath=avatar_filepath, embed_textures=context.embed, path_mode=path_mode,
+        bpy.ops.metaverse_toolset.export_scene_fbx(filepath=avatar_filepath, embed_textures=context.embed, path_mode=path_mode,
                                  use_selection=True, add_leaf_bones=False,  axis_forward='-Z', axis_up='Y')
 
         if not context.embed:

@@ -30,7 +30,7 @@ from hifi_tools.utils.bones import bones_builder
 def convert_mixamo_avatar_hifi():
     if not bpy.data.is_saved:
         print("Select a Directory")
-        bpy.ops.hifi_messages.remind_save('INVOKE_DEFAULT')
+        bpy.ops.metaverse_toolset_messages.remind_save('INVOKE_DEFAULT')
         return
 
     try:

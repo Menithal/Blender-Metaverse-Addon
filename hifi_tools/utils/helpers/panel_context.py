@@ -9,3 +9,11 @@ def set_optional_area_context_type(target_mode):
         return
 
     bpy.context.area.type = target_mode
+
+
+def toggle_console():
+    try:
+        bpy.ops.wm.console_toggle()
+    except:
+        print("Console was toggled but not available on windows.")
+        

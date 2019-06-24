@@ -21,7 +21,6 @@ import bpy
 import copy
 
 
-
 def get_mesh_from(selected):
     meshes = []
     
@@ -106,3 +105,4 @@ def clean_unused_vertex_groups(obj):
     print(" Found", len(empty_vertex), " Unused Vertices")
 
     bpy.context.view_layer.objects.active = obj
+

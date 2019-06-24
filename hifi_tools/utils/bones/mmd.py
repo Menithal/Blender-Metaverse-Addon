@@ -94,7 +94,7 @@ class MMDTranslator:
 
         try:
             local = os.path.dirname(os.path.abspath(__file__))
-            filename = os.path.join(local, 'mmd_hifi_dict.csv')
+            filename = os.path.join(local, 'mmd_METAV_TOOLSET_dict.csv')
             with open(filename, 'r', encoding='utf-8', errors='ignore') as f:
                 try:
                     stream = csv.reader(
@@ -106,7 +106,7 @@ class MMDTranslator:
                     print("Translation File Loaded")
         except FileNotFoundError:  # Probably just developing then
             print("Reading Editor file: This only should show when developing")
-            stream = bpy.data.texts["mmd_hifi_dict.csv"].lines
+            stream = bpy.data.texts["mmd_METAV_TOOLSET_dict.csv"].lines
             for line in stream:
                 body = line.body
                 body = body.replace('"', '')
@@ -421,7 +421,7 @@ def convert_mmd_avatar_hifi():
 
     if not bpy.data.is_saved:
         print("Select a Directory")
-        bpy.ops.hifi_messages.remind_save('INVOKE_DEFAULT')
+        bpy.ops.metaverse_toolset_messages.remind_save('INVOKE_DEFAULT')
         return
 
     try:

@@ -26,3 +26,12 @@ def get_selected_or_all():
     if len(selected) < 1:
         selected = bpy.data.objects
     return selected
+
+# https://blenderartists.org/t/how-to-know-if-an-operator-is-registered/638803/4
+def operator_exists(idname):
+    from bpy.ops import op_as_string
+    try:
+        op_as_string(idname)
+        return True
+    except:
+        return False

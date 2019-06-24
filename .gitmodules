@@ -1,0 +1,3 @@
+[submodule "hifi_tools/ext/apply_modifier_for_object_with_shapekeys"]
+	path = hifi_tools/ext/apply_modifier_for_object_with_shapekeys
+	url = https://github.com/Menithal/ApplyModifierForObjectWithShapeKeys

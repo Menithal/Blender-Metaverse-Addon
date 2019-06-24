@@ -37,8 +37,10 @@ import hifi_tools.files.fst.writer as FSTWriter
 from hifi_tools.utils.bones.bones_builder import find_armatures
 
 
-class EXPORT_OT_HIFI_Message_Warn_Bone(bpy.types.Operator):
-    bl_idname = "hifi_messages.export_warn_bone"
+class EXPORT_OT_METAV_TOOLSET_Message_Warn_Bone(bpy.types.Operator):
+    """ This Operator is used to warn if the armature may have too many bones for it to work properly in High Fidelity.
+    """
+    bl_idname = "metaverse_toolset_messages.export_warn_bone"
     bl_label = ""
     bl_options = {'REGISTER', 'INTERNAL'}
 
@@ -67,11 +69,13 @@ class EXPORT_OT_HIFI_Message_Warn_Bone(bpy.types.Operator):
         row = layout.row()
         row.label(text="So many bones.")
         row = layout.row()
-        row.label(text="Try combining some if you have issues in HiFi.")
+        row.label(text="Try combining some if you have issues in metaverse_toolset.")
 
 
-class EXPORT_OT_HIFI_Message_Error(bpy.types.Operator):
-    bl_idname = "hifi_messages.export_error"
+class EXPORT_OT_METAV_TOOLSET_Message_Error(bpy.types.Operator):
+    """ This Operator is used show that there has been an error while exporting an avatar.
+    """
+    bl_idname = "metaverse_toolset_messages.export_error"
     bl_label = ""
     bl_options = {'REGISTER', 'INTERNAL'}
 
@@ -96,8 +100,10 @@ class EXPORT_OT_HIFI_Message_Error(bpy.types.Operator):
         row.label(text="Avatar Export Failed. Please Check the console logs")
 
 
-class EXPORT_OT_HIFI_Message_Error_No_Armature(bpy.types.Operator):
-    bl_idname = "hifi_messages.export_error_no_armature"
+class EXPORT_OT_METAV_TOOLSET_Message_Error_No_Armature(bpy.types.Operator):
+    """ This Operator is used show that exported avatar is missing an armature
+    """
+    bl_idname = "metaverse_toolset_messages.export_error_no_armature"
     bl_label = ""
     bl_options = {'REGISTER', 'INTERNAL'}
 
@@ -122,8 +128,10 @@ class EXPORT_OT_HIFI_Message_Error_No_Armature(bpy.types.Operator):
         row.label(text="Avatar Export Failed. Please have 1 armature on selected")
 
 
-class EXPORT_OT_HIFI_Message_Success(bpy.types.Operator):
-    bl_idname = "hifi_messages.export_success"
+class EXPORT_OT_METAV_TOOLSET_Message_Success(bpy.types.Operator):
+    """ This Operator is used show that avatar was exported successfully
+    """
+    bl_idname = "metaverse_toolset_messages.export_success"
     bl_label = ""
     bl_options = {'REGISTER', 'INTERNAL'}
 
@@ -148,8 +156,10 @@ class EXPORT_OT_HIFI_Message_Success(bpy.types.Operator):
         row.label(text="Avatar Export Successful.")
 
 
-class EXPORT_OT_HIFI_FST_Writer_Operator(bpy.types.Operator, ExportHelper):
-    bl_idname = "hifi.export_fst"
+class EXPORT_OT_METAV_TOOLSET_FST_Writer_Operator(bpy.types.Operator, ExportHelper):
+    """ This Operator is export a HighFidelity compatible FST and FBX of the current avatar.
+    """
+    bl_idname = "metaverse_toolset.export_fst"
     bl_label = "Export Hifi Avatar"
     bl_options = {'UNDO'}
 
@@ -247,30 +257,30 @@ class EXPORT_OT_HIFI_FST_Writer_Operator(bpy.types.Operator, ExportHelper):
 
         armatures = find_armatures(to_export)
         if len(armatures) > 1 or len(armatures) == 0:
-            bpy.ops.hifi_messages.export_error_no_armature('INVOKE_DEFAULT')
+            bpy.ops.metaverse_toolset_messages.export_error_no_armature('INVOKE_DEFAULT')
             return {'CANCELLED'}
 
         val = FSTWriter.fst_export(self, to_export)
 
         if val == {'FINISHED'}:
             if len(armatures[0].data.edit_bones) > 100:
-                bpy.ops.hifi_messages.export_warn_bone('INVOKE_DEFAULT')
+                bpy.ops.metaverse_toolset_messages.export_warn_bone('INVOKE_DEFAULT')
             else:
-                bpy.ops.hifi_messages.export_success('INVOKE_DEFAULT')
+                bpy.ops.metaverse_toolset_messages.export_success('INVOKE_DEFAULT')
             return {'FINISHED'}
         else:
-            bpy.ops.hifi_messages.export_success('INVOKE_DEFAULT')
+            bpy.ops.metaverse_toolset_messages.export_success('INVOKE_DEFAULT')
             return val
 
 
 
 
 classes = (
-    EXPORT_OT_HIFI_FST_Writer_Operator,
-    EXPORT_OT_HIFI_Message_Warn_Bone,
-    EXPORT_OT_HIFI_Message_Error,
-    EXPORT_OT_HIFI_Message_Error_No_Armature,
-    EXPORT_OT_HIFI_Message_Success
+    EXPORT_OT_METAV_TOOLSET_FST_Writer_Operator,
+    EXPORT_OT_METAV_TOOLSET_Message_Warn_Bone,
+    EXPORT_OT_METAV_TOOLSET_Message_Error,
+    EXPORT_OT_METAV_TOOLSET_Message_Error_No_Armature,
+    EXPORT_OT_METAV_TOOLSET_Message_Success
 )
 
 module_register, module_unregister = bpy.utils.register_classes_factory(classes)    

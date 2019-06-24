@@ -218,7 +218,7 @@ def parse_object(blender_object, path, options):
         file_path = path + reference_name + uid + ".fbx"
 
         print("Writing FBX with path_mode=", file_path)
-        bpy.ops.hifi.export_scene_fbx(filepath=file_path, embed_textures=True, path_mode='COPY', use_selection=True, axis_forward='-Z', axis_up='Y')
+        bpy.ops.metaverse_toolset.export_scene_fbx(filepath=file_path, embed_textures=True, path_mode='COPY', use_selection=True, axis_forward='-Z', axis_up='Y')
 
         # Restore earlier rotation
         # blender_object.dimensions = temp_dimensions

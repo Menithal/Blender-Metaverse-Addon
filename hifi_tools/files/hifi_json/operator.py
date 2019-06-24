@@ -35,8 +35,10 @@ from bpy.props import (
     EnumProperty
 )
 
-class EXPORT_OT_HIFI_Message_Error_Missing_ATP_Override(bpy.types.Operator):
-    bl_idname = "hifi_messages.export_missing_atp_override"
+class EXPORT_OT_METAV_TOOLSET_Message_Error_Missing_ATP_Override(bpy.types.Operator):
+    """ This Operator to show an error that the ATP Override is missing from export
+    """
+    bl_idname = "metaverse_toolset_messages.export_missing_atp_override"
     bl_label = "You must either select ATP export or override a baseURL for your host (be it marketplace or your own)"
     bl_options = {'REGISTER', 'INTERNAL'}
 
@@ -65,15 +67,17 @@ class EXPORT_OT_HIFI_Message_Error_Missing_ATP_Override(bpy.types.Operator):
         row.label(text=" (be it marketplace or your own)")
 
 
-class EXPORT_OT_HIFI_Export_FBX_JSON(bpy.types.Operator, ExportHelper):
-    bl_idname = "hifi.export_fbx_json"
+class EXPORT_OT_METAV_TOOLSET_Export_FBX_JSON(bpy.types.Operator, ExportHelper):
+    """ This Operator to show an error that the ATP Override is missing from export
+    """
+    bl_idname = "metaverse_toolset.export_fbx_json"
     bl_label = "Export HiFi Scene"
     bl_options = {'UNDO'}
 
-    filename_ext = ".hifi.json"
+    filename_ext = ".metaverse_toolset.json"
 
     directory: StringProperty()
-    filter_glob: StringProperty(default="*.hifi.json", options={'HIDDEN'})
+    filter_glob: StringProperty(default="*.metaverse_toolset.json", options={'HIDDEN'})
 
     atp: BoolProperty(default=False, name="Use ATP / Upload to domain",
                       description="Use ATP instead of Marketplace / upload assets to domain")
@@ -110,7 +114,7 @@ class EXPORT_OT_HIFI_Export_FBX_JSON(bpy.types.Operator, ExportHelper):
 
         if not self.url_override and not self.atp:
             
-            bpy.ops.hifi_messages.export_missing_atp_override('INVOKE_DEFAULT')
+            bpy.ops.metaverse_toolset_messages.export_missing_atp_override('INVOKE_DEFAULT')
             return {'CANCELLED'}
            # raise Exception("You must Use ATP or Set the Marketplace / base URL to make sure that the content can be reached after you upload it. ATP currently not supported")
 
@@ -119,9 +123,11 @@ class EXPORT_OT_HIFI_Export_FBX_JSON(bpy.types.Operator, ExportHelper):
         return {'FINISHED'}
 
 
-class IMPORT_OT_HIFI_Scene_From_JSON(bpy.types.Operator, ImportHelper):
+class IMPORT_OT_METAV_TOOLSET_Scene_From_JSON(bpy.types.Operator, ImportHelper):
+    """ Import a metaverse_toolset.json.svo scene into Blender. Works only for Primitives for now.
+    """
     # Load a Hifi File
-    bl_idname = "hifi.import_scene_from_json"
+    bl_idname = "metaverse_toolset.import_scene_from_json"
     bl_label = "Import Hifi Json"
     bl_options = {"UNDO", "PRESET"}
 

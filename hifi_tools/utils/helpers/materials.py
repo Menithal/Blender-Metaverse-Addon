@@ -27,9 +27,7 @@ from bpy_extras.node_shader_utils import (
 )
 from bpy.app.handlers import persistent
 import hifi_tools
-
-CURRENT_VERSION = 1.4
-CUSTOM_SHADER_NAME = "HFShader"
+from mathutils import Euler
 
 
 def get_images_from(meshes):
@@ -57,7 +55,7 @@ def cleanup_unused(images):
 def convert_to_png(images):
     if not bpy.data.is_saved:
         print("Select a Directory")
-        bpy.ops.hifi_messages.remind_save('INVOKE_DEFAULT')
+        bpy.ops.metaverse_toolset_messages.remind_save('INVOKE_DEFAULT')
         return
 
     if pack_images(images):
@@ -134,7 +132,11 @@ def convert_image_to_mask(image, threshold):
         else:
             pixels[index] = 0
     image.pixels = pixels
-    bpy.ops.image.save()
+
+    if image.source != "GENERATED":
+        bpy.ops.image.save()
+
+
     bpy.context.area.type = mode
 
 
@@ -163,203 +165,8 @@ def clean_textures(material):
     return textures
 
 
-def get_textures_for_slot(node_tree, texture_type="ALL"):
-    print("DEVWARN: DEPRICATED new shader system.")
-    texture_list = []
-    # for slot in texture_slots:
-    #    if slot.image is not None and (texture_type == "ALL" or
-    #                                   (texture_type == "COLOR" and slot.use_map_color_diffuse) or
-    #                                   (texture_type == "SPECULAR" and (slot.use_map_color_spec or slot.use_map_specular)) or
-    #                                   (texture_type == "NORMAL" and slot.use_map_normal) or
-    #                                   (texture_type == "ALPHA" and slot.use_map_alpha) or
-    #                                   (texture_type == "EMIT" and slot.use_map_emit) or
-    #                                   (texture_type == "EMISSION" and slot.use_map_emission) or
-    #                                   (texture_type == "HARDNESS" and slot.use_map_hardness) or
-    #                                   (texture_type == "ROUGHNESS" and slot.use_map_roughness)) and slot.image not in texture_list:
-    #        texture_list.append(slot.image)
-    return texture_list
-
-
 def clean_materials(materials_slots):
     print("TODO: IMPLEMENT ME materials.clean_materials")
-    # try:
-    #    print("#######################################")
-    #    print("Cleaning Materials")
-
-    #    _unique_textures = {}
-    #    for material_slot in materials_slots:
-    #        if material_slot is not None and material_slot.material is not None:
-    #            textures = clean_textures(material_slot.material)
-
-    #            for texture in textures:
-    #                if texture is not None:
-    #                    if _unique_textures.get(texture.name) is None:
-    #                        print("Creating new", texture.name)
-    #                        _unique_textures[texture.name] = [
-    #                            material_slot.material]
-    #                    else:
-    #                        print("Appending to", texture.name)
-    #                        _unique_textures[texture.name].append(
-    #                            material_slot.material)
-
-    #    print("Found", len(_unique_textures.keys()),
-    #          "unique textures from", len(materials_slots), "slots")
-
-    #    merge_textures(materials_slots, _unique_textures)
-    # except Exception as args:
-    #    print("ERROR OCCURRED WHILE TRYING TO PROCESS TEXTURES", args)
-    # make_materials_fullbright(materials_slots) # enable this only if fullbright avatars every become supported
-
-# Simulated Hifi PBR
-
-# Note this is now obsolete as 2.8 has fixed version
-# Deprecated
-
-
-def create_helper_shfpbr_shader_group():
-    existing_shader_node = bpy.data.node_groups.get(CUSTOM_SHADER_NAME)
-    if (existing_shader_node is None):
-        try:
-            print("Attempting to create extended Principled PBR Shader Group")
-            group = bpy.data.node_groups.new(
-                name=CUSTOM_SHADER_NAME, type='ShaderNodeTree')
-            group_nodes = group.nodes
-
-            group_inputs = group_nodes.new("NodeGroupInput")
-            group_inputs.location = (-80, 285)
-
-            group_outputs = group_nodes.new("NodeGroupOutput")
-            group_outputs.location = (1500, 500)
-
-            version_frame = group_nodes.new("NodeFrame")
-            version_frame.location = (-150, 500)
-            version_frame.name = "ShaderVersion"
-            version_frame.label = str(CURRENT_VERSION)
-
-            # This is needed to make the shader seem a bit less shiny if it has a normal map defined: May be some strange Blender 2.8 issue not sure
-
-            roughness_rgb_to_bw = group_nodes.new("ShaderNodeRGBToBW")
-            roughness_rgb_to_bw.location = (250, 150)
-            roughness_rgb_to_bw.inputs[0].default_value = (0.8, 0.8, 0.8, 1)
-            roughness_rgb_to_bw.hide = True
-
-            #roughness_curve_adjust = group_nodes.new("ShaderNodeRGBCurve")
-            #roughness_curve_adjust.inputs[0].default_value = 1
-            #roughness_curve_adjust.inputs[1].default_value = (0.8, 0.8, 0.8, 1)
-            #roughness_curve_adjust.location = (125, 150)
-            #combined_curve = roughness_curve_adjust.mapping.curves[3]
-            #combined_curve.points.new(0.386368, 0.75)
-            # roughness_curve_adjust.mapping.update()
-            #roughness_curve_adjust.hide = True
-
-            metallic_rgb_to_bw = group_nodes.new("ShaderNodeRGBToBW")
-            metallic_rgb_to_bw.location = (250, 250)
-            metallic_rgb_to_bw.inputs[0].default_value = (0, 0, 0, 1)
-            metallic_rgb_to_bw.hide = True
-
-            subsurface_rgb_to_bw = group_nodes.new("ShaderNodeRGBToBW")
-            subsurface_rgb_to_bw.location = (250, 350)
-            subsurface_rgb_to_bw.inputs[0].default_value = (0, 0, 0, 1)
-            subsurface_rgb_to_bw.hide = True
-
-            shader_pbsdf = group_nodes.new("ShaderNodeBsdfPrincipled")
-
-            shader_pbsdf.inputs["Metallic"].default_value = 0
-            shader_pbsdf.inputs["Roughness"].default_value = 0.8
-            shader_pbsdf.inputs["Subsurface Color"].default_value = (
-                0.98, 0.5, 0.9, 1)
-            shader_pbsdf.label = "Custom " + CUSTOM_SHADER_NAME
-            shader_pbsdf.location = (460, 420)
-
-            emit_shader_node = group_nodes.new('ShaderNodeEmission')
-            emit_shader_node.name = "EmissionShader"
-            emit_shader_node.inputs[0].default_value = (0, 0, 0, 1)
-            emit_shader_node.location = (750, 250)
-
-            emit_add_node = group_nodes.new('ShaderNodeAddShader')
-            emit_add_node.location = (1000, 250)
-
-            alpha_shader_node = group_nodes.new('ShaderNodeBsdfTransparent')
-            alpha_shader_node.name = "AlphaShader"
-            alpha_shader_node.inputs[0].default_value = (1, 1, 1, 1)
-            alpha_shader_node.location = (1000, 375)
-
-            alpha_mixer_node = group_nodes.new('ShaderNodeMixShader')
-            alpha_mixer_node.inputs[0].default_value = 1.0
-            alpha_mixer_node.location = (1250, 550)
-
-            links = group.links
-
-            # Alpha Mix
-            links.new(alpha_mixer_node.inputs['Fac'], group_inputs.outputs[0])
-            links.new(alpha_mixer_node.inputs[1],
-                      alpha_shader_node.outputs['BSDF'])
-            links.new(alpha_mixer_node.inputs[2],
-                      emit_add_node.outputs['Shader'])
-
-            # Emission Mix
-            links.new(
-                emit_shader_node.inputs['Color'], group_inputs.outputs[1])
-            links.new(emit_add_node.inputs[0],
-                      emit_shader_node.outputs['Emission'])
-            links.new(emit_add_node.inputs[1], shader_pbsdf.outputs['BSDF'])
-
-            links.new(
-                shader_pbsdf.inputs['Base Color'], group_inputs.outputs[2])
-
-            # SubSurface Mix
-            links.new(subsurface_rgb_to_bw.inputs[0], group_inputs.outputs[3])
-            links.new(shader_pbsdf.inputs['Subsurface'],
-                      subsurface_rgb_to_bw.outputs[0])
-
-            # Metallic Mix
-            links.new(metallic_rgb_to_bw.inputs[0], group_inputs.outputs[4])
-            links.new(shader_pbsdf.inputs['Metallic'],
-                      metallic_rgb_to_bw.outputs[0])
-
-            # Shininess / Roughness Link
-            # links.new(
-            #    roughness_curve_adjust.inputs[1], group_inputs.outputs[5])
-            links.new(
-                roughness_rgb_to_bw.inputs[0], group_inputs.outputs[5])
-            links.new(shader_pbsdf.inputs['Roughness'],
-                      roughness_rgb_to_bw.outputs[0])
-
-            # Normal Mix
-            links.new(shader_pbsdf.inputs['Normal'], group_inputs.outputs[6])
-
-            links.new(group_outputs.inputs[0],
-                      alpha_mixer_node.outputs['Shader'])
-
-            group.inputs[0].name = "Alpha"
-            group.inputs[1].name = "Emission"
-            group.inputs[2].name = "Diffuse"
-            group.inputs[3].name = "Subsurface Scattering"
-            group.inputs[4].name = "Metallic"
-            group.inputs[5].name = "Roughness"
-            group.inputs[6].name = "Normal"
-        except Exception as e:
-            print("Err during " + CUSTOM_SHADER_NAME + " shader creation", e)
-    else:
-        version = 0.0
-        if existing_shader_node.nodes["ShaderVersion"] is not None:
-            version = float(existing_shader_node.nodes["ShaderVersion"].label)
-
-        if version < CURRENT_VERSION:
-            existing_shader_node.name = existing_shader_node.name + \
-                "_" + str(version) + "_legacy"
-            print("Older Shader found, renaming to " + existing_shader_node.name)
-            create_helper_shfpbr_shader_group()
-        else:
-            print("Shader Group already exist", version)
-
-
-def get_hifi_shader_node(material):
-    for node in material.node_tree.nodes:
-        if node.type == 'GROUP' and node.node_tree == bpy.data.node_groups[CUSTOM_SHADER_NAME]:
-            return node
-
-    return None
 
 
 def rgb_to_bw(rgb):
@@ -375,10 +182,10 @@ def correct_node_color_space_to_non_color(input_node, index=0):
     if links is None or len(links) == 0:
         return None
 
-    image = links[index].from_node
+    image_node = links[index].from_node
 
-    if image.type == "TEX_IMAGE":
-        image.color_space = "NONE"
+    if image_node.type == "TEX_IMAGE":
+        image_node.image.colorspace_settings.name = "Non-Color"
 
 
 @persistent
@@ -392,9 +199,9 @@ def correct_all_color_spaces_to_non_color(context):
         addon_prefs["automatic_color_space_fix"] = True
 
     if colorspaces_on_save:
-        print("Start colorspace corrections")
+        print("Colorspace corrections")
         for mat in bpy.data.materials:
-            node = get_hifi_shader_node(mat)
+            node = get_principled_bsdf_shader(mat.node_tree.nodes)
             if node is not None:
                 correct_node_color_space_to_non_color(
                     node.inputs.get("Metallic"))
@@ -785,3 +592,47 @@ class HifiShaderWrapper(ShaderWrapper):
         )
 
     emission_texture = property(emission_texture_get)
+
+
+def get_principled_bsdf_shader(nodes):
+    for node in nodes: 
+        if node.type == "BSDF_PRINCIPLED":
+                return node
+    return False
+
+def find_existing_mapping(nodes):
+    for node in nodes: 
+        if node.type == "MAPPING":
+                return node
+    return False
+
+def find_env_texture(nodes):
+    for node in nodes: 
+        if node.type == "TEX_ENVIRONMENT":
+                return node
+    return False
+
+def fix_env_rotations():
+    try:
+
+        for world in bpy.data.worlds:
+            nodes = world.node_tree.nodes
+            links = world.node_tree.links
+            mapping = find_existing_mapping(nodes)
+            env = find_env_texture(nodes)
+            
+            if mapping == False and env != False:
+                
+                texture_coordinates = nodes.new("ShaderNodeTexCoord")
+                texture_coordinates.location = (-800, 145)
+                mapper = nodes.new("ShaderNodeMapping")
+                mapper.location = (-625, 145)
+                
+                mapper.rotation = Euler((0.0, 0.0, 1.5707963705062866), 'XYZ')
+                
+                links.new(mapper.inputs[0], texture_coordinates.outputs["Object"])
+                links.new(env.inputs[0], mapper.outputs[0])
+            
+    except Exception as e:
+        print (e)
+        

@@ -341,7 +341,7 @@ def rename_bones_and_fix_most_things(self, context):
                 bones_builder.pin_common_bones(child, self.fix_rolls)
 
         if child.type == "MESH":
-            #        mesh.clean_unused_vertex_groups(child)
+            # mesh.clean_unused_vertex_groups(child)
             bones_builder.reset_scale_rotation(child)
             if spine_was_split:
                 print("Dealing with the Spine split for" + child.name)
@@ -402,8 +402,10 @@ def rename_bones_and_fix_most_things(self, context):
     return {"FINISHED"}
 
 
-class AVATAR_OT_HIFI_Custom_Avatar_Binder_Operator(bpy.types.Operator):
-    bl_idname = "hifi.open_custom_avatar_binder"
+class AVATAR_OT_METAV_TOOLSET_Custom_Avatar_Binder_Operator(bpy.types.Operator):
+    """ Avatar Binding Tool allowing one to attempt convert a existing custom skeleton with mesh into a HF compatible skeleton.
+    """
+    bl_idname = "metaverse_toolset.hf_open_custom_avatar_binder"
     bl_label = "Custom Avatar Binding Tool"
 
     custom_armature_name: bpy.props.StringProperty()
@@ -579,8 +581,8 @@ def scene_delete():
 
 
 def custom_register():
-    bpy.utils.register_class(AVATAR_OT_HIFI_Custom_Avatar_Binder_Operator)
+    bpy.utils.register_class(AVATAR_OT_METAV_TOOLSET_Custom_Avatar_Binder_Operator)
 
 
 def custom_unregister():
-    bpy.utils.unregister_class(AVATAR_OT_HIFI_Custom_Avatar_Binder_Operator)
+    bpy.utils.unregister_class(AVATAR_OT_METAV_TOOLSET_Custom_Avatar_Binder_Operator)

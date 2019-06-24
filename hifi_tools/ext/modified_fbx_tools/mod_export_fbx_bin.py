@@ -30,7 +30,6 @@ import time
 import bpy
 import bpy_extras
 
-from hifi_tools.utils.helpers.materials import HifiShaderWrapper, get_hifi_shader_node
 from itertools import chain
 
 from bpy_extras import node_shader_utils
@@ -115,6 +114,7 @@ from io_scene_fbx.export_fbx_bin import (
     fbx_takes_elements,
     )
 
+from hifi_tools.utils.helpers.materials import HifiShaderWrapper
 # Save fbx_objects_elements, save_single, save
 
 
@@ -129,7 +129,7 @@ HIFI_SPECIFIC_SOCKETS_FBX = (
     ("emission_texture", b"tex_emissive_map"), 
 )
 
-def fbx_hifi_data_material_elements(root, ma, scene_data):
+def fbx_METAV_TOOLSET_data_material_elements(root, ma, scene_data):
     """
     Write the Material data block.
     """
@@ -161,7 +161,6 @@ def fbx_hifi_data_material_elements(root, ma, scene_data):
 
     elem_props_template_set(tmpl, props, "p_string", b"ShadingModel", ma_type.decode())
 
-    elem_props_template_set(tmpl, props, "p_color", b"DiffuseColor", ma_wrap.base_color)
     # Not in Principled BSDF, so assuming always 1
     elem_props_template_set(tmpl, props, "p_number", b"DiffuseFactor", 1.0)
     
@@ -186,11 +185,13 @@ def fbx_hifi_data_material_elements(root, ma, scene_data):
     elem_props_template_set(tmpl, props, "p_number", b"SpecularFactor", 0.0)
     # elem_props_template_set(tmpl, props, "p_number", b"SpecularFactor", ma_wrap.specular / 2.0)
 
-    elem_props_template_set(tmpl, props, "p_color", b"DiffuseColor", ma_wrap.base_color)
-    elem_props_template_set(tmpl, props, "p_color", b"Maya|base_color", ma_wrap.base_color)
-    
     if ma_wrap.base_color_texture is not None:
+        elem_props_template_set(tmpl, props, "p_color", b"DiffuseColor", (1.0, 1.0, 1.0))
+        elem_props_template_set(tmpl, props, "p_color", b"Maya|base_color", (1.0, 1.0, 1.0))
         elem_props_template_set(tmpl, props, "p_bool", b"Maya|use_color_map", True)
+    else: 
+        elem_props_template_set(tmpl, props, "p_color", b"DiffuseColor", ma_wrap.base_color)
+        elem_props_template_set(tmpl, props, "p_color", b"Maya|base_color", ma_wrap.base_color)
 
     elem_props_template_set(tmpl, props, "p_number", b"Roughness", ma_wrap.roughness)
     elem_props_template_set(tmpl, props, "p_number", b"Maya|roughness", ma_wrap.roughness)
@@ -208,7 +209,6 @@ def fbx_hifi_data_material_elements(root, ma, scene_data):
     
     if ma_wrap.metallic_texture is not None:
         elem_props_template_set(tmpl, props, "p_bool", b"Maya|use_metallic_map", True)
-
 
     elem_props_template_set(tmpl, props, "p_color", b"EmissiveColor", ma_wrap.emissive)
     elem_props_template_set(tmpl, props, "p_color", b"Emissive", ma_wrap.emissive)
@@ -228,7 +228,7 @@ def fbx_hifi_data_material_elements(root, ma, scene_data):
         fbx_data_element_custom_properties(props, ma)
 
 
-def fbx_hifi_data_texture_file_elements(root, blender_tex_key, scene_data):
+def fbx_METAV_TOOLSET_data_texture_file_elements(root, blender_tex_key, scene_data):
     """
     Write the (file) Texture data block.
     """
@@ -309,7 +309,7 @@ def fbx_data_material_elements(root, ma, scene_data):
     """
     Write the Material data block.
     """
-    fbx_hifi_data_material_elements(root, ma, scene_data)
+    fbx_METAV_TOOLSET_data_material_elements(root, ma, scene_data)
         
 
 # Contains PrincipledBSDFWrapper
@@ -318,7 +318,7 @@ def fbx_data_texture_file_elements(root, blender_tex_key, scene_data):
     Write the (file) Texture data block.
     """
     ma, sock_name = blender_tex_key
-    fbx_hifi_data_texture_file_elements(root, blender_tex_key, scene_data)
+    fbx_METAV_TOOLSET_data_texture_file_elements(root, blender_tex_key, scene_data)
 
 # Contains PrincipledBSDFWrapper
 def fbx_data_from_scene(scene, depsgraph, settings):
@@ -505,7 +505,7 @@ def fbx_data_from_scene(scene, depsgraph, settings):
     data_videos = {}
     # For now, do not use world textures, don't think they can be linked to anything FBX wise...
     for ma in data_materials.keys():
-        #has_extended_pricipled = get_hifi_shader_node(ma)
+        #has_extended_pricipled = get_METAV_TOOLSET_shader_node(ma)
         ma_wrap = None
         sockets = None
         #if has_extended_pricipled is not None:

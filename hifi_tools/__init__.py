@@ -20,7 +20,7 @@
 bl_info = {
     "name": "HiFi Blender Add-on",
     "author": "Matti 'Menithal' Lahtinen",
-    "version": (1, 4, 1),
+    "version": (1, 4, 2),
     "blender": (2, 80, 0),
     "location": "File > Import-Export, Materials, Armature",
     "description": "Blender tools to allow for easier Content creation for Metaverses, such as High Fidelity",
@@ -41,22 +41,25 @@ import logging
 import webbrowser
 import bpy
 
+
 from bpy.types import AddonPreferences
 from bpy.app.handlers import persistent
 
 from hifi_tools.ext.throttle import throttle
 from hifi_tools.ext.modified_fbx_tools import *
-
+from hifi_tools.utils.helpers.panel_context import toggle_console
 
 from . import armature
 from . import utils
 from . import world
 from . import files
+from .utils.bpyutil import operator_exists
 from .files.hifi_json.operator import *
 from .files.fst.operator import *
 from .gateway import client as GatewayClient
 
 from hifi_tools.utils.bones.custom import custom_register, custom_unregister, scene_define, scene_delete
+from hifi_tools.ext.apply_modifier_for_object_with_shapekeys.ApplyModifierForObjectWithShapeKeys import ApplyModifierForObjectWithShapeKeysOperator
 
 # TODO: This is placeholder and will be shut down after more are available.
 
@@ -92,10 +95,7 @@ def on_token_update(self, context):
     username = addon_prefs["gateway_username"]
 
     if len(username) == 0:
-        try:
-            bpy.ops.wm.console_toggle()
-        except:
-            print("Console was toggled")
+        toggle_console()
             
         addon_prefs["gateway_token"] = ""
         addon_prefs["message_box"] = "No username set."
@@ -124,7 +124,7 @@ def on_token_update(self, context):
 
     addon_prefs["gateway_token"] = message
     addon_prefs["message_box"] = ""  # Success! Remember to Save Settings.
-    bpy.ops.hifi_messages.auth_success('INVOKE_DEFAULT')
+    bpy.ops.metaverse_toolset_messages.auth_success('INVOKE_DEFAULT')
 
     return None
 
@@ -141,8 +141,10 @@ def on_color_space_automation_update(self, context):
 # Honestly this goes AGAINST Class naming scheme of python imo, where as Class names should follow the UpperCaseCamelCase convention...
 
 
-class EXPORT_OT_HIFI_IPFS_Feature_Info (bpy.types.Operator):
-    bl_idname = "hifi.ipfs_feature_info"
+class EXPORT_OT_METAV_TOOLSET_IPFS_Feature_Info (bpy.types.Operator):
+    """ This Operator discuss about the IPFS Service
+    """
+    bl_idname = "metaverse_toolset.ipfs_feature_info"
     bl_label = "Enable IPFS"
     bl_options = {'REGISTER', 'INTERNAL'}
 
@@ -242,8 +244,10 @@ class EXPORT_OT_HIFI_IPFS_Feature_Info (bpy.types.Operator):
 
         return {'FINISHED'}
 
-class AUTH_OT_HIFI_Message_Auth_Success(bpy.types.Operator):
-    bl_idname = "hifi_messages.auth_success"
+class AUTH_OT_METAV_TOOLSET_Message_Auth_Success(bpy.types.Operator):
+    """ This Operator show the user that the authentication to the gateway was successful
+    """
+    bl_idname = "metaverse_toolset_messages.auth_success"
     bl_label = ""
     bl_options = {'REGISTER', 'INTERNAL'}
 
@@ -321,22 +325,24 @@ class HifiAddOnPreferences(AddonPreferences):
                 row.prop(self, "hifi_oauth")
 
                 if len(self.hifi_oauth) == 0:
-                    row.operator("hifi.open_token_link")
+                    row.operator("metaverse_toolset.open_token_link")
             else:
                 row = layout.row()
                 row.prop(self, "gateway_token")
 
                 if len(self.gateway_token) == 0:
-                    row.operator("hifi.gateway_generate_token")
+                    row.operator("metaverse_toolset.gateway_generate_token")
 
             if len(self.message_box):
                 layout.prop(self, "message_box")
         else:
-            layout.operator("hifi.ipfs_feature_info")
+            layout.operator("metaverse_toolset.ipfs_feature_info")
 
 
-class AUTH_OT_HIFI_Open_Token_Link(bpy.types.Operator):
-    bl_idname = "hifi.open_token_link"
+class AUTH_OT_METAV_TOOLSET_Open_Token_Link(bpy.types.Operator):
+    """ This Operator to open a link to the High Fidelity OAUTH Token generation website.
+    """
+    bl_idname = "metaverse_toolset.open_token_link"
     bl_label = "Get Hifi Identity Token"
 
     def execute(self, context):
@@ -355,8 +361,10 @@ class AUTH_OT_HIFI_Open_Token_Link(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class AUTH_OT_HIFI_Gateway_Generate_Token(bpy.types.Operator):
-    bl_idname = "hifi.gateway_generate_token"
+class AUTH_OT_METAV_TOOLSET_Gateway_Generate_Token(bpy.types.Operator):
+    """ This Operator is used to generate a Gateway token using the High Fidelity OAUTH Token.
+    """
+    bl_idname = "metaverse_toolset.gateway_generate_token"
     bl_label = "Generate Token"
 
     def execute(self, context):
@@ -379,39 +387,51 @@ def reload_module(name):
 
 
 def menu_func_import(self, context):
-    self.layout.operator(IMPORT_OT_HIFI_Scene_From_JSON.bl_idname,
+    self.layout.operator(IMPORT_OT_METAV_TOOLSET_Scene_From_JSON.bl_idname,
                          text="HiFi Metaverse Scene JSON (.json)")
 
 
 def menu_func_export(self, context):
     
-    self.layout.operator(EXPORT_OT_HIFI_FBX.bl_idname, text="Hifi FBX (.fbx)")
-    self.layout.operator(EXPORT_OT_HIFI_FST_Writer_Operator.bl_idname,
+    self.layout.operator(EXPORT_OT_METAV_TOOLSET_FBX.bl_idname, text="Hifi FBX (.fbx)")
+    self.layout.operator(EXPORT_OT_METAV_TOOLSET_FST_Writer_Operator.bl_idname,
                          text="HiFi Avatar FST (.fst)")
-    self.layout.operator(EXPORT_OT_HIFI_Export_FBX_JSON.bl_idname,
+    self.layout.operator(EXPORT_OT_METAV_TOOLSET_Export_FBX_JSON.bl_idname,
                          text="HiFi Metaverse Scene JSON / FBX (.json/.fbx)")
 
 
 classes = (
-    EXPORT_OT_HIFI_Message_Error_Missing_ATP_Override,
-    EXPORT_OT_HIFI_IPFS_Feature_Info,
-    EXPORT_OT_HIFI_FST_Writer_Operator,
-    EXPORT_OT_HIFI_Export_FBX_JSON,
-    EXPORT_OT_HIFI_FBX,
-    EXPORT_OT_HIFI_Message_Success,
-    IMPORT_OT_HIFI_Scene_From_JSON,
-    AUTH_OT_HIFI_Open_Token_Link,
-    AUTH_OT_HIFI_Gateway_Generate_Token,
-    AUTH_OT_HIFI_Message_Auth_Success,
+    EXPORT_OT_METAV_TOOLSET_Message_Error_Missing_ATP_Override,
+    EXPORT_OT_METAV_TOOLSET_IPFS_Feature_Info,
+    EXPORT_OT_METAV_TOOLSET_FST_Writer_Operator,
+    EXPORT_OT_METAV_TOOLSET_Export_FBX_JSON,
+    EXPORT_OT_METAV_TOOLSET_FBX,
+    EXPORT_OT_METAV_TOOLSET_Message_Success,
+    IMPORT_OT_METAV_TOOLSET_Scene_From_JSON,
+    AUTH_OT_METAV_TOOLSET_Open_Token_Link,
+    AUTH_OT_METAV_TOOLSET_Gateway_Generate_Token,
+    AUTH_OT_METAV_TOOLSET_Message_Auth_Success,
     HifiAddOnPreferences,
 )
 
 module_register, module_unregister = bpy.utils.register_classes_factory(classes)    
 bpy.app.handlers.save_pre.append(utils.helpers.materials.correct_all_color_spaces_to_non_color)
 
+existing_shapekey_merger = False
 def register():
     scene_define()
     module_register()
+    custom_register()
+    existing_shapekey_merger = operator_exists(ApplyModifierForObjectWithShapeKeysOperator.bl_idname)
+    if  existing_shapekey_merger == False:
+        print ("Registering bundled ApplyModifierForObjectWithShapeKeysOperator")
+        bpy.utils.register_class(ApplyModifierForObjectWithShapeKeysOperator)
+
+        
+    else: 
+        print ("Existing ApplyModifierForObjectWithShapeKeysOperator found")
+        existing_shapekey_merger = True
+
     bpy.types.TOPBAR_MT_file_import.append(menu_func_import)
     bpy.types.TOPBAR_MT_file_export.append(menu_func_export)
     utils.ui.panels.register()
@@ -420,6 +440,10 @@ def register():
 def unregister():
     scene_delete()
     module_unregister()
+    custom_unregister()
+    if  existing_shapekey_merger == False:
+        bpy.utils.unregister_class(ApplyModifierForObjectWithShapeKeysOperator)
+
     bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
     bpy.types.TOPBAR_MT_file_export.remove(menu_func_export)
     utils.ui.panels.unregister()

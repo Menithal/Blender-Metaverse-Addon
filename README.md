@@ -4,10 +4,6 @@ Plugin ("Project Hermes") is a plugin for Blender to allow for easier content cr
 
 ## 1.4 works only with Blender 2.80
 
-
-----
-
-
 # Installation Guide
 
 ## Simple
@@ -25,22 +21,26 @@ On Windows this is under `%APPDATA%/Blender Foundation/Blender/<BlenderVersion>/
 
 # Utility Functions:
 
-- A new Panel on the `3D View`'s left tool set is added, labled `High Fidelity`
+- A new Panel on the `3D View`'s right tool set is added, labled `High Fidelity`
 - Armature Tools
     - `Add Hifi Armature` - Adds an Armature which is compatible with High Fidelity, has all the naming conventions in place
     - `Test Avatar Rest Pose` - Tests the T-Pose used in high fidelity in Blender, useful for debugging issues
     - `Set Bone Physical` - (Armature Edit mode only) Adds a prefix to selected bones for Scripts in High fidelity for physical simulation
     - `Remove Bone Physical` - (Armature Edit mode only) Removes prefix from selected bones for Scripts in High fidelity for physical simulation
 - Avatar Converters
+    - `Custom Avatar` - Binds selected bones to HF specific Bone naming and rotations.
     - `MMD Avatar` - Translates and fixes MMD models and their materials for them to work in High Fidelity. [Full MMD Avatar import tutorial here](https://www.youtube.com/watch?v=tJX8VUPZLKQ)
-    - `Mixamo Avatar` - Translates and fixes mixamo models and their materials for them to work in High Fidelity
 - Material Tools
-   - `HFShader` - Eevee / Cycles Node shade group that allows one to quickly bind Materials for High Fidelity. Use `HFShader` **instead of** `Principled BDSF`
+   - Automatic `Principled BDSF` binding to HF FBX. You can use Blender materials to define HF materials, just do not use Node Groups.
    - `Set Non-Diffuse ColorData` and `Auto Correct on Save` Tools that fixes color spaces for Roughness, Normal, and Metallic textures bound to the `HFShader` 
+   - `Textures to Mask` and `Textures to png` utility helpers.
+- Mesh Tools:
+    - `Merge Modifiers & Shapekeys` attempt to merge modifiers onto Mesh with Shapekeys using Przemysław Bągard's ApplyModifierForObjectWithShapeKeys script, now included with this plugin, but if an existing copy exists, it is used instead
+    - `Clean Unused Vertex Groups` Clean model from vertex groups that are no in its skeleton.
 
 # Export Tools:
 
-- `File > Export > Hifi FBX`: Custom FBX that binds to materials used in High Fidelity using the `HFShader` Node Group, into a format understood by High Fidelity
+- `File > Export > Hifi FBX`: Custom FBX that binds to the `Principled BDSF` into a format HiFi understands
 - `File > Export > Hifi Avatar FST`: Exports Avatar, applies necessary steps for avatar to work in High Fifelity. 
    - Supports Embedded textures: Exports Textures embedded to file
    - Supports Selected Only: Exports Selected only
