@@ -20,7 +20,6 @@
 
 from . import (
     bpyutil,
-    ui,
     bones,
     dev,
     helpers

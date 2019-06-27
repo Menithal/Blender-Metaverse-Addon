@@ -37,7 +37,7 @@ from bpy.app.handlers import persistent
 
 
 @orientation_helper(axis_forward='-Z', axis_up='Y')
-class EXPORT_OT_METAV_TOOLSET_FBX(bpy.types.Operator, ExportHelper):
+class EXPORT_OT_MVT_TOOLSET_FBX(bpy.types.Operator, ExportHelper):
     """Write a FBX file that is has materials compatible with High Fidelity """
     bl_idname = "metaverse_toolset.export_scene_fbx"
     bl_label = "Export FBX (HIFI)"

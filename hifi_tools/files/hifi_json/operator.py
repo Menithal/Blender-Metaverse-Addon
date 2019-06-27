@@ -35,7 +35,7 @@ from bpy.props import (
     EnumProperty
 )
 
-class EXPORT_OT_METAV_TOOLSET_Message_Error_Missing_ATP_Override(bpy.types.Operator):
+class EXPORT_OT_MVT_TOOLSET_Message_Error_Missing_ATP_Override(bpy.types.Operator):
     """ This Operator to show an error that the ATP Override is missing from export
     """
     bl_idname = "metaverse_toolset_messages.export_missing_atp_override"
@@ -67,7 +67,7 @@ class EXPORT_OT_METAV_TOOLSET_Message_Error_Missing_ATP_Override(bpy.types.Opera
         row.label(text=" (be it marketplace or your own)")
 
 
-class EXPORT_OT_METAV_TOOLSET_Export_FBX_JSON(bpy.types.Operator, ExportHelper):
+class EXPORT_OT_MVT_TOOLSET_Export_FBX_JSON(bpy.types.Operator, ExportHelper):
     """ This Operator to show an error that the ATP Override is missing from export
     """
     bl_idname = "metaverse_toolset.export_fbx_json"
@@ -123,7 +123,7 @@ class EXPORT_OT_METAV_TOOLSET_Export_FBX_JSON(bpy.types.Operator, ExportHelper):
         return {'FINISHED'}
 
 
-class IMPORT_OT_METAV_TOOLSET_Scene_From_JSON(bpy.types.Operator, ImportHelper):
+class IMPORT_OT_MVT_TOOLSET_Scene_From_JSON(bpy.types.Operator, ImportHelper):
     """ Import a metaverse_toolset.json.svo scene into Blender. Works only for Primitives for now.
     """
     # Load a Hifi File

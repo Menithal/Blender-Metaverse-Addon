@@ -30,7 +30,6 @@ bl_info = {
     "category": "Import-Export",
 }
 
-
 default_gateway_server = ""
 oauth_api = "https://metaverse.highfidelity.com/user/tokens/new?for_identity=true"
 oauth_default = True
@@ -50,8 +49,8 @@ from hifi_tools.ext.modified_fbx_tools import *
 from hifi_tools.utils.helpers.panel_context import toggle_console
 
 from . import armature
+from . import ui
 from . import utils
-from . import world
 from . import files
 from .utils.bpyutil import operator_exists
 from .files.hifi_json.operator import *
@@ -135,13 +134,12 @@ def on_color_space_automation_update(self, context):
     addon_prefs["automatic_color_space_fix"] = self.colorspaces_on_save
 
 
-# Blender Naming convention is fucking bonkers. Operators must be bl_idname bmust specifically be <lower_case_plugin>.<lower_case_name> but naming Operators should be done using the NEW method. ARGH 
+# Blender Naming convention is  bonkers. Operators must be bl_idname bmust specifically be <lower_case_plugin>.<lower_case_name> but naming Operators should be done using the NEW method. ARGH 
 # While PANELS must be named using their NEW convention https://wiki.blender.org/wiki/Reference/Release_Notes/2.80/Python_API/Addons
 
-# Honestly this goes AGAINST Class naming scheme of python imo, where as Class names should follow the UpperCaseCamelCase convention...
+# As far as I know this goes AGAINST Class naming scheme of python imo, where as Class names should follow the UpperCaseCamelCase convention...
 
-
-class EXPORT_OT_METAV_TOOLSET_IPFS_Feature_Info (bpy.types.Operator):
+class EXPORT_OT_MVT_TOOLSET_IPFS_Feature_Info (bpy.types.Operator):
     """ This Operator discuss about the IPFS Service
     """
     bl_idname = "metaverse_toolset.ipfs_feature_info"
@@ -244,7 +242,7 @@ class EXPORT_OT_METAV_TOOLSET_IPFS_Feature_Info (bpy.types.Operator):
 
         return {'FINISHED'}
 
-class AUTH_OT_METAV_TOOLSET_Message_Auth_Success(bpy.types.Operator):
+class AUTH_OT_MVT_TOOLSET_Message_Auth_Success(bpy.types.Operator):
     """ This Operator show the user that the authentication to the gateway was successful
     """
     bl_idname = "metaverse_toolset_messages.auth_success"
@@ -337,9 +335,12 @@ class HifiAddOnPreferences(AddonPreferences):
                 layout.prop(self, "message_box")
         else:
             layout.operator("metaverse_toolset.ipfs_feature_info")
+        
+        layout.operator(
+            HELP_OT_MVT_TOOLSET_Open_Forum_Link.bl_idname, icon='HELP')
 
 
-class AUTH_OT_METAV_TOOLSET_Open_Token_Link(bpy.types.Operator):
+class AUTH_OT_MVT_TOOLSET_Open_Token_Link(bpy.types.Operator):
     """ This Operator to open a link to the High Fidelity OAUTH Token generation website.
     """
     bl_idname = "metaverse_toolset.open_token_link"
@@ -361,7 +362,7 @@ class AUTH_OT_METAV_TOOLSET_Open_Token_Link(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class AUTH_OT_METAV_TOOLSET_Gateway_Generate_Token(bpy.types.Operator):
+class AUTH_OT_MVT_TOOLSET_Gateway_Generate_Token(bpy.types.Operator):
     """ This Operator is used to generate a Gateway token using the High Fidelity OAUTH Token.
     """
     bl_idname = "metaverse_toolset.gateway_generate_token"
@@ -387,30 +388,50 @@ def reload_module(name):
 
 
 def menu_func_import(self, context):
-    self.layout.operator(IMPORT_OT_METAV_TOOLSET_Scene_From_JSON.bl_idname,
+    self.layout.operator(IMPORT_OT_MVT_TOOLSET_Scene_From_JSON.bl_idname,
                          text="HiFi Metaverse Scene JSON (.json)")
 
 
 def menu_func_export(self, context):
     
-    self.layout.operator(EXPORT_OT_METAV_TOOLSET_FBX.bl_idname, text="Hifi FBX (.fbx)")
-    self.layout.operator(EXPORT_OT_METAV_TOOLSET_FST_Writer_Operator.bl_idname,
+    self.layout.operator(EXPORT_OT_MVT_TOOLSET_FBX.bl_idname, text="Hifi FBX (.fbx)")
+    self.layout.operator(EXPORT_OT_MVT_TOOLSET_FST_Writer_Operator.bl_idname,
                          text="HiFi Avatar FST (.fst)")
-    self.layout.operator(EXPORT_OT_METAV_TOOLSET_Export_FBX_JSON.bl_idname,
+    self.layout.operator(EXPORT_OT_MVT_TOOLSET_Export_FBX_JSON.bl_idname,
                          text="HiFi Metaverse Scene JSON / FBX (.json/.fbx)")
 
 
+
+class HELP_OT_MVT_TOOLSET_Open_Forum_Link(bpy.types.Operator):
+    """ Helper Operator to open the forum post regarding this plugin """
+    bl_idname = "metaverse_toolset.hf_open_forum_link"
+    bl_label = "HF Forum Thread / Bug Reports"
+
+    bl_region_type = "TOOLS"
+    bl_space_type = "VIEW_3D"
+
+    def execute(self, context):
+        url = "https://forums.highfidelity.com/t/high-fidelity-blender-add-on-version-1-1-10-released/13717"
+        if "windows-default" in webbrowser._browsers:
+            webbrowser.get("windows-default").open(url)
+        else:
+            webbrowser.open(url)
+
+        return {'FINISHED'}
+
+
 classes = (
-    EXPORT_OT_METAV_TOOLSET_Message_Error_Missing_ATP_Override,
-    EXPORT_OT_METAV_TOOLSET_IPFS_Feature_Info,
-    EXPORT_OT_METAV_TOOLSET_FST_Writer_Operator,
-    EXPORT_OT_METAV_TOOLSET_Export_FBX_JSON,
-    EXPORT_OT_METAV_TOOLSET_FBX,
-    EXPORT_OT_METAV_TOOLSET_Message_Success,
-    IMPORT_OT_METAV_TOOLSET_Scene_From_JSON,
-    AUTH_OT_METAV_TOOLSET_Open_Token_Link,
-    AUTH_OT_METAV_TOOLSET_Gateway_Generate_Token,
-    AUTH_OT_METAV_TOOLSET_Message_Auth_Success,
+    EXPORT_OT_MVT_TOOLSET_Message_Error_Missing_ATP_Override,
+    EXPORT_OT_MVT_TOOLSET_IPFS_Feature_Info,
+    EXPORT_OT_MVT_TOOLSET_FST_Writer_Operator,
+    EXPORT_OT_MVT_TOOLSET_Export_FBX_JSON,
+    EXPORT_OT_MVT_TOOLSET_FBX,
+    EXPORT_OT_MVT_TOOLSET_Message_Success,
+    IMPORT_OT_MVT_TOOLSET_Scene_From_JSON,
+    HELP_OT_MVT_TOOLSET_Open_Forum_Link,
+    AUTH_OT_MVT_TOOLSET_Open_Token_Link,
+    AUTH_OT_MVT_TOOLSET_Gateway_Generate_Token,
+    AUTH_OT_MVT_TOOLSET_Message_Auth_Success,
     HifiAddOnPreferences,
 )
 
@@ -426,15 +447,13 @@ def register():
     if  existing_shapekey_merger == False:
         print ("Registering bundled ApplyModifierForObjectWithShapeKeysOperator")
         bpy.utils.register_class(ApplyModifierForObjectWithShapeKeysOperator)
-
-        
     else: 
         print ("Existing ApplyModifierForObjectWithShapeKeysOperator found")
         existing_shapekey_merger = True
 
     bpy.types.TOPBAR_MT_file_import.append(menu_func_import)
     bpy.types.TOPBAR_MT_file_export.append(menu_func_export)
-    utils.ui.panels.register()
+    ui.register_operators()
 
 
 def unregister():
@@ -446,6 +465,6 @@ def unregister():
 
     bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
     bpy.types.TOPBAR_MT_file_export.remove(menu_func_export)
-    utils.ui.panels.unregister()
+    ui.unregister_operators()
 
 

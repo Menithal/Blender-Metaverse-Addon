@@ -26,7 +26,7 @@ import datetime
 import os.path as ntpath
 import shutil
 
-from hifi_tools.utils.bones.bones_builder import find_armature, retarget_armature
+from hifi_tools.utils.bones.bones_builder import find_armature
 from hifi_tools.utils.helpers.mesh import get_mesh_from
 from hifi_tools.utils.helpers.materials import get_images_from
 from hifi_tools.utils.helpers.bake_tool import bake_fbx
@@ -146,8 +146,6 @@ def fst_export(context, selected):
                 print("Writing joint index", "freeJoint = " + bone.name + "\n")
                 f.write(prefix_free_joint.replace('$', bone.name))
 
-
-        # retarget_armature({"apply": True}, selected, context.selected_only)
 
         for select in selected:
             select.select_set(state=True)

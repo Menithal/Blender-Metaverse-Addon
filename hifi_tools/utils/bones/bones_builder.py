@@ -2,11 +2,12 @@
 import bpy
 import re
 
-from math import pi
+from math import pi, acos
 from mathutils import Quaternion, Matrix, Vector, Euler
 
 from hifi_tools.utils.helpers import mesh, extra_math
-from hifi_tools.armature.skeleton import structure as base_armature
+
+from hifi_tools.armature import SkeletonTypes
 
 
 corrected_axis = {
@@ -126,6 +127,14 @@ def nuke_mixamo_prefix(edit_bones):
     return found
 
 
+def get_bone_angle(bone, axis):
+    d = (bone.head - bone.tail)
+    h = d.magnitude
+    a = abs(d[axis])
+    m = 0
+    return acos(a/h)
+
+
 def combine_bones(selected_bones, active_bone, active_object, use_connect=True):
     print("----------------------")
     print("Combining Bones", len(selected_bones),
@@ -204,6 +213,7 @@ def find_armatures(selection):
 
     return armatures
 
+
 def find_armature(selection):
     for selected in selection:
         print(selected, selected.parent)
@@ -230,7 +240,6 @@ def find_armature_or_armature_parent(selection):
             armature = armatures[0]
 
     return armature
-
 
 
 def find_select_armature_and_children(selection):
@@ -525,7 +534,7 @@ def build_armature_structure(data, current_node, parent):
     return current_bone
 
 
-def build_skeleton():
+def build_skeleton(skeleton = SkeletonTypes.HIFI):
     current_view = bpy.context.area.type
 
     try:
@@ -547,9 +556,8 @@ def build_skeleton():
 
         current_armature = bpy.context.active_object
 
-        current_armature.name = "HifiArmature"
-
-        for root_bone in base_armature:
+        current_armature.name = "Armature"
+        for root_bone in skeleton.structure:
             build_armature_structure(current_armature.data, root_bone, None)
 
         correct_scale_rotation(bpy.context.active_object, True)
@@ -562,7 +570,7 @@ def build_skeleton():
 
 
 def reset_scale_rotation(obj):
-    mode = bpy.context.area.type 
+    mode = bpy.context.area.type
     bpy.context.area.type = "VIEW_3D"
     bpy.ops.object.mode_set(mode="OBJECT")
     bpy.ops.view3d.snap_cursor_to_center('INVOKE_DEFAULT')
@@ -571,9 +579,8 @@ def reset_scale_rotation(obj):
 
     obj.select_set(True)
     bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
-    
-    mode = mode
 
+    mode = mode
 
 
 def correct_scale_rotation(obj, rotation):
@@ -589,7 +596,6 @@ def correct_scale_rotation(obj, rotation):
     obj.scale = Vector((0.01, 0.01, 0.01))
     if rotation:
         obj.rotation_euler = Euler((-str_angle, 0, 0), "XYZ")
-
 
 
 def navigate_armature(data, current_rest_node, world_matrix, parent, parent_node):
@@ -644,7 +650,7 @@ def clear_pose(selected):
         bpy.ops.object.mode_set(mode=mode)
 
 
-def retarget_armature(options, selected, selected_only=False):
+def retarget_armature(options, selected, skeleton=SkeletonTypes.HIFI, selected_only=False):
     armature = find_armature(selected)
     if armature is not None:
         # Center Children First
@@ -669,7 +675,7 @@ def retarget_armature(options, selected, selected_only=False):
         world_matrix = armature.matrix_world
         bones = armature.pose.bones
 
-        for bone in base_armature:
+        for bone in skeleton.structure:
             print("Iterating Bones", bone["name"])
             navigate_armature(bones, bone, world_matrix, None, None)
 

@@ -386,12 +386,12 @@ def rename_bones_and_fix_most_things(self, context):
     print(armature_obj)
     armature_obj.select_set(True)
 
-    bpy.ops.metaverse_toolset.hf_objects_fix_scale_and_rotation('INVOKE_DEFAULT')
+    bpy.ops.metaverse_toolset.objects_fix_scale_and_rotation('INVOKE_DEFAULT')
 
     return {"FINISHED"}
 
 
-class AVATAR_OT_METAV_TOOLSET_Custom_Avatar_Binder_Operator(bpy.types.Operator):
+class AVATAR_OT_MVT_TOOLSET_Custom_Avatar_Binder_Operator(bpy.types.Operator):
     """ Avatar Binding Tool allowing one to attempt convert a existing custom skeleton with mesh into a HF compatible skeleton.
     """
     bl_idname = "metaverse_toolset.hf_open_custom_avatar_binder"
@@ -564,9 +564,9 @@ def scene_delete():
 
 def custom_register():
     bpy.utils.register_class(
-        AVATAR_OT_METAV_TOOLSET_Custom_Avatar_Binder_Operator)
+        AVATAR_OT_MVT_TOOLSET_Custom_Avatar_Binder_Operator)
 
 
 def custom_unregister():
     bpy.utils.unregister_class(
-        AVATAR_OT_METAV_TOOLSET_Custom_Avatar_Binder_Operator)
+        AVATAR_OT_MVT_TOOLSET_Custom_Avatar_Binder_Operator)

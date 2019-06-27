@@ -1,6 +1,7 @@
-# Blender Hifi AddOn
+# Blender Metaverse Toolset (MVT) AddOn
 
-Plugin ("Project Hermes") is a plugin for Blender to allow for easier content creation and importing for the High Fidelity Metaverse Platform.
+Plugin ("Project Hermes") is a plugin for Blender to allow for easier content creation originally created for importing for the High Fidelity Metaverse Platform. 
+It has now being expanded to support additional platforms.
 
 ## 1.4 works only with Blender 2.80
 
@@ -11,7 +12,10 @@ Open the Github page, Go to releases and download the `hifi_tools.zip` zip file.
 
 In Blender. Goto `User Preferences`, and `Add-ons`. From there `Install Add-on from File` and select the Zip file that we downloaded.
 
-Enable the plugin under `Import-Export: Hifi Blender Add-On`
+Enable the plugin under `Import-Export: MVT Blender Add-On`.
+
+### If you had previous used plugin when it was "High Fidelity" Only, make sure to uninstall the old one first.
+
 
 ## If you downloaded the download repository:
 

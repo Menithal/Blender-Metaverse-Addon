@@ -94,7 +94,7 @@ class MMDTranslator:
 
         try:
             local = os.path.dirname(os.path.abspath(__file__))
-            filename = os.path.join(local, 'mmd_METAV_TOOLSET_dict.csv')
+            filename = os.path.join(local, 'mmd_hifi_dict.csv')
             with open(filename, 'r', encoding='utf-8', errors='ignore') as f:
                 try:
                     stream = csv.reader(
@@ -106,7 +106,7 @@ class MMDTranslator:
                     print("Translation File Loaded")
         except FileNotFoundError:  # Probably just developing then
             print("Reading Editor file: This only should show when developing")
-            stream = bpy.data.texts["mmd_METAV_TOOLSET_dict.csv"].lines
+            stream = bpy.data.texts["mmd_hifi_dict.csv"].lines
             for line in stream:
                 body = line.body
                 body = body.replace('"', '')
@@ -263,7 +263,7 @@ def clean_up_bones(obj):
                     pose_bone.constraints.remove(constraint)
 
                 print(" # Check Rotations")
-                bones.correct_bone_rotations(edit_bone)
+                bones_builder.correct_bone_rotations(edit_bone)
 
     print(" Cleaning ", len(_to_remove), " unusable bones")
 
@@ -472,8 +472,8 @@ def convert_mmd_avatar_hifi():
                 elif obj.type == 'MESH' and obj.parent is not None and obj.parent.type == 'ARMATURE':
                     clean_mesh(Translator, obj)
                     bpy.ops.object.mode_set(mode='OBJECT')
-                    
-                    #materials.clean_materials(obj.material_slots)
+
+                    # materials.clean_materials(obj.material_slots)
 
     bpy.ops.object.select_all(action='DESELECT')
     for deletion in marked_for_deletion:
@@ -487,8 +487,6 @@ def convert_mmd_avatar_hifi():
 
     materials.convert_to_png(bpy.data.images)
     materials.convert_images_to_mask(bpy.data.images)
-    # materials.cleanup_alpha(bpy.data.materials)
-    # materials.remove_materials_metallic(bpy.data.materials)
 
     bpy.context.area.type = original_type
 

@@ -1,6 +1,15 @@
 
 from . import (
-    skeleton
+    hifi_skeleton,
+    vrc_skeleton
 )
 
-import bpy
+from enum import Enum
+
+class SkeletonTypes(Enum):
+    HIFI = (1, hifi_skeleton.structure)
+    VRC = (2, vrc_skeleton.structure)
+
+    def __init__(self, identifier, structure):
+        self.identifier = identifier
+        self.structure = structure 

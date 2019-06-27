@@ -12,6 +12,8 @@ from mathutils import Vector
 from hifi_tools.utils.bones import bones_builder
 from hifi_tools.utils.helpers import materials, mesh
 
+# DEPRICATED... :( Custom Avatar should be able to do the same thing but better.
+
 bones_to_correct_spine_position = [
     ("Hips",       "tail", "Hips", "head", "y"),
     ("Spine",      "head", "Hips", "head", "y"),
