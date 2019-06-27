@@ -74,10 +74,10 @@ class EXPORT_OT_MVT_TOOLSET_Export_FBX_JSON(bpy.types.Operator, ExportHelper):
     bl_label = "Export HiFi Scene"
     bl_options = {'UNDO'}
 
-    filename_ext = ".metaverse_toolset.json"
+    filename_ext = ".hifi.json"
 
     directory: StringProperty()
-    filter_glob: StringProperty(default="*.metaverse_toolset.json", options={'HIDDEN'})
+    filter_glob: StringProperty(default="*.hifi.json", options={'HIDDEN'})
 
     atp: BoolProperty(default=False, name="Use ATP / Upload to domain",
                       description="Use ATP instead of Marketplace / upload assets to domain")

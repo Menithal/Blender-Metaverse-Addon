@@ -2,14 +2,14 @@
     "Version": 84,
     "Entities": [
         {
-            "name": "Cube",
-            "id": "2d30a6bc-d6c5-50de-8fae-9e51ba0c9add",
+            "name": "LightBlueCube2",
+            "id": "50e4ddc3-bf96-5e12-a51b-57028cd3673d",
             "type": "Model",
-            "modelURL": "https://s3.eu-west-2.amazonaws.com/norteclabs.com/HF/objects/Test/Cube.001.fbx",
+            "modelURL": "atp:/expected/Cube.001.fbx",
             "position": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": -0.0
+                "x": -14.0,
+                "y": -25.446176528930664,
+                "z": 10.0
             },
             "rotation": {
                 "x": 0.0,
@@ -23,13 +23,14 @@
                 "z": 2.0
             },
             "shapeType": "static-mesh",
-            "userData": "{\"blender_export\":\"2d30a6bc-d6c5-50de-8fae-9e51ba0c9add\"}, \"grabbable_key\":[\"grabbable\":false]}"
+            "userData": "{\"blender_export\":\"50e4ddc3-bf96-5e12-a51b-57028cd3673d\"}, \"grab\":{\"grabbable\":false}}",
+            "parentID": "5765e46f-288d-5614-8ea5-a4934750cbe3"
         },
         {
-            "name": "Cube",
-            "id": "bdb95300-5c63-5bc3-bc34-bc76979b4ed3",
+            "name": "LightBlueCube",
+            "id": "d8ba20b0-3bcf-5be4-8f81-d632ed554777",
             "type": "Model",
-            "modelURL": "https://s3.eu-west-2.amazonaws.com/norteclabs.com/HF/objects/Test/Cube.002.fbx",
+            "modelURL": "atp:/expected/Cube.002.fbx",
             "position": {
                 "x": -10.0,
                 "y": 0.0,
@@ -47,17 +48,17 @@
                 "z": 2.0
             },
             "shapeType": "static-mesh",
-            "userData": "{\"blender_export\":\"bdb95300-5c63-5bc3-bc34-bc76979b4ed3\"}, \"grabbable_key\":[\"grabbable\":false]}"
+            "userData": "{\"blender_export\":\"d8ba20b0-3bcf-5be4-8f81-d632ed554777\"}, \"grab\":{\"grabbable\":false}}"
         },
         {
-            "name": "Cube",
-            "id": "860d3812-3971-5cbc-a73a-c614fa595461",
+            "name": "GreenCube",
+            "id": "f9e591dd-c142-575b-928b-84b4bcb541e1",
             "type": "Model",
-            "modelURL": "https://s3.eu-west-2.amazonaws.com/norteclabs.com/HF/objects/Test/Cube.003.fbx",
+            "modelURL": "atp:/expected/Cube.003.fbx",
             "position": {
-                "x": 10.0,
-                "y": 0.0,
-                "z": 15.0
+                "x": 24.0,
+                "y": 30.962947845458984,
+                "z": 35.0
             },
             "rotation": {
                 "x": 0.0,
@@ -71,16 +72,17 @@
                 "z": 2.0
             },
             "shapeType": "static-mesh",
-            "userData": "{\"blender_export\":\"860d3812-3971-5cbc-a73a-c614fa595461\"}, \"grabbable_key\":[\"grabbable\":false]}"
+            "userData": "{\"blender_export\":\"f9e591dd-c142-575b-928b-84b4bcb541e1\"}, \"grab\":{\"grabbable\":false}}",
+            "parentID": "4dcd9acb-291d-50f1-ad3e-373843268561"
         },
         {
-            "name": "Cube",
-            "id": "468b70e5-ffef-5862-8728-088d3225e7c5",
+            "name": "RedCube",
+            "id": "4dcd9acb-291d-50f1-ad3e-373843268561",
             "type": "Model",
-            "modelURL": "https://s3.eu-west-2.amazonaws.com/norteclabs.com/HF/objects/Test/Cube.004.fbx",
+            "modelURL": "atp:/expected/Cube.004.fbx",
             "position": {
                 "x": -14.0,
-                "y": 0.0,
+                "y": -10.772252082824707,
                 "z": -20.0
             },
             "rotation": {
@@ -95,16 +97,16 @@
                 "z": 2.0
             },
             "shapeType": "static-mesh",
-            "userData": "{\"blender_export\":\"468b70e5-ffef-5862-8728-088d3225e7c5\"}, \"grabbable_key\":[\"grabbable\":false]}"
+            "userData": "{\"blender_export\":\"4dcd9acb-291d-50f1-ad3e-373843268561\"}, \"grab\":{\"grabbable\":false}}"
         },
         {
-            "name": "Cube",
-            "id": "a00297ad-5796-54bd-bb22-b96a83a66cf3",
+            "name": "YelloCube",
+            "id": "5765e46f-288d-5614-8ea5-a4934750cbe3",
             "type": "Model",
-            "modelURL": "https://s3.eu-west-2.amazonaws.com/norteclabs.com/HF/objects/Test/Cube.005.fbx",
+            "modelURL": "atp:/expected/Cube.005.fbx",
             "position": {
                 "x": 14.0,
-                "y": 0.0,
+                "y": 12.723076820373535,
                 "z": -10.0
             },
             "rotation": {
@@ -119,7 +121,7 @@
                 "z": 2.0
             },
             "shapeType": "static-mesh",
-            "userData": "{\"blender_export\":\"a00297ad-5796-54bd-bb22-b96a83a66cf3\"}, \"grabbable_key\":[\"grabbable\":false]}"
+            "userData": "{\"blender_export\":\"5765e46f-288d-5614-8ea5-a4934750cbe3\"}, \"grab\":{\"grabbable\":false}}"
         }
     ]
 }

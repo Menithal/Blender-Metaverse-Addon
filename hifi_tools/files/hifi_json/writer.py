@@ -29,7 +29,7 @@ from math import sqrt
 from hashlib import md5, sha256
 from copy import copy, deepcopy
 
-from hifi_tools.utils.helpers import *
+from hifi_tools.utils.helpers.extra_math import *
 
 EXPORT_VERSION = 84
 
@@ -180,9 +180,7 @@ def parse_object(blender_object, path, options):
         blender_object.select_set(state=True)      
         uid = ""
         reference_name = blender_object.data.name
-        
         # TODO: If Child of armature, skip logic
-
         # Here comes the fun part: Apply all modifiers prior to using them in the instance
         if len(blender_object.modifiers) > 0: 
             # Lets do a LOW-LEVEL duplicate, too much automation in duplicate         
@@ -194,7 +192,6 @@ def parse_object(blender_object, path, options):
             original_object.select_set(state=False)
             
             uid = "-" + generate_unique_id_modifier(clone.modifiers)
-            print(uid)
             bpy.context.view_layer.objects.active = clone
             apply_all_modifiers(clone.modifiers)
             blender_object = clone
@@ -260,8 +257,13 @@ def parse_object(blender_object, path, options):
                 'y': dimensions.y,
                 'z': dimensions.z
             },           
+            'grab':{
+                'grabbable': False,
+                'triggerable': False,
+                'cloneable': False
+            },
             "shapeType": "static-mesh",
-            'userData': '{"blender_export":"' + scene_id +'"}, "grabbable_key":["grabbable":false]}'
+            'userData': '{"blender_export":"' + scene_id +'"}'
         }         
         
         json_data = set_relative_to_parent(blender_object, json_data)
@@ -274,7 +276,7 @@ def parse_object(blender_object, path, options):
     elif bo_type == 'LAMP':
         print(name, 'is Light')
         
-        # Hifi 5, Blender 3.3
+        # Hifi 5, Blender 3.3 ????
         light = blender_object.data
         color = blender_object.color
         falloff = sqrt(light.distance)
