@@ -1,0 +1,125 @@
+{
+    "Version": 84,
+    "Entities": [
+        {
+            "name": "Cube",
+            "id": "2d30a6bc-d6c5-50de-8fae-9e51ba0c9add",
+            "type": "Model",
+            "modelURL": "https://s3.eu-west-2.amazonaws.com/norteclabs.com/HF/objects/Test/Cube.001.fbx",
+            "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": -0.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": -0.0,
+                "w": 1.0
+            },
+            "dimensions": {
+                "x": 2.0,
+                "y": 2.0,
+                "z": 2.0
+            },
+            "shapeType": "static-mesh",
+            "userData": "{\"blender_export\":\"2d30a6bc-d6c5-50de-8fae-9e51ba0c9add\"}, \"grabbable_key\":[\"grabbable\":false]}"
+        },
+        {
+            "name": "Cube",
+            "id": "bdb95300-5c63-5bc3-bc34-bc76979b4ed3",
+            "type": "Model",
+            "modelURL": "https://s3.eu-west-2.amazonaws.com/norteclabs.com/HF/objects/Test/Cube.002.fbx",
+            "position": {
+                "x": -10.0,
+                "y": 0.0,
+                "z": 15.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": -0.0,
+                "w": 1.0
+            },
+            "dimensions": {
+                "x": 2.0,
+                "y": 2.0,
+                "z": 2.0
+            },
+            "shapeType": "static-mesh",
+            "userData": "{\"blender_export\":\"bdb95300-5c63-5bc3-bc34-bc76979b4ed3\"}, \"grabbable_key\":[\"grabbable\":false]}"
+        },
+        {
+            "name": "Cube",
+            "id": "860d3812-3971-5cbc-a73a-c614fa595461",
+            "type": "Model",
+            "modelURL": "https://s3.eu-west-2.amazonaws.com/norteclabs.com/HF/objects/Test/Cube.003.fbx",
+            "position": {
+                "x": 10.0,
+                "y": 0.0,
+                "z": 15.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": -0.0,
+                "w": 1.0
+            },
+            "dimensions": {
+                "x": 2.0,
+                "y": 2.0,
+                "z": 2.0
+            },
+            "shapeType": "static-mesh",
+            "userData": "{\"blender_export\":\"860d3812-3971-5cbc-a73a-c614fa595461\"}, \"grabbable_key\":[\"grabbable\":false]}"
+        },
+        {
+            "name": "Cube",
+            "id": "468b70e5-ffef-5862-8728-088d3225e7c5",
+            "type": "Model",
+            "modelURL": "https://s3.eu-west-2.amazonaws.com/norteclabs.com/HF/objects/Test/Cube.004.fbx",
+            "position": {
+                "x": -14.0,
+                "y": 0.0,
+                "z": -20.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": -0.0,
+                "w": 1.0
+            },
+            "dimensions": {
+                "x": 2.0,
+                "y": 2.0,
+                "z": 2.0
+            },
+            "shapeType": "static-mesh",
+            "userData": "{\"blender_export\":\"468b70e5-ffef-5862-8728-088d3225e7c5\"}, \"grabbable_key\":[\"grabbable\":false]}"
+        },
+        {
+            "name": "Cube",
+            "id": "a00297ad-5796-54bd-bb22-b96a83a66cf3",
+            "type": "Model",
+            "modelURL": "https://s3.eu-west-2.amazonaws.com/norteclabs.com/HF/objects/Test/Cube.005.fbx",
+            "position": {
+                "x": 14.0,
+                "y": 0.0,
+                "z": -10.0
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": -0.0,
+                "w": 1.0
+            },
+            "dimensions": {
+                "x": 2.0,
+                "y": 2.0,
+                "z": 2.0
+            },
+            "shapeType": "static-mesh",
+            "userData": "{\"blender_export\":\"a00297ad-5796-54bd-bb22-b96a83a66cf3\"}, \"grabbable_key\":[\"grabbable\":false]}"
+        }
+    ]
+}

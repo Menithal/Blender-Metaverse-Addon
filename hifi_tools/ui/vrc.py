@@ -21,7 +21,7 @@ class AVATAR_PT_MVT_VRC_TOOLSET(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-         
+
         layout.operator(ARMATURE_OT_MVT_TOOLSET_Create_VRC_Operator.bl_idname)
         return None
 
@@ -42,6 +42,28 @@ class ARMATURE_OT_MVT_TOOLSET_Create_VRC_Operator(bpy.types.Operator):
     def execute(self, context):
         bones_builder.build_skeleton(SkeletonTypes.VRC)
         return {'FINISHED'}
+
+# Tools To Make
+
+# Generate Shapekeys Drop Down
+#   Empties: 
+#   Based On Existing:
+#   Copy And Mirror Current Shapekey
+#   Drop Down but using CATS 
+
+
+# Pin Problem Bones
+#   Pins Eye Rotations and Upper Legs to match rotation of Hips
+
+
+# Fix Common issues
+#   Check If Valid Shapekey order
+#   Check If Valid Body Name
+#   Check if sil (silence matches basis)
+#   Pin Problem Bones
+#   Rescale
+#   Check If Double Eyes
+# Check If OTHER modifiers and Shapekeys (If so, then make sure to warn user.)
 
 
 classes = (
