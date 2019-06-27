@@ -23,7 +23,7 @@ import copy
 
 def get_mesh_from(selected):
     meshes = []
-    
+
     for select in selected:
         if select.type == "MESH":
             meshes.append(select)
@@ -34,12 +34,12 @@ def get_mesh_from(selected):
 def mix_weights(a, b):
     print("  Mixing", a, b)
     bpy.ops.object.modifier_add(type='VERTEX_WEIGHT_MIX')
-    
+
     bpy.context.object.modifiers["VertexWeightMix"].vertex_group_a = a
     bpy.context.object.modifiers["VertexWeightMix"].vertex_group_b = b
     bpy.context.object.modifiers["VertexWeightMix"].mix_mode = 'ADD'
     bpy.context.object.modifiers["VertexWeightMix"].mix_set = 'OR'
-    
+
     bpy.ops.object.modifier_move_up(modifier="VertexWeightMix")
     bpy.ops.object.modifier_move_up(modifier="VertexWeightMix")
     bpy.ops.object.modifier_move_up(modifier="VertexWeightMix")
@@ -106,3 +106,35 @@ def clean_unused_vertex_groups(obj):
 
     bpy.context.view_layer.objects.active = obj
 
+
+def get_shape_keys(mesh):
+    if mesh.type != "MESH":
+        raise "Object was not a mesh"
+
+    return mesh.data.shape_keys.key_blocks
+
+
+def generate_empty_shapekeys(obj, target_shapekey_list):
+    shape_keys = get_shape_keys(active)
+
+    for key in target_shapekey_list:
+        if shape_keys.find(key) is None:
+            bpy.ops.object.shape_key_clear()
+            obj.shape_key_add(name=key)
+
+
+def sort_shapekeys(obj, target_shapekey_list):
+    shape_keys = get_shape_keys(selected)
+    name_list = [sk.name for sk in shape_keys]
+    moved = 0
+
+    for key in reversed(target_shapekey_list):
+        try:
+            index = name_list.index(key)
+            bpy.context.object.active_shape_key_index = index + moved
+            bpy.ops.object.shape_key_move(type='TOP')
+            moved += 1
+            # Simple upkeep for indexes from changing. They are ALWAYS added to top first, so technically "gone"
+            name_list.pop(index)
+        except Exception as e:
+            print("Could not find shapekey ", key, " Skipping: Full: ", e)

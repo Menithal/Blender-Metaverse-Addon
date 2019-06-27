@@ -22,12 +22,12 @@ class AVATAR_PT_MVT_HIFI_TOOLSET(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         layout.operator(
-            ARMATURE_OT_MVT_TOOLSET_Create_HIFI_Operator.bl_idname)
-        layout.operator(AVATAR_OT_MVT_TOOLSET_Convert_Custom_To_Hifi.bl_idname)
-        layout.operator(AVATAR_OT_MVT_TOOLSET_Convert_MMD_To_Hifi.bl_idname)
+            ARMATURE_OT_MVT_TOOLSET_Create_HIFI_Operator.bl_idname, icon="OUTLINER_OB_ARMATURE")
+        layout.operator(AVATAR_OT_MVT_TOOLSET_Convert_Custom_To_Hifi.bl_idname, icon="ARMATURE_DATA")
+        layout.operator(AVATAR_OT_MVT_TOOLSET_Convert_MMD_To_Hifi.bl_idname, icon="ARMATURE_DATA")
         row = layout.row()
-        row.operator(BONES_OT_MVT_TOOLSET_Pin_Problem_Bones.bl_idname)
-        row.operator(BONES_OT_MVT_TOOLSET_Fix_Rolls.bl_idname)
+        row.operator(BONES_OT_MVT_TOOLSET_Pin_Problem_Bones.bl_idname, icon="PINNED")
+        row.operator(BONES_OT_MVT_TOOLSET_Fix_Rolls.bl_idname, icon="CON_ROTLIKE")
 
         return None
 
@@ -130,6 +130,8 @@ class BONES_OT_MVT_TOOLSET_Pin_Problem_Bones(bpy.types.Operator):
     def execute(self, context):
         for obj in bpy.data.objects:
             if obj.type == "ARMATURE":
+                skeleton_type = SkeletonTypes.get_type_from_armature(obj)
+                # TODO: Should be expanded upon
                 bones_builder.pin_common_bones(obj, False)
 
         return {'FINISHED'}

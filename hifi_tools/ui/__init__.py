@@ -201,7 +201,13 @@ class ARMATURE_OT_MVT_TOOLSET_Force_Pose_Operator(bpy.types.Operator):
     bl_space_type = "VIEW_3D"
 
     def execute(self, context):
-        bones_builder.retarget_armature({'apply': False}, bpy.data.objects)
+        skeleton = SkeletonTypes.get_type_from_armature(context.active_object)
+        if skeleton is not None:
+            bones_builder.retarget_armature(
+                {'apply': False}, bpy.data.objects, skeleton)
+        else:
+            print("Could not get find Skeleton type of " + context.active_object.name)
+
         return {'FINISHED'}
 
 
@@ -487,11 +493,11 @@ class TEST_WT_workspace(bpy.types.WorkSpaceTool):
         "This is\n"
         "A TeSt"
     )
-    bl_icon =  "ops.generic.select_circle"
+    bl_icon = "ops.generic.select_circle"
 
 
 classes = (
-    
+
     BONES_PT_MVT_TOOLSET,
     ARMATURE_OT_MVT_TOOLSET_Force_Pose_Operator,
     ARMATURE_OT_MVT_TOOLSET_Clear_Rest_Pose_Operator,
@@ -520,7 +526,7 @@ classes = (
 
     OBJECT_OT_MVT_TOOLSET_Fix_Scale_Operator,
     SAVE_OT_MVT_TOOLSET_Message_Remind_Save,
-    #HELP_OT_MVT_TOOLSET_Open_Forum_Link,
+    # HELP_OT_MVT_TOOLSET_Open_Forum_Link,
     # DebugArmatureOperator,
 
     MESH_PT_MVT_TOOLSET,
@@ -541,11 +547,11 @@ def register_operators():
     hifi_ui.module_register()
     vrc_ui.module_register()
 
-    #bpy.utils.register_tool(TEST_WT_workspace)
+    # bpy.utils.register_tool(TEST_WT_workspace)
 
 
 def unregister_operators():
     module_unregister()
     hifi_ui.module_unregister()
     vrc_ui.module_unregister()
-    #bpy.utils.unregister_tool(TEST_WT_workspace)
+    # bpy.utils.unregister_tool(TEST_WT_workspace)

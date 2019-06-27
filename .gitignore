@@ -108,3 +108,4 @@ venv.bak/
 # Temporary, until ready
 scripts/
 *.blend[0-9]
+result/

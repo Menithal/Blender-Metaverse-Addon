@@ -156,8 +156,10 @@ def automatic_bind_bones(self, avatar_bones):
             knee_check = True
 
         # Counter: If Knee exists somewhere, it is most likely that Leg is the upper leg.
-        if knee_check and "leg" in cleaned_name:
+        if knee_check and "leg" in cleaned_name and self.up_leg is None:
             self.up_leg = bone.name
+        elif knee_check and "leg" in cleaned_name:
+            self.leg = bone.name
 
         if foot_name in cleaned_name or "ankle" in cleaned_name:
             self.foot = bone.name
@@ -454,9 +456,6 @@ class AVATAR_OT_MVT_TOOLSET_Custom_Avatar_Binder_Operator(bpy.types.Operator):
 
             bpy.ops.object.select_all(action='DESELECT')
             armature.select_set(state=True)
-            print(context)
-            print(context.view_layer)
-            print(context.view_layer.objects)
             context.view_layer.objects.active = armature
 
             bpy.ops.object.mode_set(mode="EDIT")

@@ -1,0 +1,1 @@
+Run Script on Cube_Test.blend export scene. Expected json should match Result.
