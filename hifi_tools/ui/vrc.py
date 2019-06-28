@@ -1,3 +1,25 @@
+
+# -*- coding: utf-8 -*-
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
+
+# Copyright 2019 Matti 'Menithal' Lahtinen
+
 import bpy
 
 from hifi_tools.utils.bones import bones_builder, mmd, mixamo, makehuman
@@ -53,7 +75,7 @@ class AVATAR_PT_MVT_VRC_TOOLSET(bpy.types.Panel):
         layout.operator(ARMATURE_OT_MVT_TOOLSET_Sort_VRC_Shapekeys.bl_idname, icon="SORTSIZE")
         row = layout.row()
 
-        row.operator(BONES_OT_MVT_TOOLSET_Pin_Problem_Bones.bl_idname, icon="PINNED")
+        #row.operator(BONES_OT_MVT_TOOLSET_Pin_Problem_Bones.bl_idname, icon="PINNED")
         row.operator(BONES_OT_MVT_TOOLSET_Fix_Rolls.bl_idname, icon="CON_ROTLIKE")
         return None
 
@@ -76,8 +98,6 @@ class ARMATURE_OT_MVT_TOOLSET_Create_VRC_Operator(bpy.types.Operator):
         return {'FINISHED'}
 
 
-
-
 class ARMATURE_OT_MVT_TOOLSET_Generate_Empty_VRC_Shapekeys(bpy.types.Operator):
     """ Tool to generate (Empty) Shapekeys for VRC """
     bl_idname = "metaverse_toolset.vrc_generate_empty_shapekeys"
@@ -94,7 +114,6 @@ class ARMATURE_OT_MVT_TOOLSET_Generate_Empty_VRC_Shapekeys(bpy.types.Operator):
     def execute(self, context):
         mesh.generate_empty_shapekeys(context.active_object, expected_vrc_shapekeys)
         return {'FINISHED'}
-
 
 
 class ARMATURE_OT_MVT_TOOLSET_Sort_VRC_Shapekeys(bpy.types.Operator):

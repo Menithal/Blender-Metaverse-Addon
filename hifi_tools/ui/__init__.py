@@ -206,7 +206,8 @@ class ARMATURE_OT_MVT_TOOLSET_Force_Pose_Operator(bpy.types.Operator):
             bones_builder.retarget_armature(
                 {'apply': False}, bpy.data.objects, skeleton)
         else:
-            print("Could not get find Skeleton type of " + context.active_object.name)
+            print("Could not get find Skeleton type of " +
+                  context.active_object.name)
 
         return {'FINISHED'}
 
@@ -342,7 +343,7 @@ class TEXTURES_OT_MVT_TOOLSET_Convert_To_Mask(bpy.types.Operator):
 class SAVE_OT_MVT_TOOLSET_Message_Remind_Save(bpy.types.Operator):
     """ Message to remind user to save their scene prior to continuing """
     bl_idname = "metaverse_toolset_messages.remind_save"
-    bl_label = "You must save scene to a blend file first allowing for relative directories."
+    bl_label = "Save scene to a blend file first allowing for relative directories."
     bl_options = {'REGISTER', 'INTERNAL'}
 
     @classmethod
