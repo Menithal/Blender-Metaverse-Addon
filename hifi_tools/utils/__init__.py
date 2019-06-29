@@ -21,6 +21,5 @@
 from . import (
     bpyutil,
     bones,
-    dev,
     helpers
 )
