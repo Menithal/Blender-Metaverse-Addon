@@ -210,11 +210,13 @@ def fbx_metav_toolset_data_material_elements(root, ma, scene_data):
     if ma_wrap.metallic_texture is not None:
         elem_props_template_set(tmpl, props, "p_bool", b"Maya|use_metallic_map", True)
 
-    elem_props_template_set(tmpl, props, "p_color", b"EmissiveColor", ma_wrap.emissive)
-    elem_props_template_set(tmpl, props, "p_color", b"Emissive", ma_wrap.emissive)
-    elem_props_template_set(tmpl, props, "p_color", b"Maya|emissive", ma_wrap.emissive)
+    elem_props_template_set(tmpl, props, "p_number", b"EmissiveFactor", ma_wrap.emissive)
 
-    elem_props_template_set(tmpl, props, "p_number", b"EmissiveFactor", 1.0)
+    if ma_wrap.emission_texture is not None:
+        elem_props_template_set(tmpl, props, "p_color", b"EmissiveColor", ma_wrap.emissive)
+        elem_props_template_set(tmpl, props, "p_color", b"EmissiveColor", ma_wrap.emission_texture)
+        elem_props_template_set(tmpl, props, "p_color", b"Maya|emissive", ma_wrap.emission_texture)
+
     elem_props_template_set(tmpl, props, "p_number", b"Maya|emissive_intensity", 1.0) #TODO: - matti Not apparently used by Hifi atm
     
     if ma_wrap.emission_texture is not None:
