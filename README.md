@@ -3,7 +3,7 @@
 Plugin ("Project Hermes") is a plugin for Blender to allow for easier content creation originally created for importing for the High Fidelity Metaverse Platform. 
 It has now being expanded to support additional platforms.
 
-## 1.4 works only with Blender 2.80
+## 1.4 works only with Blender 2.80 RC+
 
 # Installation Guide
 

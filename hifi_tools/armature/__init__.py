@@ -21,13 +21,17 @@ class SkeletonTypes(Enum):
         if obj.type != "ARMATURE":
             return None
 
-        
-
         if len(obj.data.bones) < 55:
             return None
+        
+        # TODO: Better Detection Methods Later using skeletons.
 
-        if obj.data.bones.index("Chest"):
+        if obj.data.bones.find("Chest"):
             return SkeletonTypes.VRC
 
-        return SkeletonTypes.HIFI
+        if obj.data.bones.find("Spine2") or obj.data.bones.find("HeadTop_End"):
+            return SkeletonTypes.HIFI
+        
+        return None
+
 
