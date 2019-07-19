@@ -20,7 +20,7 @@
 bl_info = {
     "name": "Metaverse Toolkit Blender Add-on",
     "author": "Matti 'Menithal' Lahtinen",
-    "version": (1, 5, 2),
+    "version": (1, 5, 3),
     "blender": (2, 80, 0),
     "location": "File > Import-Export, Materials, Armature",
     "description": "Blender tools to allow for easier Content creation for Metaverses, such as High Fidelity",
@@ -423,10 +423,8 @@ class HELP_OT_MVT_TOOLSET_Open_Forum_Link(bpy.types.Operator):
 classes = (
     EXPORT_OT_MVT_TOOLSET_Message_Error_Missing_ATP_Override,
     EXPORT_OT_MVT_TOOLSET_IPFS_Feature_Info,
-    EXPORT_OT_MVT_TOOLSET_FST_Writer_Operator,
     EXPORT_OT_MVT_TOOLSET_Export_FBX_JSON,
     EXPORT_OT_MVT_TOOLSET_FBX,
-    EXPORT_OT_MVT_TOOLSET_Message_Success,
     IMPORT_OT_MVT_TOOLSET_Scene_From_JSON,
     HELP_OT_MVT_TOOLSET_Open_Forum_Link,
     AUTH_OT_MVT_TOOLSET_Open_Token_Link,
@@ -435,11 +433,12 @@ classes = (
     HifiAddOnPreferences,
 )
 
-module_register, module_unregister = bpy.utils.register_classes_factory(classes)    
+main_register, main_unregister = bpy.utils.register_classes_factory(classes)    
 bpy.app.handlers.save_pre.append(utils.helpers.materials.correct_all_color_spaces_to_non_color)
 
 existing_shapekey_merger = False
 def register():
+    main_register()
     scene_define()
     module_register()
     custom_register()
@@ -457,6 +456,7 @@ def register():
 
 
 def unregister():
+    main_unregister()
     scene_delete()
     module_unregister()
     custom_unregister()

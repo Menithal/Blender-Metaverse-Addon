@@ -91,7 +91,7 @@ def clean_up_bones(obj):
     pose_bones = obj.pose.bones
 
     bpy.ops.object.mode_set(mode='EDIT')
-    updated_context = bpy.data.objects[obj.name]
+    updated_context = bpy.context.view_layer.objects[obj.name]
     edit_bones = updated_context.data.edit_bones
 
     bpy.ops.object.mode_set(mode='EDIT')

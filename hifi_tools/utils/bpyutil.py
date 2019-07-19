@@ -24,7 +24,7 @@ import bpy
 def get_selected_or_all():
     selected = bpy.context.selected_objects
     if len(selected) < 1:
-        selected = bpy.data.objects
+        selected = bpy.context.view_layer.objects
     return selected
 
 # https://blenderartists.org/t/how-to-know-if-an-operator-is-registered/638803/4

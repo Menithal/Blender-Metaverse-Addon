@@ -249,7 +249,7 @@ class EXPORT_OT_MVT_TOOLSET_FST_Writer_Operator(bpy.types.Operator, ExportHelper
         if self.selected_only:
             to_export = list(bpy.context.selected_objects)
         else:
-            to_export = list(bpy.data.objects)
+            to_export = list(bpy.context.view_layer.objects)
 
         print(to_export)
         
@@ -261,7 +261,7 @@ class EXPORT_OT_MVT_TOOLSET_FST_Writer_Operator(bpy.types.Operator, ExportHelper
             return {'CANCELLED'}
 
         val = FSTWriter.fst_export(self, to_export)
-
+        
         if val == {'FINISHED'}:
             if len(armatures[0].data.edit_bones) > 100:
                 bpy.ops.metaverse_toolset_messages.export_warn_bone('INVOKE_DEFAULT')
@@ -269,7 +269,7 @@ class EXPORT_OT_MVT_TOOLSET_FST_Writer_Operator(bpy.types.Operator, ExportHelper
                 bpy.ops.metaverse_toolset_messages.export_success('INVOKE_DEFAULT')
             return {'FINISHED'}
         else:
-            bpy.ops.metaverse_toolset_messages.export_success('INVOKE_DEFAULT')
+            bpy.ops.metaverse_toolset_messages.export_error('INVOKE_DEFAULT')
             return val
 
 

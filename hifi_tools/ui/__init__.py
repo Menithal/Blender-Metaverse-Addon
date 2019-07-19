@@ -204,7 +204,7 @@ class ARMATURE_OT_MVT_TOOLSET_Force_Pose_Operator(bpy.types.Operator):
         skeleton = SkeletonTypes.get_type_from_armature(context.active_object)
         if skeleton is not None:
             bones_builder.retarget_armature(
-                {'apply': False}, bpy.data.objects, skeleton)
+                {'apply': False}, bpy.context.view_layer.objects, skeleton)
         else:
             print("Could not get find Skeleton type of " +
                   context.active_object.name)
@@ -222,7 +222,7 @@ class ARMATURE_OT_MVT_TOOLSET_Clear_Rest_Pose_Operator(bpy.types.Operator):
     bl_space_type = "VIEW_3D"
 
     def execute(self, context):
-        bones_builder.clear_pose(bpy.data.objects)
+        bones_builder.clear_pose(bpy.context.view_layer.objects)
         return {'FINISHED'}
 
 

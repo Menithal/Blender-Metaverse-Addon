@@ -261,7 +261,7 @@ class HifiObject:
                     bpy.ops.object.modifier_apply(
                         apply_as='DATA', modifier=name)
                     # Clean up the child object from the blender scene.
-                    bpy.data.objects.remove(child.blender_object)
+                    bpy.context.view_layer.objects.remove(child.blender_object)
                     # TODO: Set Child.blender_object as the blender object of the parent to maintain links
                 # If not boolean operator, but join_children is still True
                 elif self.scene.join_children:

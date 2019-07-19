@@ -133,7 +133,7 @@ class AVATAR_OT_MVT_TOOLSET_Convert_MakeHuman_To_Hifi(bpy.types.Operator):
 
     def execute(self, context):
         makehuman.convert_makehuman_avatar_hifi()
-        bones_builder.retarget_armature({'apply': True}, bpy.data.objects)
+        bones_builder.retarget_armature({'apply': True}, bpy.context.view_layer.objects)
         return {'FINISHED'}
 
 
@@ -150,7 +150,7 @@ class BONES_OT_MVT_TOOLSET_Pin_Problem_Bones(bpy.types.Operator):
         return (context.mode == "OBJECT" or context.mode == "POSE") and (context.active_object is not None and context.active_object.type == "ARMATURE")
 
     def execute(self, context):
-        for obj in bpy.data.objects:
+        for obj in bpy.context.view_layer.objects:
             if obj.type == "ARMATURE":
                 skeleton_type = SkeletonTypes.get_type_from_armature(obj)
                 # TODO: Should be expanded upon
@@ -175,7 +175,7 @@ class BONES_OT_MVT_TOOLSET_Fix_Rolls(bpy.types.Operator):
         selected = bpy.context.selected_objects
 
         if selected is None:
-            selected = bpy.data.objects
+            selected = bpy.context.view_layer.objects
 
         bones_builder.find_select_armature_and_children(selected)
 
@@ -184,7 +184,7 @@ class BONES_OT_MVT_TOOLSET_Fix_Rolls(bpy.types.Operator):
         bpy.ops.object.mode_set(mode="EDIT")
 
         if selected is None:
-            selected = bpy.data.objects
+            selected = bpy.context.view_layer.objects
 
         for obj in selected:
             if obj.type == "ARMATURE":

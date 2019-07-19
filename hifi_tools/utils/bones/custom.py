@@ -126,7 +126,7 @@ def automatic_bind_bones(self, avatar_bones):
             self.spine2 = bone.name
         elif spine1_name in cleaned_name:
             # if there is no Spine2, chest or breast, its likely that spine1 is the chest. Convert it.
-            if cleaned_bones["spine2"] is None and cleaned_bones["chest"] is None and cleaned_bones["breast"] is None:
+            if cleaned_bones.get("spine2") is None and cleaned_bones.get("chest") is None and cleaned_bones.get("breast") is None:
                 self.spine2 = bone.name
             else:
                 self.spine1 = bone.name
@@ -321,7 +321,7 @@ def rename_bones_and_fix_most_things(self, context):
     bpy.ops.object.select_all(action="DESELECT")
     # TODO: This should be more selective and only affect the armature object's children.
 
-    children = bpy.data.objects
+    children = bpy.context.view_layer.objects
     for child in children:
 
         child.select_set(state=True)

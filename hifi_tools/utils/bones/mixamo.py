@@ -42,7 +42,7 @@ def convert_mixamo_avatar_hifi():
     print("Searching for  mixamo:: prefix bones")
     bones_builder.remove_all_actions()
 
-    for obj in bpy.data.objects:
+    for obj in bpy.context.view_layer.objects:
         if obj.type == "ARMATURE":
 
             bones_builder.scale_helper(obj)
