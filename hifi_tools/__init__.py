@@ -20,7 +20,7 @@
 bl_info = {
     "name": "Metaverse Toolkit Blender Add-on",
     "author": "Matti 'Menithal' Lahtinen",
-    "version": (1, 5, 3),
+    "version": (1, 5, 4),
     "blender": (2, 80, 0),
     "location": "File > Import-Export, Materials, Armature",
     "description": "Blender tools to allow for easier Content creation for Metaverses, such as High Fidelity",

@@ -227,7 +227,7 @@ class HifiShaderWrapper(PrincipledBSDFWrapper):
             material, is_readonly, use_nodes)
 
     def update(self):
-        super(PrincipledBSDFWrapper, self).update()
+        PrincipledBSDFWrapper.update(self)
 
         print("HifiShaderWrapper", self.use_nodes, self.node_principled_bsdf)
 
@@ -247,6 +247,7 @@ class HifiShaderWrapper(PrincipledBSDFWrapper):
     # Will only be used as gray-scale one...
 
     def emission_texture_get(self):
+        print("Emission Texture Get", self.use_nodes, self.node_principled_bsdf)
         if not self.use_nodes or self.node_principled_bsdf is None:
             return None
         return ShaderImageTextureWrapper(

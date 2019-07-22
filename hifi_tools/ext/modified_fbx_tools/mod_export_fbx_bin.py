@@ -527,10 +527,13 @@ def fbx_data_from_scene(scene, depsgraph, settings):
         # Note: with nodal shaders, we'll could be generating much more textures, but that's kind of unavoidable,
         #       given that textures actually do not exist anymore in material context in Blender...
         ma_wrap = HifiShaderWrapper(ma, is_readonly=True)
+        print("Material", ma, ma.name)
         for sock_name, fbx_name in HIFI_SPECIFIC_SOCKETS_FBX:
             tex = getattr(ma_wrap, sock_name)
+            print("Texture:", tex, sock_name)
             if tex is None or tex.image is None:
                 continue
+
             blender_tex_key = (ma, sock_name)
             data_textures[blender_tex_key] = (get_blender_nodetexture_key(*blender_tex_key), fbx_name)
 
