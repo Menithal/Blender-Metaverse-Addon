@@ -210,7 +210,7 @@ def correct_all_color_spaces_to_non_color(context):
                     node.inputs.get("Subsurface Scattering"))
                 normal_map_socket = node.inputs.get("Normal")
 
-                if normal_map_socket is not None:
+                if normal_map_socket is not None and len(normal_map_socket.links) is not 0:
                     normal_map = normal_map_socket.links[0].from_node
                     correct_node_color_space_to_non_color(
                         normal_map.inputs.get("Color"))

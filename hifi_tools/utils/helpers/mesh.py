@@ -115,21 +115,25 @@ def get_shape_keys(mesh):
 
 
 def generate_empty_shapekeys(obj, target_shapekey_list):
-    shape_keys = get_shape_keys(active)
-
+    print("generate_empty_shapekeys", obj)
+    shape_keys = get_shape_keys(obj)
     for key in target_shapekey_list:
-        if shape_keys.find(key) is None:
+        print(key, shape_keys.find(key))
+        if shape_keys.find(key) is -1:
             bpy.ops.object.shape_key_clear()
             obj.shape_key_add(name=key)
 
 
 def sort_shapekeys(obj, target_shapekey_list):
-    shape_keys = get_shape_keys(selected)
+    print("sort_shapekeys", obj)
+    shape_keys = get_shape_keys(obj)
+    print(shape_keys)
     name_list = [sk.name for sk in shape_keys]
     moved = 0
 
     for key in reversed(target_shapekey_list):
         try:
+            
             index = name_list.index(key)
             bpy.context.object.active_shape_key_index = index + moved
             bpy.ops.object.shape_key_move(type='TOP')

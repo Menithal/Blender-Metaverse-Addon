@@ -39,7 +39,7 @@ expected_vrc_shapekeys = [
     'vrc.v_aa',
     'vrc.v_ch',
     'vrc.v_dd',
-    'vrc.v_ee',
+    'vrc.v_e',
     'vrc.v_ff',
     'vrc.v_ih',
     'vrc.v_kk',
@@ -127,7 +127,7 @@ class ARMATURE_OT_MVT_TOOLSET_Sort_VRC_Shapekeys(bpy.types.Operator):
 
     @classmethod
     def poll(self, context):
-        return context.mode == "OBJECT" and context.active.object is not None and len(mesh.get_shape_keys(context.active_object)) > 0
+        return context.mode == "OBJECT" and context.active_object is not None and context.active_object.type == "MESH" and len(mesh.get_shape_keys(context.active_object)) > 0
 
     def execute(self, context):
         mesh.sort_shapekeys(bpy.context.active_object, expected_vrc_shapekeys)

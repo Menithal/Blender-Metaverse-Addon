@@ -89,6 +89,9 @@ class BONES_PT_MVT_TOOLSET(bpy.types.Panel):
         layout.operator(BONES_OT_MVT_TOOLSET_Combine_Disconnected.bl_idname)
         layout.operator(BONES_OT_MVT_TOOLSET_Connect_Selected.bl_idname)
         layout.operator(BONES_OT_MVT_TOOLSET_Disconnect_Selected.bl_idname)
+        layout.operator(BONES_OT_MVT_TOOLSET_Rename_Chain.bl_idname)
+        layout.operator(BONES_OT_MVT_TOOLSET_Remove_001.bl_idname)
+        layout.operator(BONES_OT_MVT_TOOLSET_Mirror_And_Rename_On_X.bl_idname)
         return None
 
 
@@ -310,6 +313,59 @@ class BONES_OT_MVT_TOOLSET_Combine(bpy.types.Operator):
         bpy.context.object.data.use_mirror_x = use_mirror_x
         return {'FINISHED'}
 
+class BONES_OT_MVT_TOOLSET_Rename_Chain(bpy.types.Operator):
+    """ Rename bones to Chain From Root Name and Numbers Accordingly """
+    bl_idname = "metaverse_toolset.rename_bone_chain"
+    bl_label = "Rename Chain to Root"
+
+    bl_region_type = "TOOLS"
+    bl_space_type = "VIEW_3D"
+
+    @classmethod
+    def poll(self, context):
+        return context.selected_bones is not None and len(context.selected_bones) > 1
+
+    def execute(self, context):
+        name = context.selected_bones[0].name
+        bones_builder.rename_selected_bone_chain(name, context.selected_bones)
+        return {'FINISHED'}
+
+
+class BONES_OT_MVT_TOOLSET_Remove_001(bpy.types.Operator):
+    """ Remove .001 endings """
+    bl_idname = "metaverse_toolset.remove_bone_001_ending"
+    bl_label = "Remove .001 from Names"
+
+    bl_region_type = "TOOLS"
+    bl_space_type = "VIEW_3D"
+
+    @classmethod
+    def poll(self, context):
+        return context.selected_bones is not None and len(context.selected_bones) > 1
+
+    def execute(self, context):
+        bones_builder.remove_001_endings(context.selected_bones)
+        return {'FINISHED'}
+
+
+
+class BONES_OT_MVT_TOOLSET_Mirror_And_Rename_On_X(bpy.types.Operator):
+    """ Mirrors and renames selected on the X axis """
+    bl_idname = "metaverse_toolset.bones_mirror_and_rename"
+    bl_label = "Mirror Bones"
+
+    bl_region_type = "TOOLS"
+    bl_space_type = "VIEW_3D"
+
+    @classmethod
+    def poll(self, context):
+        return context.selected_bones is not None and len(context.selected_bones) > 0
+
+    def execute(self, context):
+        bones_builder.mirror_bones_x_and_rename()
+        return {'FINISHED'}
+
+
 
 class TEXTURES_OT_MVT_TOOLSET_Convert_To_Png(bpy.types.Operator):
     """ Converter to update All scene Textures to PNG """
@@ -507,6 +563,9 @@ classes = (
     BONES_OT_MVT_TOOLSET_Combine_Disconnected,
     BONES_OT_MVT_TOOLSET_Connect_Selected,
     BONES_OT_MVT_TOOLSET_Disconnect_Selected,
+    BONES_OT_MVT_TOOLSET_Rename_Chain,
+    BONES_OT_MVT_TOOLSET_Remove_001,
+    BONES_OT_MVT_TOOLSET_Mirror_And_Rename_On_X,
     ARMATURE_PT_MVT_TOOLSET,
     OBJECT_PT_MVT_TOOLSET_Assets_Display,
 

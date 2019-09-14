@@ -529,6 +529,20 @@ def delete_bones(edit_bones, bones_to_remove):
             print(" Remove Bone:", removal_bone)
             edit_bones.remove(removal_bone)
 
+def rename_selected_bone_chain(base_name, ebones):
+    # bpy.context.selected_bones
+
+    for idx,ebone in enumerate(ebones):
+        ebone.name = base_name + str(idx+1)
+
+def remove_001_endings(ebones):
+    for ebone in ebones:
+        ebone.name =  ebone.name.replace(".001","")
+
+
+def mirror_bones_x_and_rename():  
+    bpy.ops.armature.duplicate_move(ARMATURE_OT_duplicate={"do_flip_names":True})
+    bpy.ops.transform.resize(value=(-1,1,1),center_override=(0,0,0), constraint_axis=(True, False, False), orient_type='GLOBAL')
 
 def build_armature_structure(data, current_node, parent):
 
