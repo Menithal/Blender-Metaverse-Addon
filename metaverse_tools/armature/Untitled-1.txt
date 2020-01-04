@@ -1,7 +1,0 @@
-Notes on TE
-
-Scene MUST be Metric 0.01 before adding.
-
-
-bpy.context.scene.unit_settings.system = 'METRIC'
-bpy.context.scene.unit_settings.scale_length = 0.01

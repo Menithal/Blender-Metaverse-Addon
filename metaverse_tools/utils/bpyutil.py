@@ -35,3 +35,14 @@ def operator_exists(idname):
         return True
     except:
         return False
+
+
+def move_bone_layer(bone, layer):
+    print(layer, (1 == layer, 2 == layer, 3 == layer, 4 == layer, 5 == layer, 6 == layer, 7 == layer, 8 == layer, 9 == layer, 10 == layer,
+                        11 == layer, 12 == layer, 13 == layer, 14 == layer, 15 == layer, 16 == layer, 17 == layer, 18 == layer, 19 == layer,  20 == layer,
+                        21 == layer, 22 == layer, 23 == layer, 24 == layer, 25 == layer, 26 == layer, 27 == layer, 28 == layer, 29 == layer,  30 == layer,
+                        31 == layer, 32 == layer))
+    bone.layers = (1 == layer, 2 == layer, 3 == layer, 4 == layer, 5 == layer, 6 == layer, 7 == layer, 8 == layer, 9 == layer, 10 == layer,
+                        11 == layer, 12 == layer, 13 == layer, 14 == layer, 15 == layer, 16 == layer, 17 == layer, 18 == layer, 19 == layer,  20 == layer,
+                        21 == layer, 22 == layer, 23 == layer, 24 == layer, 25 == layer, 26 == layer, 27 == layer, 28 == layer, 29 == layer,  30 == layer,
+                        31 == layer, 32 == layer)

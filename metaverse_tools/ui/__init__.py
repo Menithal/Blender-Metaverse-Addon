@@ -36,6 +36,7 @@ from metaverse_tools.gateway import client as GatewayClient
 from metaverse_tools.armature import SkeletonTypes
 from . import hifi as hifi_ui
 from . import vrc as vrc_ui
+from . import tu as tu_ui
 
 category = "MVT: General Tools"
 
@@ -126,7 +127,7 @@ class MESH_PT_MVT_TOOLSET(bpy.types.Panel):
 
     @classmethod
     def poll(self, context):
-        return len(context.selected_objects) == 1 and context.active_object.type == "MESH"
+        return len(context.selected_objects) == 1 and context.active_object is not None and context.active_object.type == "MESH"
 
     def draw(self, context):
         layout = self.layout
@@ -606,6 +607,7 @@ def register_operators():
     module_register()
     hifi_ui.module_register()
     vrc_ui.module_register()
+    tu_ui.module_register()
 
     # bpy.utils.register_tool(TEST_WT_workspace)
 
@@ -614,4 +616,5 @@ def unregister_operators():
     module_unregister()
     hifi_ui.module_unregister()
     vrc_ui.module_unregister()
+    tu_ui.module_unregister()
     # bpy.utils.unregister_tool(TEST_WT_workspace)

@@ -2,14 +2,21 @@
 
 Plugin ("Project Hermes") is a plugin for Blender to allow for easier content creation originally created for importing for the High Fidelity Metaverse Platform. 
 
-It has now being expanded to support additional platforms.
+It has now being expanded to support additional platforms. as the official High Fidelity platform is turning off, while its forks are going to live their separate lives.
+This plugin now will focus on supporting as many platforms as possible.
 
-## 1.5+ works only with Blender 2.80 RC+
+Currently Supports
+
+- HiFi and Forks
+- VRC
+- Tower Unite
+
+## 2.0
 
 # Installation Guide
 
 ## Simple
-Open the Github page, Go to releases and download the `hifi_tools.zip` zip file. 
+Open the Github page, Go to releases and download the `metaverse_tools.zip` zip file. 
 
 In Blender. Goto `User Preferences`, and `Add-ons`. From there `Install Add-on from File` and select the Zip file that we downloaded.
 
@@ -17,19 +24,13 @@ Enable the plugin under `Import-Export: Metaverse Toolkit Blender Add-on`.
 
 ### If you had previous used plugin when it was "High Fidelity" Only, make sure to uninstall the old one first.
 
+## If you use the git repository:
 
-## If you downloaded the download repository:
+Make sure to `git submodule init` and `git submodule update` as we are using an external add on to bind shapkeys to new model.
 
-Copy `hifi_tools` folder to your Blender Addons Directory. 
+Copy `metaverse_tools` folder to your Blender Addons Directory. 
 
 On Windows this is under `%APPDATA%/Blender Foundation/Blender/<BlenderVersion>/addons`
-
-# Changes:
-
-- Hifi_tools is in the process of renaming to mvt_tools, in version 2.0 this will occur
-- Added VRChat Specific tools (WIP) for experienced blenderers.
-- Prepared framework for ability to import and on-the-fly create multiple platform skeletons and retarget animations cross-platform.
-- Fixed issues with Hifi FBX export, regarding emissions
 
 
 # Utility Functions:
@@ -42,21 +43,20 @@ On Windows this is under `%APPDATA%/Blender Foundation/Blender/<BlenderVersion>/
    - `Textures to Mask` and `Textures to Png` utility helpers.
 - Mesh Tools:
     - `Merge Modifiers & Shapekeys` attempt to merge modifiers onto Mesh with Shapekeys using Przemysław Bągard's ApplyModifierForObjectWithShapeKeys script, now included with this plugin, but if an existing copy exists, it is used instead
-    - `Clean Unused Vertex Groups` Clean model from vertex groups that are no in its skeleton.
+    - `Clean Unused Vertex Groups` Clean model from vertex groups that are not in its current skeleton.
 - Armature Tools:
     - `Test Avatar Rest Pose` - Attempts to detect type of skeleton and applies an absolute T-Pose by the platform reference
     - `Merge Bones` - Attempts to merge selected bones to last selected bone.
     - `Match Reference Rolls` - Uses rolls from the detected reference skeleton.
 
 
-
 ### High Fidelity Tools
 
-Generic Toolset allowing one to create content for High Fidelity, from 
+Generic Toolset allowing one to create content for High Fidelity forks, from 
 
 - A new Panel on the `3D View`'s right tool set is added, labled `MVT: High Fidelity`
 - Armature Tools
-    - `Add Hifi Armature` - Adds an Armature which is compatible with High Fidelity, has all the naming conventions in place
+    - `Add Hifi Armature` - Adds an Armature which is compatible with High Fidelity forks, has all the naming conventions in place
     - `Set Bone Physical` - (Armature Edit mode only) Adds a prefix to selected bones for Scripts in High fidelity for physical simulation
     - `Remove Bone Physical` - (Armature Edit mode only) Removes prefix from selected bones for Scripts in High fidelity for physical simulation
 - Avatar Converters
@@ -98,7 +98,6 @@ If Entity is not Child of another entity, no Join is done. Only Children are mer
 Note that Boolean operations work differently, and some may not keep the UV Unwrapping correctly in some situations. Use at your own risk
 
 
-
 ### VRChat Tools (WIP) 
 
 Work in progress module to try to stream line some "gotchas" when converting avatars to VRC without the duplicate operator additions from CATS (creating operators for Tools that are already in Blender, which create abit of clutter during operator searches)
@@ -109,3 +108,26 @@ Work in progress module to try to stream line some "gotchas" when converting ava
     - `Generate VRC Shapekeys` - Generates empty shapekeys (for now, later will allow the use of various methods, including CATS, and custom)
     - `Sort Shapekeys` - Utility function to quickly sort shapekeys to match VRC requirements.
 
+### Tower Unite tools
+
+Work in progress module to try to stream line some "gotchas" when converting avatars to TE.
+
+- A new Panel on the `3D View`'s right tool set is added, labled `MVT: TowerUnite Tools`
+- Armature Tools
+    - `Add TU Armature` - Adds an Armature which is compatible with Tower Unite
+    - `Clean Shapekeys` - Utility function to quickly remove all shapekeys from a model
+    - `Fix Common Issues` - Utility function to remove all weights for  root, and all the twist bones that tend to cause issues.
+
+
+# Changelog:
+
+### 2.0
+- `hifi_tools` is now `metaverse_tools`
+- Added Tower Unite specific tools
+
+### 1.5.5
+
+- Hifi_tools is in the process of renaming to mvt_tools, in version 2.0 this will occur
+- Added VRChat Specific tools (WIP) for experienced blenderers.
+- Prepared framework for ability to import and on-the-fly create multiple platform skeletons and retarget animations cross-platform.
+- Fixed issues with Hifi FBX export, regarding emissions

@@ -55,7 +55,7 @@ expected_vrc_shapekeys = [
 
 
 class AVATAR_PT_MVT_VRC_TOOLSET(bpy.types.Panel):
-    """ Panel for HF Avatar related tools """
+    """ Panel for TU Avatar related tools """
     bl_label = "VRC Avatar Tools"
     bl_icon = "BONES_DATA"
 

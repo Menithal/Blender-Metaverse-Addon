@@ -23,8 +23,7 @@ import bpy
 
 ## Utility tool not loaded by anything in the package, builts the _skeleton files from existing skeletons
 ## Run armature debug when the armature is selected, will build a python version of the skeleton that can be used for rebindings and other fun stuff
-## import metaverse_tools.armature.skeletonizer
-## skeletonizer.armature_debug() 
+# Copy into a script file inthe scene, then run
 
 def build_armature(bone, bones, tree): 
     regular_bone = bones[bone.name] 
@@ -58,12 +57,13 @@ def build_world_rotations(bone, world_matrix, list):
     return list
 
 def armature_debug():
-    print("|||||||||||||||||||||||||||")
-    print("---------------------------")
-    print("---------POSE DATA---------")
-    print("---------------------------")
-    print("|||||||||||||||||||||||||||")
+    print("#|||||||||||||||||||||||||||")
+    print("#---------------------------")
+    print("#---------POSE DATA---------")
+    print("#---------------------------")
+    print("#|||||||||||||||||||||||||||")
 
+    print("from mathutils import Matrix, Vector, Euler")
     armature = bpy.context.object
 
     world_matrix = armature.matrix_world
@@ -86,3 +86,5 @@ def armature_debug():
     
 #    print(bone.name, rotation, head, tail)
     
+
+armature_debug()
