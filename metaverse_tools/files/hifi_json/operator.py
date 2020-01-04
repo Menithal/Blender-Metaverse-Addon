@@ -21,8 +21,8 @@
 import bpy
 import os
 
-from hifi_tools.files.hifi_json.loader import load_file
-from hifi_tools.files.hifi_json.writer import write_file
+from metaverse_tools.files.hifi_json.loader import load_file
+from metaverse_tools.files.hifi_json.writer import write_file
 
 from bpy_extras.io_utils import (
     ImportHelper,

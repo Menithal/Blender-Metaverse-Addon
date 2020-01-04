@@ -26,14 +26,14 @@ from bpy.props import StringProperty
 from urllib.parse import urlencode
 from mathutils import Quaternion, Vector, Euler, Matrix
 
-import hifi_tools
+import metaverse_tools
 
-from hifi_tools import default_gateway_server
-from hifi_tools.utils import bpyutil
-from hifi_tools.utils.bones import bones_builder, mmd, mixamo, makehuman
-from hifi_tools.utils.helpers import materials, mesh
-from hifi_tools.gateway import client as GatewayClient
-from hifi_tools.armature import SkeletonTypes
+from metaverse_tools import default_gateway_server
+from metaverse_tools.utils import bpyutil
+from metaverse_tools.utils.bones import bones_builder, mmd, mixamo, makehuman
+from metaverse_tools.utils.helpers import materials, mesh
+from metaverse_tools.gateway import client as GatewayClient
+from metaverse_tools.armature import SkeletonTypes
 from . import hifi as hifi_ui
 from . import vrc as vrc_ui
 
@@ -148,7 +148,7 @@ class OBJECT_PT_MVT_TOOLSET_Assets_Display(bpy.types.Panel):
     @classmethod
     def poll(self, context):
         user_preferences = context.preferences
-        addon_prefs = user_preferences.addons[hifi_tools.__name__].preferences
+        addon_prefs = user_preferences.addons[metaverse_tools.__name__].preferences
         return "gateway_token" in addon_prefs and len(addon_prefs["gateway_token"]) > 0
 
     def draw(self, context):
@@ -168,7 +168,7 @@ class EXPORT_OT_MVT_TOOLSET_IPFS_Assets_Toolset(bpy.types.Operator):
 
     def execute(self, context):
         user_preferences = context.preferences
-        addon_prefs = user_preferences.addons[hifi_tools.__name__].preferences
+        addon_prefs = user_preferences.addons[metaverse_tools.__name__].preferences
 
         if not "gateway_server" in addon_prefs.keys():
             addon_prefs["gateway_server"] = default_gateway_server
@@ -500,7 +500,7 @@ class MESH_OT_MVT_TOOL_Merge_Modifiers_Shapekey(bpy.types.Operator):
 
     @classmethod
     def poll(self, context):
-        return context.active_object.type == "MESH" and context.active_object.data.shape_keys is not None and len(context.active_object.data.shape_keys.key_blocks) > 0
+        return context.active_object is not None and context.active_object.type == "MESH" and context.active_object.data.shape_keys is not None and len(context.active_object.data.shape_keys.key_blocks) > 0
 
     def execute(self, context):
         bpy.ops.object.apply_modifier_for_object_with_shape_keys(
@@ -518,7 +518,7 @@ class MESH_OT_MVT_TOOL_Clean_Unused_Vertex_Groups(bpy.types.Operator):
 
     @classmethod
     def poll(self, context):
-        return context.active_object.type == "MESH" and len(context.active_object.vertex_groups) > 0
+        return context.active_object is not None and context.active_object.type == "MESH" and len(context.active_object.vertex_groups) > 0
 
     def execute(self, context):
         mesh.clean_unused_vertex_groups(context.active_object)

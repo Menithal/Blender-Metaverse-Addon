@@ -21,14 +21,14 @@
 # Copyright 2019 Matti 'Menithal' Lahtinen
 
 import bpy
-from hifi_tools.utils.bones import bones_builder, mmd, mixamo, makehuman
-from hifi_tools.utils.helpers import materials
-from hifi_tools.armature import SkeletonTypes
+from metaverse_tools.utils.bones import bones_builder, mmd, mixamo, makehuman
+from metaverse_tools.utils.helpers import materials
+from metaverse_tools.armature import SkeletonTypes
 
 category = "MVT: HiFi Tools"
 
 
-class AVATAR_PT_MVT_HIFI_TOOLSET(bpy.types.Panel):
+class AVATAR_PT_MVT_metaverse_toolsET(bpy.types.Panel):
     """ Panel for HF Avatar related conversion tools """
     bl_label = "Hifi Avatar Tools"
     bl_icon = "BONES_DATA"
@@ -269,7 +269,7 @@ class BONES_OT_MVT_TOOLSET_Remove_Physical(bpy.types.Operator):
 
 
 classes = (
-    AVATAR_PT_MVT_HIFI_TOOLSET,
+    AVATAR_PT_MVT_metaverse_toolsET,
     ARMATURE_OT_MVT_TOOLSET_Create_HIFI_Operator,
     BONES_OT_MVT_TOOLSET_Fix_Rolls,
     BONES_OT_MVT_TOOLSET_Pin_Problem_Bones,

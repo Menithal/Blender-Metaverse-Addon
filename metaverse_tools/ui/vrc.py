@@ -22,9 +22,9 @@
 
 import bpy
 
-from hifi_tools.utils.bones import bones_builder, mmd, mixamo, makehuman
-from hifi_tools.utils.helpers import mesh
-from hifi_tools.armature import SkeletonTypes
+from metaverse_tools.utils.bones import bones_builder, mmd, mixamo, makehuman
+from metaverse_tools.utils.helpers import mesh
+from metaverse_tools.armature import SkeletonTypes
 #temporary
 from .hifi import BONES_OT_MVT_TOOLSET_Pin_Problem_Bones, BONES_OT_MVT_TOOLSET_Fix_Rolls
 

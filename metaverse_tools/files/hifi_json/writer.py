@@ -29,7 +29,7 @@ from math import sqrt
 from hashlib import md5, sha256
 from copy import copy, deepcopy
 
-from hifi_tools.utils.helpers.extra_math import *
+from metaverse_tools.utils.helpers.extra_math import *
 
 EXPORT_VERSION = 84
 

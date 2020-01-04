@@ -1,3 +1,4 @@
-[submodule "hifi_tools/ext/apply_modifier_for_object_with_shapekeys"]
-	path = hifi_tools/ext/apply_modifier_for_object_with_shapekeys
+[submodule "metaverse_tools/ext/apply_modifier_for_object_with_shapekeys"]
+	path = metaverse_tools/ext/apply_modifier_for_object_with_shapekeys
 	url = https://github.com/Menithal/ApplyModifierForObjectWithShapeKeys
+ 

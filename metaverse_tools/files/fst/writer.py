@@ -21,16 +21,16 @@
 import bpy
 import os
 import uuid
-import hifi_tools
+import metaverse_tools
 import datetime
 import os.path as ntpath
 import shutil
 
-from hifi_tools.utils.bones.bones_builder import find_armature
-from hifi_tools.utils.helpers.mesh import get_mesh_from
-from hifi_tools.utils.helpers.materials import get_images_from
-from hifi_tools.utils.helpers.bake_tool import bake_fbx
-from hifi_tools.gateway import client as GatewayClient
+from metaverse_tools.utils.bones.bones_builder import find_armature
+from metaverse_tools.utils.helpers.mesh import get_mesh_from
+from metaverse_tools.utils.helpers.materials import get_images_from
+from metaverse_tools.utils.helpers.bake_tool import bake_fbx
+from metaverse_tools.gateway import client as GatewayClient
 
 import webbrowser
 import shutil
@@ -81,7 +81,7 @@ def default_blend_shape(selected):
 
 def fst_export(context, selected):
 
-    preferences = bpy.context.preferences.addons[hifi_tools.__name__].preferences
+    preferences = bpy.context.preferences.addons[metaverse_tools.__name__].preferences
     # file = open
     uuid_gen = uuid.uuid5(uuid.NAMESPACE_DNS, context.filepath +
                           '?' + str(datetime.datetime.now()).replace(" ", ""))

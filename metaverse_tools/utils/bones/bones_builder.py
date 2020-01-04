@@ -25,9 +25,9 @@ import re
 from math import pi, acos
 from mathutils import Quaternion, Matrix, Vector, Euler
 
-from hifi_tools.utils.helpers import mesh, extra_math
+from metaverse_tools.utils.helpers import mesh, extra_math
 
-from hifi_tools.armature import SkeletonTypes
+from metaverse_tools.armature import SkeletonTypes
 
 
 corrected_axis = {

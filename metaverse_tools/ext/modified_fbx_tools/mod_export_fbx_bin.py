@@ -114,7 +114,7 @@ from io_scene_fbx.export_fbx_bin import (
     fbx_takes_elements,
     )
 
-from hifi_tools.utils.helpers.materials import HifiShaderWrapper
+from metaverse_tools.utils.helpers.materials import HifiShaderWrapper
 # Save fbx_objects_elements, save_single, save
 
 

@@ -26,7 +26,7 @@ from bpy_extras.node_shader_utils import (
     _set_check, rgb_to_rgba, rgba_to_rgb
 )
 from bpy.app.handlers import persistent
-import hifi_tools
+import metaverse_tools
 from mathutils import Euler
 
 
@@ -190,7 +190,7 @@ def correct_node_color_space_to_non_color(input_node, index=0):
 @persistent
 def correct_all_color_spaces_to_non_color(context):
     user_preferences = bpy.context.preferences
-    addon_prefs = user_preferences.addons[hifi_tools.__name__].preferences
+    addon_prefs = user_preferences.addons[metaverse_tools.__name__].preferences
     colorspaces_on_save = addon_prefs.get("automatic_color_space_fix")
 
     if colorspaces_on_save is None:

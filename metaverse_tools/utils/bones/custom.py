@@ -22,8 +22,8 @@
 import bpy
 import re
 from . import bones_builder
-from hifi_tools.utils import bpyutil
-from hifi_tools.utils.helpers import mesh, materials
+from metaverse_tools.utils import bpyutil
+from metaverse_tools.utils.helpers import mesh, materials
 
 from bpy.props import StringProperty, BoolProperty, PointerProperty
 

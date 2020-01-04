@@ -23,7 +23,7 @@ import bpy
 import json
 import os
 
-from hifi_tools.hifi_world.scene import HifiScene
+from metaverse_tools.hifi_world.scene import HifiScene
 
 
 def load_file(operator, context, filepath="",

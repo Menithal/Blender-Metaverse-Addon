@@ -21,8 +21,8 @@
 
 import bpy
 
-from hifi_tools.utils.helpers import materials, mesh
-from hifi_tools.utils.bones import bones_builder
+from metaverse_tools.utils.helpers import materials, mesh
+from metaverse_tools.utils.bones import bones_builder
 
 # POSSIBLY DEPRICATED... :( Custom Avatar should be able to do the same thing but better.
 

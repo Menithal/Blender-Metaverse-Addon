@@ -25,8 +25,8 @@ import re
 import os
 import copy
 from mathutils import Vector
-from hifi_tools.utils.helpers import materials, mesh
-from hifi_tools.utils.bones import bones_builder
+from metaverse_tools.utils.helpers import materials, mesh
+from metaverse_tools.utils.bones import bones_builder
 # This part is Based on powroupi the MMD Translation script combined with a Hogarth-MMD Translation csv that has been modified to select names as close as possible
 # This instead uses a predefined list that is Hifi Compatable.
 

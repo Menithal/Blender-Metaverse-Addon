@@ -20,10 +20,10 @@
 bl_info = {
     "name": "Metaverse Toolkit Blender Add-on",
     "author": "Matti 'Menithal' Lahtinen",
-    "version": (1, 5, 5),
+    "version": (2, 0, 0),
     "blender": (2, 80, 0),
     "location": "File > Import-Export, Materials, Armature",
-    "description": "Blender tools to allow for easier Content creation for Metaverses, such as High Fidelity",
+    "description": "Blender tools to allow for easier Content creation various platforms",
     "warning": "",
     "wiki_url": "",
     "support": "COMMUNITY",
@@ -44,9 +44,9 @@ import bpy
 from bpy.types import AddonPreferences
 from bpy.app.handlers import persistent
 
-from hifi_tools.ext.throttle import throttle
-from hifi_tools.ext.modified_fbx_tools import *
-from hifi_tools.utils.helpers.panel_context import toggle_console
+from metaverse_tools.ext.throttle import throttle
+from metaverse_tools.ext.modified_fbx_tools import *
+from metaverse_tools.utils.helpers.panel_context import toggle_console
 
 from . import armature
 from . import ui
@@ -57,8 +57,8 @@ from .files.hifi_json.operator import *
 from .files.fst.operator import *
 from .gateway import client as GatewayClient
 
-from hifi_tools.utils.bones.custom import custom_register, custom_unregister, scene_define, scene_delete
-from hifi_tools.ext.apply_modifier_for_object_with_shapekeys.ApplyModifierForObjectWithShapeKeys import ApplyModifierForObjectWithShapeKeysOperator
+from metaverse_tools.utils.bones.custom import custom_register, custom_unregister, scene_define, scene_delete
+from metaverse_tools.ext.apply_modifier_for_object_with_shapekeys.ApplyModifierForObjectWithShapeKeys import ApplyModifierForObjectWithShapeKeysOperator
 
 # TODO: This is placeholder and will be shut down after more are available.
 

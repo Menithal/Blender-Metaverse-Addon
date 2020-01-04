@@ -20,7 +20,7 @@
 
 import bpy
 import os
-import hifi_tools
+import metaverse_tools
 
 from bpy_extras.io_utils import (
     ImportHelper,
@@ -33,8 +33,8 @@ from bpy.props import (
     FloatProperty,
     EnumProperty
 )
-import hifi_tools.files.fst.writer as FSTWriter
-from hifi_tools.utils.bones.bones_builder import find_armatures
+import metaverse_tools.files.fst.writer as FSTWriter
+from metaverse_tools.utils.bones.bones_builder import find_armatures
 
 
 class EXPORT_OT_MVT_TOOLSET_Message_Warn_Bone(bpy.types.Operator):
@@ -196,13 +196,13 @@ class EXPORT_OT_MVT_TOOLSET_FST_Writer_Operator(bpy.types.Operator, ExportHelper
        #layout.prop(self, "flow")
         layout.prop(self, "embed")
 
-        oven_tool = context.preferences.addons[hifi_tools.__name__].preferences.oventool
+        oven_tool = context.preferences.addons[metaverse_tools.__name__].preferences.oventool
         
         #layout.prop(self, "anim_graph_url")
         layout.prop(self, "script")
 
         enabled_ipfs = len(
-            context.preferences.addons[hifi_tools.__name__].preferences.gateway_token) > 0
+            context.preferences.addons[metaverse_tools.__name__].preferences.gateway_token) > 0
 
         if (oven_tool is not None and "oven" in oven_tool):
             layout.prop(self, "bake")
@@ -238,7 +238,7 @@ class EXPORT_OT_MVT_TOOLSET_FST_Writer_Operator(bpy.types.Operator, ExportHelper
         if not self.filepath:
             raise Exception("filepath not set")
 
-        preferences = bpy.context.preferences.addons[hifi_tools.__name__].preferences
+        preferences = bpy.context.preferences.addons[metaverse_tools.__name__].preferences
 
         if self.bake and (preferences.oventool is None or "oven" not in preferences.oventool):
             raise Exception(

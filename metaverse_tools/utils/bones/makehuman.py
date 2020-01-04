@@ -9,8 +9,8 @@ import math
 import copy
 from mathutils import Vector
 
-from hifi_tools.utils.bones import bones_builder
-from hifi_tools.utils.helpers import materials, mesh
+from metaverse_tools.utils.bones import bones_builder
+from metaverse_tools.utils.helpers import materials, mesh
 
 # DEPRICATED... :( Custom Avatar should be able to do the same thing but better.
 
