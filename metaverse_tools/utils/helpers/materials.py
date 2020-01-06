@@ -218,9 +218,6 @@ def correct_all_color_spaces_to_non_color(context):
 
 
 class HifiShaderWrapper(PrincipledBSDFWrapper):
-
-
-
     NODES_LIST = PrincipledBSDFWrapper.NODES_LIST
 
     def __init__(self, material, is_readonly=True, use_nodes=True):
@@ -229,7 +226,6 @@ class HifiShaderWrapper(PrincipledBSDFWrapper):
 
     def update(self):
         PrincipledBSDFWrapper.update(self)
-
         print("HifiShaderWrapper", self.use_nodes, self.node_principled_bsdf)
 
 
@@ -246,7 +242,6 @@ class HifiShaderWrapper(PrincipledBSDFWrapper):
     emission = property(emission_get, emission_set)
 
     # Will only be used as gray-scale one...
-
     def emission_texture_get(self):
         print("Emission Texture Get", self.use_nodes, self.node_principled_bsdf)
         if not self.use_nodes or self.node_principled_bsdf is None:
@@ -283,7 +278,6 @@ def find_env_texture(nodes):
 
 def fix_env_rotations():
     try:
-
         for world in bpy.data.worlds:
             nodes = world.node_tree.nodes
             links = world.node_tree.links

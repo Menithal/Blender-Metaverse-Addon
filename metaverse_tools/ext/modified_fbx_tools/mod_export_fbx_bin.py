@@ -185,11 +185,15 @@ def fbx_metav_toolset_data_material_elements(root, ma, scene_data):
     elem_props_template_set(tmpl, props, "p_number", b"SpecularFactor", 0.0)
     # elem_props_template_set(tmpl, props, "p_number", b"SpecularFactor", ma_wrap.specular / 2.0)
 
-    if ma_wrap.base_color_texture is not None:
+    print(ma_wrap)
+
+    if ma_wrap.base_color_texture is not None and ma_wrap.base_color_texture.node_image is not None:
+        print("Color Texture")
         elem_props_template_set(tmpl, props, "p_color", b"DiffuseColor", (1.0, 1.0, 1.0))
         elem_props_template_set(tmpl, props, "p_color", b"Maya|base_color", (1.0, 1.0, 1.0))
         elem_props_template_set(tmpl, props, "p_bool", b"Maya|use_color_map", True)
     else: 
+        print("No Color Texture")
         elem_props_template_set(tmpl, props, "p_color", b"DiffuseColor", ma_wrap.base_color)
         elem_props_template_set(tmpl, props, "p_color", b"Maya|base_color", ma_wrap.base_color)
 

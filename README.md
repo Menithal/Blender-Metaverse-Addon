@@ -11,7 +11,7 @@ Currently Supports
 - VRC
 - Tower Unite
 
-## 2.0
+## 2.0 works only with 2.81 or later, use older version for 2.80.
 
 # Installation Guide
 
@@ -108,7 +108,7 @@ Work in progress module to try to stream line some "gotchas" when converting ava
     - `Generate VRC Shapekeys` - Generates empty shapekeys (for now, later will allow the use of various methods, including CATS, and custom)
     - `Sort Shapekeys` - Utility function to quickly sort shapekeys to match VRC requirements.
 
-### Tower Unite tools
+### Tower Unite Tools (WIP)
 
 Work in progress module to try to stream line some "gotchas" when converting avatars to TE.
 
@@ -124,6 +124,7 @@ Work in progress module to try to stream line some "gotchas" when converting ava
 ### 2.0
 - `hifi_tools` is now `metaverse_tools`
 - Added Tower Unite specific tools
+- Fixed 2.81 FBX export (but may have forgotten 2.8)
 
 ### 1.5.5
 
@@ -131,3 +132,10 @@ Work in progress module to try to stream line some "gotchas" when converting ava
 - Added VRChat Specific tools (WIP) for experienced blenderers.
 - Prepared framework for ability to import and on-the-fly create multiple platform skeletons and retarget animations cross-platform.
 - Fixed issues with Hifi FBX export, regarding emissions
+
+
+### 1.4x
+
+- 2.8 RC support
+- Removed eBPBRS infavor of just using the PBR Materials.
+- Lots of Refactoring
