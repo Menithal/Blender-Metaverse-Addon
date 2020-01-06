@@ -136,29 +136,31 @@ class ARMATURE_OT_MVT_TOOLSET_Fix_common_TU_issues(bpy.types.Operator):
         return context.mode == "OBJECT" and context.active_object is not None and context.active_object.type == "MESH"
 
     def execute(self, context):   
-        bpy.ops.object.mode_set(mode="EDIT")
-
-        clear_groups = ['root', 'upperarm_twist_01_l', 'lowerarm_twist_01_l', 'lowerarm_twist_01_r', 'upperarm_twist_01_r']
-        groups = bpy.context.active_object.vertex_groups
-
-        ## SELECT ALL
-        bpy.ops.mesh.select_all(action='SELECT')
-
-        bpy.ops.object.vertex_group_lock(action="UNLOCK")
-
-        for vertex in clear_groups:
-            print(bpy.context.active_object.vertex_groups[vertex], vertex)
-            bpy.context.active_object.vertex_groups[vertex].lock_weight = False
-            bpy.ops.object.vertex_group_set_active(group=vertex)
-            bpy.ops.object.vertex_group_remove_from()
-            bpy.context.active_object.vertex_groups[vertex].lock_weight = True
-            ##ASSIGN weight to 0
-
-        bpy.ops.object.vertex_group_normalize_all(lock_active = False)
-
-        bpy.ops.object.mode_set(mode="OBJECT")
+        
         
         return {'FINISHED'}
+
+def tu_fix_common(mesh, context):
+    bpy.ops.object.mode_set(mode="EDIT")
+
+    clear_groups = ['root', 'upperarm_twist_01_l', 'lowerarm_twist_01_l', 'lowerarm_twist_01_r', 'upperarm_twist_01_r']
+
+    bpy.ops.mesh.select_all(action='SELECT')
+
+    bpy.ops.object.vertex_group_lock(action="UNLOCK")
+
+    for vertex in clear_groups:
+        print(bpy.context.active_object.vertex_groups[vertex], vertex)
+        bpy.context.active_object.vertex_groups[vertex].lock_weight = False
+        bpy.ops.object.vertex_group_set_active(group=vertex)
+        bpy.ops.object.vertex_group_remove_from()
+        bpy.context.active_object.vertex_groups[vertex].lock_weight = True
+        ##ASSIGN weight to 0
+
+    bpy.ops.object.vertex_group_normalize_all(lock_active = False)
+
+    bpy.ops.object.mode_set(mode="OBJECT")
+    mesh.clean_unused_vertex_groups(context.active_object)
 
 classes = (
     AVATAR_PT_MVT_TU_TOOLSET,

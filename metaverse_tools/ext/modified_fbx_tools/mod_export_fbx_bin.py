@@ -852,6 +852,8 @@ def fbx_objects_elements(root, scene_data):
 # ##### "Main" functions. #####
 
 # This func can be called with just the filepath
+
+# This func can be called with just the filepath
 def save_single(operator, scene, depsgraph, filepath="",
                 global_matrix=Matrix(),
                 apply_unit_scale=False,
@@ -864,6 +866,7 @@ def save_single(operator, scene, depsgraph, filepath="",
                 use_mesh_modifiers=True,
                 use_mesh_modifiers_render=True,
                 mesh_smooth_type='FACE',
+                use_subsurf=False,
                 use_armature_deform_only=False,
                 bake_anim=True,
                 bake_anim_use_all_bones=True,
@@ -934,7 +937,7 @@ def save_single(operator, scene, depsgraph, filepath="",
         path_mode,
         os.path.dirname(bpy.data.filepath),  # base_src
         os.path.dirname(filepath),  # base_dst
-        # Local dir where to put images (medias), using FBX conventions.
+        # Local dir where to put images (media), using FBX conventions.
         os.path.splitext(os.path.basename(filepath))[0] + ".fbm",  # subdir
         embed_textures,
         set(),  # copy_set
@@ -945,7 +948,7 @@ def save_single(operator, scene, depsgraph, filepath="",
         operator.report, (axis_up, axis_forward), global_matrix, global_scale, apply_unit_scale, unit_scale,
         bake_space_transform, global_matrix_inv, global_matrix_inv_transposed,
         context_objects, object_types, use_mesh_modifiers, use_mesh_modifiers_render,
-        mesh_smooth_type, use_mesh_edges, use_tspace,
+        mesh_smooth_type, use_subsurf, use_mesh_edges, use_tspace,
         armature_nodetype, use_armature_deform_only,
         add_leaf_bones, bone_correction_matrix, bone_correction_matrix_inv,
         bake_anim, bake_anim_use_all_bones, bake_anim_use_nla_strips, bake_anim_use_all_actions,
@@ -997,7 +1000,6 @@ def save_single(operator, scene, depsgraph, filepath="",
 
     print('export finished in %.4f sec.' % (time.process_time() - start_time))
     return {'FINISHED'}
-
 
 def save(operator, context,
          filepath="",
@@ -1105,7 +1107,8 @@ def save(operator, context,
                 scene.unit_settings.system_rotation = best_src_scene.unit_settings.system_rotation
                 scene.unit_settings.scale_length = best_src_scene.unit_settings.scale_length
 
-                scene.update()
+                # new scene [only one viewlayer to update]
+                scene.view_layers[0].update()
                 # TODO - BUMMER! Armatures not in the group wont animate the mesh
             else:
                 scene = data

@@ -38,10 +38,11 @@ def get_images_from(meshes):
                 print("Iterating material", material_slot)
                 if material_slot is not None:
                     material = material_slot.material
-                    for node in material.node_tree.nodes:
-                        print("Iterating material node", node.name)
-                        if node.type == 'TEX_IMAGE' and node.image is not None:
-                            images.append(node.image)
+                    if material.use_nodes:
+                        for node in material.node_tree.nodes:
+                            print("Iterating material node", node, node.name)
+                            if node is not None and node.type == 'TEX_IMAGE' and node.image is not None:
+                                images.append(node.image)
     return images
 
 
