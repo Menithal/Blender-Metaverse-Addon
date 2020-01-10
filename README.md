@@ -121,6 +121,10 @@ Work in progress module to try to stream line some "gotchas" when converting ava
 
 # Changelog:
 
+### 2.0.1
+- Added some sculpting tools to quickly add 0.05 and reduce 0.05 resolution prior to remesh
+- Moved UI components around for more easier maintenance.
+
 ### 2.0
 - `hifi_tools` is now `metaverse_tools`
 - Added Tower Unite specific tools
