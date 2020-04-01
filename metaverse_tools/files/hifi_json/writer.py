@@ -187,7 +187,7 @@ def parse_object(blender_object, path, options):
             clone = blender_object.copy()
             original_object = blender_object
             clone.data = blender_object.data.copy()
-            bpy.context.scene.objects.link(clone)
+            bpy.context.collection.objects.link(clone)
             clone.select_set(state=True)
             original_object.select_set(state=False)
             

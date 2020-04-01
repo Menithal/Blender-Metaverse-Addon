@@ -288,7 +288,7 @@ class EXPORT_OT_MVT_TOOLSET_FBX(bpy.types.Operator, ExportHelper):
             row = col.row(align=True)
             row.prop(self, "global_scale")
             sub = row.row(align=True)
-            sub.prop(self, "apply_unit_scale", text="", icon='NDOF_TRANS')
+            sub.prop(self, "apply_unit_scale")
             col.prop(self, "apply_scale_options")
 
             layout.prop(self, "axis_forward")
