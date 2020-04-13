@@ -114,11 +114,17 @@ class ARMATURE_PT_MVT_BONE_UTILITY(bpy.types.Panel):
             ARMATURE_OT_MVT_TOOLSET_Lock_Translations.bl_idname)
         row.operator(
             ARMATURE_OT_MVT_TOOLSET_Unlock_Translations.bl_idname)
+            
+        layout.operator(
+            ARMATURE_OT_MVT_TOOLSET_Copy_Custom_Shapes.bl_idname)
+            
+        layout.operator(
+            ARMATURE_OT_MVT_TOOLSET_Clear_Custom_Shapes.bl_idname)
 
     
 class ARMATURE_PT_MVT_POSE_TOOLSET(bpy.types.Panel):
     """ Panel for Pose related tools """
-    bl_label = "Constraint Tools"
+    bl_label = "Pose Constraint Tools"
     bl_icon = "OBJECT_DATA"
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
@@ -139,16 +145,14 @@ class ARMATURE_PT_MVT_POSE_TOOLSET(bpy.types.Panel):
             ARMATURE_OT_MVT_TOOLSET_Add_Location_Constraint.bl_idname)
         row.operator(
             ARMATURE_OT_MVT_TOOLSET_Add_Influenced_Location_Constraint.bl_idname)
+            
+        layout.operator(
+            ARMATURE_OT_MVT_TOOLSET_Add_Copy_Rotational_Constraint.bl_idname)
 
         layout.operator(
             ARMATURE_OT_MVT_TOOLSET_Mirror_Constraints.bl_idname)
 
 
-        layout.operator(
-            ARMATURE_OT_MVT_TOOLSET_Copy_Custom_Shapes.bl_idname)
-            
-        layout.operator(
-            ARMATURE_OT_MVT_TOOLSET_Clear_Custom_Shapes.bl_idname)
         
         layout.operator(
             ARMATURE_OT_MVT_TOOLSET_Copy_Limits.bl_idname)
@@ -179,8 +183,8 @@ class ARMATURE_OT_MVT_TOOLSET_Clear_Constraint(bpy.types.Operator):
 
 class ARMATURE_OT_MVT_TOOLSET_Add_Location_Constraint(bpy.types.Operator):
     """  """
-    bl_idname = "metaverse_toolset.add_location_constraints"
-    bl_label = "Add Location Constraint"
+    bl_idname = "metaverse_toolset.pose_location_copy_constraints"
+    bl_label = "Location Copy"
     bl_region_type = "TOOLS"
 
     bl_space_type = "VIEW_3D"
@@ -197,10 +201,30 @@ class ARMATURE_OT_MVT_TOOLSET_Add_Location_Constraint(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class ARMATURE_OT_MVT_TOOLSET_Add_Copy_Rotational_Constraint(bpy.types.Operator):
+    """  """
+    bl_idname = "metaverse_toolset.pose_rotation_copy_constraints"
+    bl_label = "Rotational Copy"
+    bl_region_type = "TOOLS"
+
+    bl_space_type = "VIEW_3D"
+    @classmethod
+    def poll(self, context):
+        return context.selected_pose_bones is not None and len(context.selected_pose_bones) > 1
+
+    def execute(self, context):
+        pose_helper.add_local_pose_constraint_bone(context.active_object, 
+            context.selected_pose_bones[:-1],
+            context.active_pose_bone,
+            "COPY_ROTATION",
+            False)
+        return {'FINISHED'}
+
+
 class ARMATURE_OT_MVT_TOOLSET_Add_Influenced_Location_Constraint(bpy.types.Operator):
     """  """
-    bl_idname = "metaverse_toolset.add_influenced_location_constraints"
-    bl_label = "Add Influenced Location Constraint"
+    bl_idname = "metaverse_toolset.pose_influenced_location_copy_constraints"
+    bl_label = "Influenced Copy Location "
     bl_region_type = "TOOLS"
 
     bl_space_type = "VIEW_3D"
@@ -401,6 +425,7 @@ classes = (
     ARMATURE_OT_MVT_TOOLSET_Clear_Custom_Shapes,
     ARMATURE_OT_MVT_TOOLSET_Normalize_Influences,
     ARMATURE_OT_MVT_TOOLSET_Copy_Limits,
+    ARMATURE_OT_MVT_TOOLSET_Add_Copy_Rotational_Constraint,
     ARMATURE_PT_MVT_BONE_UTILITY
 
 )

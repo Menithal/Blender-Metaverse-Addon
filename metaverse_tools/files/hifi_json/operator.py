@@ -122,6 +122,62 @@ class EXPORT_OT_MVT_TOOLSET_Export_FBX_JSON(bpy.types.Operator, ExportHelper):
 
         return {'FINISHED'}
 
+class EXPORT_OT_MVT_TOOLSET_Export_GLTF_JSON(bpy.types.Operator, ExportHelper):
+    """ This Operator to show an error that the ATP Override is missing from export
+    """
+    bl_idname = "metaverse_toolset.export_gltb_json"
+    bl_label = "Export HiFi Scene"
+    bl_options = {'UNDO'}
+
+    filename_ext = ".hifi.json"
+
+    directory: StringProperty()
+    filter_glob: StringProperty(default="*.hifi.json", options={'HIDDEN'})
+
+    atp: BoolProperty(default=False, name="Use ATP / Upload to domain",
+                      description="Use ATP instead of Marketplace / upload assets to domain")
+    use_folder: BoolProperty(default=True, name="Use Folder",
+                             description="Upload Files as a folder instead of individually")
+
+    url_override: StringProperty(default="", name="Marketplace / Base Url",
+                                 description="Set Marketplace / URL Path here to override")
+    clone_scene: BoolProperty(default=False, name="Clone Scene prior to export", description="Clones the scene and performs the automated export functions on the clone instead of the original. " +
+                              "WARNING: instancing will not work, and ids will no longer be the same, for future features.")
+    remove_trailing: BoolProperty(
+        default=False, name="Remove Trailing .### from names")
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.prop(self, "atp")
+
+        if not self.atp:
+            layout.label(
+                text="Url Override: Add Marketplace / URL to make sure that the content can be reached.")
+            layout.prop(self, "url_override")
+        else:
+            layout.prop(self, "use_folder")
+
+        layout.label(
+            text="Clone scene: Performs automated actions on a cloned scene instead of the original.")
+        layout.prop(self, "clone_scene")
+        layout.prop(self, "remove_trailing")
+
+    def execute(self, context):
+        if not self.filepath:
+            raise Exception("filepath not set")
+
+        if not self.url_override and not self.atp:
+            
+            bpy.ops.metaverse_toolset_messages.export_missing_atp_override('INVOKE_DEFAULT')
+            return {'CANCELLED'}
+           # raise Exception("You must Use ATP or Set the Marketplace / base URL to make sure that the content can be reached after you upload it. ATP currently not supported")
+
+        write_file(self, True)
+
+        return {'FINISHED'}
+
+
 
 class IMPORT_OT_MVT_TOOLSET_Scene_From_JSON(bpy.types.Operator, ImportHelper):
     """ Import a metaverse_toolset.json.svo scene into Blender. Works only for Primitives for now.
@@ -181,6 +237,7 @@ class IMPORT_OT_MVT_TOOLSET_Scene_From_JSON(bpy.types.Operator, ImportHelper):
 
         sub.prop(self, "delete_interior_faces")
         sub.prop(self, "use_boolean_operation")
+        sub.prop(self, "use_gltf")
 
     def execute(self, context):
         keywords = self.as_keywords(ignore=("filter_glob", "directory"))

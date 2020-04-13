@@ -84,7 +84,6 @@ def mirror_location_or_rotation(source_constraint, target_constraints):
 
             # Is the name mirrorable?
             if constraint_bone_info is not None:
-                
                 new_constraint.subtarget = constraint_bone_info.mirror_name
             else:
                 new_constraint.subtarget = source_constraint.subtarget
@@ -164,7 +163,7 @@ def mirror_limits(source_constraint, target_constraints, axis='X'):
 
     return new_constraint
 
-
+# TODO> Check for duplicates before adding new.
 def mirror_pose_constraints(parent, selected_pose_bones):
     for pose_bone in selected_pose_bones:
         bone_info = get_bone_side_and_mirrored(pose_bone.name)
