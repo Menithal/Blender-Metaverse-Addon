@@ -8,7 +8,7 @@ This plugin now will focus on supporting as many platforms as possible.
 Currently Supports
 
 - HiFi and Forks
-- VRC
+- VRC (NeosVR by Proxy)
 - Tower Unite
 
 ## 2.0 works only with 2.81 or later, use older version for 2.80.
@@ -98,9 +98,9 @@ If Entity is not Child of another entity, no Join is done. Only Children are mer
 Note that Boolean operations work differently, and some may not keep the UV Unwrapping correctly in some situations. Use at your own risk
 
 
-### VRChat Tools (WIP) 
+### VRChat / Neos Tools (WIP) 
 
-Work in progress module to try to stream line some "gotchas" when converting avatars to VRC without the duplicate operator additions from CATS (creating operators for Tools that are already in Blender, which create abit of clutter during operator searches)
+Work in progress module to try to stream line some "gotchas" when converting avatars to VRC without the duplicate operator additions from CATS (creating operators for Tools that are already in Blender, which create abit of clutter during operator searches). Also by proxy supports NeosVR, which automatically binds the visemes when fbx export is used.
 
 - A new Panel on the `3D View`'s right tool set is added, labled `MVT: VRC Tools`
 - Armature Tools
@@ -123,7 +123,8 @@ Work in progress module to try to stream line some "gotchas" when converting ava
 
 ### 2.0.1
 - Added some sculpting tools to quickly add 0.05 and reduce 0.05 resolution prior to remesh
-- Moved UI components around for more easier maintenance.
+- Moved compartmentalized components around for more easier maintenance in the future.
+- README improvements
 
 ### 2.0
 - `hifi_tools` is now `metaverse_tools`

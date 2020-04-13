@@ -123,6 +123,32 @@ def generate_empty_shapekeys(obj, target_shapekey_list):
             bpy.ops.object.shape_key_clear()
             obj.shape_key_add(name=key)
 
+def boolean_union_objects(active, meshes):
+        # Now if above is a mesh type to do join / boolean operations on
+        for mesh in meshes:
+            if mesh is not active:
+                # Material Combinator to pre-combine materials prior to applying boolean operator or joining objects together
+                # This allows the materials to be maintained even if they are joined.
+                # for each material the child's blender objects have
+                for material in mesh.data.materials.values():
+                    # and if the material is set, and is not yet set for the parent, add an instance of the material to the parent
+                    if material is not None and material not in bpy.context.object.data.materials.values():
+                        bpy.context.object.data.materials.append(material)
+                # If the scene wants to use boolean operators, this overrides join children (as it is a method to join children)
+            
+                bpy.ops.object.modifier_add(type='BOOLEAN')
+                # Set name for modifier to keep track of it.
+                name = mesh.name + '-Boolean'
+                bpy.context.object.modifiers["Boolean"].name = name
+                bpy.context.object.modifiers[name].operation = 'UNION'
+                bpy.context.object.modifiers[name].object = mesh
+                bpy.ops.object.modifier_apply(
+                    apply_as='DATA', modifier=name)
+                # Clean up the child object from the blender scene.
+                bpy.data.objects.remove(mesh)
+                # TODO: Set Child.blender_object as the blender object of the parent to maintain links
+
+
 
 def sort_shapekeys(obj, target_shapekey_list):
     print("sort_shapekeys", obj)
