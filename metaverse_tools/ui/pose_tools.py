@@ -1,6 +1,6 @@
 import bpy
 from metaverse_tools.utils.bones import bones_builder, pose_helper
-
+from metaverse_tools.armature import SkeletonTypes
 
 
 class ARMATURE_PT_MVT_TOOLSET(bpy.types.Panel):

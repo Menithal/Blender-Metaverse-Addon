@@ -340,7 +340,7 @@ def rename_bones_and_fix_most_things(self, context):
                 if spine1_weights is not None:
                     spine1_weights.name = "Spine2"
 
-            if self.common_shapekey_correct:
+            if self.common_shapekey_correct and child.data.shape_keys is not None:
                 # common_cats_blend_mapping
                 # Reset all shapekeys.
                 # TODO: Perhaps dettach this into a function.

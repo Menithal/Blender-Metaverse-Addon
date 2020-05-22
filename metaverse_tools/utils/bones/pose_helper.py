@@ -155,13 +155,13 @@ def mirror_limits(source_constraint, target_constraints, axis='X'):
     if source_constraint.type == "LIMIT_LOCATION":
         new_constraint.min_x = -source_constraint.max_x
         new_constraint.max_x = -source_constraint.min_x
-        
-  
+
     elif source_constraint.type == "LIMIT_ROTATION":
         new_constraint.min_y = -source_constraint.max_y
         new_constraint.max_y = -source_constraint.min_y
 
     return new_constraint
+
 
 # TODO> Check for duplicates before adding new.
 def mirror_pose_constraints(parent, selected_pose_bones):
@@ -193,7 +193,7 @@ def mirror_pose_constraints(parent, selected_pose_bones):
                 print(constraint.type + "  is unsupported for X-mirroring")
 
 
-def normalize_influence_for(constraints, of_type):
+def normalize_influence_for(constraints, of_type, amount=1.0):
     min_value = -1
     max_value = -1
     total_value = 0
@@ -209,13 +209,48 @@ def normalize_influence_for(constraints, of_type):
         return False
 
     for constraint in filtered_constraints:
-        constraint.influence = ((constraint.influence) / total_value)
+        constraint.influence = ((constraint.influence) / total_value) * amount
 
 
-def normalize_pose_copy_location_rotation(pose_bones):
+def remove_duplicate_constraints(constraints):
+    constraints_list = []
+    duplicates = []
+
+    targetable_constraints = ["COPY_LOCATION", "COPY_ROTATION", "COPY_SCALE", "COPY_TRANSFORMS"]
+    
+    constraint_types = get_constraint_types(constraints)
+    for constraint in constraints:
+        name = constraint.type
+        if target_constraints.has(constraint.type):
+            if constraint.target is not None:
+                if constraint.target.type == "ARMATURE" and constraint.subtarget is not None:
+                    name += "-" + constraint.target.name + "-" + constraint.subtarget.name
+                elif constraint.target.type == "ARMATURE":
+                    name += "-" + constraint.target.name
+        
+        if constraints_list.has(name):
+            duplicates.append(constraint)
+        else:
+            constraint_list.append(name)
+    
+    for duplicate in duplicates:
+        constraints.remove(duplicate)
+        
+
+def get_constraint_types(constraints):
+    constraint_types = []
+    for constraint in constraints:
+        if not constraint_types.has(constraint.type):
+            constraint_types.append(constraint.type)
+    
+    return constraint_types
+
+
+def normalize_constraints_rotation(pose_bones, amount = 1.0):
     for pose_bone in pose_bones:
-        normalize_influence_for(pose_bone.constraints, "COPY_LOCATION")
-        normalize_influence_for(pose_bone.constraints, "COPY_ROTATION")
+        types = get_constraint_types(pose_bone.constraints)
+        for constraint_type in types:
+            normalize_influence_for(pose_bone.constraints, constraint_type, amount)
 
 
 def set_pose_bone_rotation_lock(pose_bones, mode):
@@ -252,17 +287,15 @@ def copy_custom_shape(active_pose_bone, pose_bones):
         
         bpy.context.object.data.bones[pose_bone.name].show_wire = bpy.context.object.data.bones[active_pose_bone.name].show_wire
 
-        #pose_bone.show_wire = active_pose_bone.show_wire
         pose_bone.use_custom_shape_bone_size = active_pose_bone.use_custom_shape_bone_size
         pose_bone.custom_shape_scale = active_pose_bone.custom_shape_scale
         pose_bone.custom_shape_transform =  active_pose_bone.custom_shape_transform
 
-    #test
+
 
 def clear_custom_shape(pose_bones):
     for pose_bone in pose_bones:
         pose_bone.custom_shape = None
-        #pose_bone.show_wire = True
         pose_bone.use_custom_shape_bone_size = True
         pose_bone.custom_shape_scale = 1.0
         pose_bone.custom_shape_transform =  None
