@@ -20,7 +20,7 @@
 bl_info = {
     "name": "Metaverse Toolkit Blender Add-on",
     "author": "Matti 'Menithal' Lahtinen",
-    "version": (2, 2, 2),
+    "version": (2, 1, 0),
     "blender": (2, 81, 0),
     "location": "File > Import-Export, Materials, Armature",
     "description": "Blender tools to allow for easier Content creation various platforms",
