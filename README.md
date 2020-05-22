@@ -119,11 +119,32 @@ Work in progress module to try to stream line some "gotchas" when converting ava
     - `Fix Common Issues` - Utility function to remove all weights for  root, and all the twist bones that tend to cause issues.
 
 
+### Generic Rigging tools:
+
+Mostly Tools for assisting with creating rigs for animations into various platforms and engines.
+
+- `Pose Contraint tools`:
+    - `Clear Constraint` - Allows fast clearing of constraints
+    - `Location Copy` - Sets up Pose Location Constraint for selected bones to copy the root
+    - `Influenced Copy` - Sets up a Pose Location constraint for selected bones with influence based on distance to active
+    - `Rotational Copy` - Sets up a Pose Rotation constraints for selected bones to copy the root
+    - `Mirror Constraint` - Copies all  Constraints from other bones, and mirrors it to the other side.
+    - `Normalize Constraints` - Normalizes influences for a bone with multiple constraints of the same type.
+
+- `Pose Utility Tools`:
+    - `Clone Locks` - Clones position and rotation locks from one bone to the other
+    - `Un/Lock Rotations` - Locks all rotations for bone
+    - `Un/lock Translations` - Unlocks all Translations
+    - `Copy Custom Shapes` - Copies custom bone shapes from one to selected.
+    - `Clear Custom Shapes` - Clears all custom bone shapes.
+
+
 # Changelog:
 
 ### 2.1.0
 - Added Hotfix #29 and #28 Relating to Hifi FBX and the FBX changes in 2.8
-- Added some Rigging tools: still in work.
+- Added `Pose Constraint Tools` for dealing with bone constraints
+- Added `Pose Utility Tools` for dealing with bone behavior
 
 ### 2.0.1
 - Added some sculpting tools to quickly add 0.05 and reduce 0.05 resolution prior to remesh
