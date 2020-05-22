@@ -20,7 +20,7 @@
 bl_info = {
     "name": "Metaverse Toolkit Blender Add-on",
     "author": "Matti 'Menithal' Lahtinen",
-    "version": (2, 0, 1),
+    "version": (2, 2, 2),
     "blender": (2, 81, 0),
     "location": "File > Import-Export, Materials, Armature",
     "description": "Blender tools to allow for easier Content creation various platforms",
@@ -397,6 +397,8 @@ def menu_func_export(self, context):
     self.layout.operator(EXPORT_OT_MVT_TOOLSET_FBX.bl_idname, text="Hifi FBX (.fbx)")
     self.layout.operator(EXPORT_OT_MVT_TOOLSET_FST_Writer_Operator.bl_idname,
                          text="HiFi Avatar FST (.fst)")
+   # self.layout.operator(EXPORT_OT_MVT_TOOLSET_Export_GLTF_JSON.bl_idname,
+   #                      text="HiFi Metaverse Scene JSON / GLTF (.json/.glb/.glm)")
     self.layout.operator(EXPORT_OT_MVT_TOOLSET_Export_FBX_JSON.bl_idname,
                          text="HiFi Metaverse Scene JSON / FBX (.json/.fbx)")
 
@@ -423,6 +425,7 @@ class HELP_OT_MVT_TOOLSET_Open_Forum_Link(bpy.types.Operator):
 classes = (
     EXPORT_OT_MVT_TOOLSET_Message_Error_Missing_ATP_Override,
     EXPORT_OT_MVT_TOOLSET_IPFS_Feature_Info,
+    EXPORT_OT_MVT_TOOLSET_Export_GLTF_JSON,
     EXPORT_OT_MVT_TOOLSET_Export_FBX_JSON,
     EXPORT_OT_MVT_TOOLSET_FBX,
     IMPORT_OT_MVT_TOOLSET_Scene_From_JSON,

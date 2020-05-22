@@ -35,6 +35,8 @@ from metaverse_tools.gateway import client as GatewayClient
 from . import armature_tools
 from . import texture_tools
 from . import sculpt_tools
+from . import pose_tools
+from . import mesh_tools
 from .modules import hifi as hifi_ui
 from .modules import vrc as vrc_ui
 from .modules import tu as tu_ui
@@ -139,7 +141,7 @@ class TEST_WT_workspace(bpy.types.WorkSpaceTool):
 classes = (
     OBJECT_PT_MVT_TOOLSET_Assets_Display,
     EXPORT_OT_MVT_TOOLSET_IPFS_Assets_Toolset,
-    SAVE_OT_MVT_TOOLSET_Message_Remind_Save
+    SAVE_OT_MVT_TOOLSET_Message_Remind_Save,
 )
 
 
@@ -150,16 +152,22 @@ module_register, module_unregister = bpy.utils.register_classes_factory(
 def register_operators():
     module_register()
     armature_tools.module_register()
+    pose_tools.module_register()
     texture_tools.module_register()
     hifi_ui.module_register()
     vrc_ui.module_register()
     tu_ui.module_register()
+    mesh_tools.module_register()
+    sculpt_tools.module_register()
 
 
 def unregister_operators():
     module_unregister()
     armature_tools.module_unregister()
+    pose_tools.module_unregister()
     texture_tools.module_register()
     hifi_ui.module_unregister()
     vrc_ui.module_unregister()
     tu_ui.module_unregister()
+    mesh_tools.module_unregister()
+    sculpt_tools.module_unregister()

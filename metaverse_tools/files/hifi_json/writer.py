@@ -31,7 +31,7 @@ from copy import copy, deepcopy
 
 from metaverse_tools.utils.helpers.extra_math import *
 
-EXPORT_VERSION = 84
+EXPORT_VERSION = 85
 
 def center_all(blender_object):
     for child in blender_object.children:
@@ -155,7 +155,7 @@ def set_relative_to_parent(blender_object, json_data):
     return json_data
         
 
-def parse_object(blender_object, path, options):  
+def parse_object(blender_object, path, options, gltf):  
     # Store existing rotation mode, just in case.
     json_data = None
     # Make sure context is quaternion for the models
@@ -212,10 +212,20 @@ def parse_object(blender_object, path, options):
 
         # TODO: Option to also export via gltf instead of fbx
         # TODO: Add Option to not embedtextures / copy paths
-        file_path = path + reference_name + uid + ".fbx"
 
-        print("Writing FBX with path_mode=", file_path)
-        bpy.ops.metaverse_toolset.export_scene_fbx(filepath=file_path, embed_textures=True, path_mode='COPY', use_selection=True, axis_forward='-Z', axis_up='Y')
+
+        #
+        if gltf:
+            file_path = path + reference_name + uid 
+            print("Writing GLTF with path_mode=", file_path)
+            #bpy.ops.metaverse_toolset.export_scene_fbx(filepath=file_path, embed_textures=True, path_mode='COPY', use_selection=True, axis_forward='-Z', axis_up='Y')
+            # TODO: Add gltf option HERE.
+            return False
+
+        else:
+            file_path = path + reference_name + uid + ".fbx"
+            print("Writing FBX with path_mode=", file_path)
+            bpy.ops.metaverse_toolset.export_scene_fbx(filepath=file_path, embed_textures=True, path_mode='COPY', use_selection=True, axis_forward='-Z', axis_up='Y')
 
         # Restore earlier rotation
         # blender_object.dimensions = temp_dimensions
@@ -230,10 +240,16 @@ def parse_object(blender_object, path, options):
                 last_folder = path[start:end]
             else:
                 last_folder = ""               
-                
-            model_url = "atp:/"+ last_folder + reference_name + uid + '.fbx'
+            
+            if gltf:
+                print("GLTF PLACEHOLDER")
+            else:
+                model_url = "atp:/"+ last_folder + reference_name + uid + '.fbx'
         else:
-            model_url = options.url_override + reference_name +  uid + '.fbx'
+            if gltf:
+                print("GLTF PLACEHOLDER")
+            else:
+                model_url = options.url_override + reference_name +  uid + '.fbx'
 
 
         json_data = {
@@ -385,7 +401,7 @@ def relative_position(parent_object):
 
 
 
-def write_file(context):
+def write_file(context, gltf=False):
     current_scene = bpy.context.scene
     read_scene = current_scene
 
@@ -407,13 +423,15 @@ def write_file(context):
     ## Parse the marketplace url
     url = ""
 
+
+    ## TODO: Remove marketplace hardcode reference
     if not context.atp:
         url = context.url_override
-        if "https://highfidelity.com/marketplace/items/" in url:
+        #if "https://highfidelity.com/marketplace/items/" in url:
             
-            marketplace_id = url.replace("https://highfidelity.com/marketplace/items/", "").replace("/edit","").replace("/","")
+        #    marketplace_id = url.replace("https://highfidelity.com/marketplace/items/", "").replace("/edit","").replace("/","")
             
-            url = "http://mpassets.highfidelity.com/" + marketplace_id + "-v1/"
+        #    url = "http://mpassets.highfidelity.com/" + marketplace_id + "-v1/"
         
         if not url.endswith('/'):    
             url = url + "/"
@@ -424,7 +442,7 @@ def write_file(context):
     current_scene_objects = list(read_scene.objects)
     for blender_object in current_scene_objects:
         print(len(current_scene_objects))
-        parsed = parse_object(blender_object, path, context)
+        parsed = parse_object(blender_object, path, context, gltf)
         
         if parsed:
             entities.append(parsed)        

@@ -102,6 +102,7 @@ side_front_re = re.compile(r"^(l|r|L|R)")
 side_end_re = re.compile(r"(l|r|L|R)$")
 
 
+# Redo this to also make use of "Center Line" bones.
 class BoneInfo():
     side = ""
     mirror = ""
@@ -200,6 +201,19 @@ def combine_bones(selected_bones, active_bone, active_object, use_connect=True):
 def bone_connection(selected_bones, mode=False):
     for bone in selected_bones:
         bone.use_connect = mode
+
+
+def set_deform(selected, mode = False):
+    for bone in selected:
+        bone.use_deform = mode
+
+
+def reparent_to_parent(parent, selected):
+    for bone in selected:
+        bone.use_connect = False
+        bone.parent.name = parent
+
+    
 
 
 def scale_helper(obj):
@@ -682,6 +696,7 @@ def clear_pose(selected):
         bpy.ops.pose.select_all(action="DESELECT")
 
         bpy.ops.object.mode_set(mode=mode)
+
 
 
 def retarget_armature(options, selected, skeleton=SkeletonTypes.HIFI, selected_only=False):

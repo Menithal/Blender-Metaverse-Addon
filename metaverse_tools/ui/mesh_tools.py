@@ -11,7 +11,7 @@ class MESH_PT_MVT_TOOLSET(bpy.types.Panel):
 
     @classmethod
     def poll(self, context):
-        return len(context.selected_objects) == 1 and context.active_object is not None and context.active_object.type == "MESH"
+        return len(context.selected_objects) >= 1 and context.active_object is not None and context.active_object.type == "MESH"
 
     def draw(self, context):
         layout = self.layout
@@ -20,9 +20,11 @@ class MESH_PT_MVT_TOOLSET(bpy.types.Panel):
             MESH_OT_MVT_TOOL_Merge_Modifiers_Shapekey.bl_idname, icon='MODIFIER_DATA',  emboss=False)
         layout.operator(
             MESH_OT_MVT_TOOL_Clean_Unused_Vertex_Groups.bl_idname, icon='NORMALS_VERTEX',  emboss=False)
+        layout.operator(
+            OBJECT_OT_MVT_TOOL_Boolean_Unite.bl_idname, icon='SELECT_EXTEND',  emboss=False)
         return None
 
-
+# boolean_union_objects
 
 class MESH_OT_MVT_TOOL_Message_Processing(bpy.types.Operator):
     """ This Operator is used show yes indeed we are doing something.
@@ -30,10 +32,6 @@ class MESH_OT_MVT_TOOL_Message_Processing(bpy.types.Operator):
     bl_idname = "metaverse_toolset_messages.processing"
     bl_label = ""
     bl_options = {'REGISTER', 'INTERNAL'}
-
-    @classmethod
-    def poll(cls, context):
-        return True
 
     def invoke(self, context, even):
         print("Invoked")
@@ -113,12 +111,29 @@ class MESH_OT_MVT_TOOL_Clean_Unused_Vertex_Groups(bpy.types.Operator):
         return {"FINISHED"}
 
 
+class OBJECT_OT_MVT_TOOL_Boolean_Unite(bpy.types.Operator):
+    """ Quick Helper Button to merge with Boolean Operation objects  """
+    bl_label = "Boolean Unite"
+    bl_idname = "metaverse_toolset.boolean_operate_unite_selected_to_active"
+    bl_space_type = "VIEW_3D"
+
+    @classmethod
+    def poll(self, context):
+        return len(context.selected_objects) > 1 and context.active_object is not None and context.active_object.type == "MESH"
+
+    def execute(self, context):
+        mesh.boolean_union_objects(context.active_object, context.selected_objects)
+        return {"FINISHED"}
+
+
+
 classes = (
     MESH_PT_MVT_TOOLSET,
     MESH_OT_MVT_TOOL_Message_Done,
     MESH_OT_MVT_TOOL_Message_Processing,
     MESH_OT_MVT_TOOL_Merge_Modifiers_Shapekey,
-    MESH_OT_MVT_TOOL_Clean_Unused_Vertex_Groups
+    MESH_OT_MVT_TOOL_Clean_Unused_Vertex_Groups,
+    OBJECT_OT_MVT_TOOL_Boolean_Unite
 )
 
 module_register, module_unregister = bpy.utils.register_classes_factory(
