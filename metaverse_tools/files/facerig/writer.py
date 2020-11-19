@@ -18,3 +18,5 @@
 # ##### END GPL LICENSE BLOCK #####
 # Copyright 2020 Matti 'Menithal' Lahtinen
 
+import bpy
+

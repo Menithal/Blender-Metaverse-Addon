@@ -156,7 +156,7 @@ class EXPORT_OT_MVT_TOOLSET_Message_Success(bpy.types.Operator):
         row.label(text="Avatar Export Successful.")
 
 
-class EXPORT_OT_MVT_TOOLSET_FST_Writer_Operator(bpy.types.Operator, ExportHelper):
+class EXPORT_OT_MVT_TOOLSET_Hifi_FST_Writer_Operator(bpy.types.Operator, ExportHelper):
     """ This Operator is export a HighFidelity compatible FST and FBX of the current avatar.
     """
     bl_idname = "metaverse_toolset.export_fst"
@@ -184,55 +184,14 @@ class EXPORT_OT_MVT_TOOLSET_FST_Writer_Operator(bpy.types.Operator, ExportHelper
     embed: BoolProperty(default=False, name="Embed Textures",
                          description="Embed Textures to Exported Model. Turn this off if you are having issues of Textures  not showing correctly in elsewhere.")
 
-    bake: BoolProperty(default=False, name="Oven Bake (Experimental)",
-                        description="Use the HiFi Oven Tool to bake")
-
-    ipfs: BoolProperty(default=False, name="Yes, Upload to IPFS",
-                        description="Upload files to the \n InterPlanetary File System Blockchain via a Gateway")
-
     def draw(self, context):
         layout = self.layout
         layout.prop(self, "selected_only")
        #layout.prop(self, "flow")
         layout.prop(self, "embed")
 
-        oven_tool = context.preferences.addons[metaverse_tools.__name__].preferences.oventool
-        
         #layout.prop(self, "anim_graph_url")
         layout.prop(self, "script")
-
-        enabled_ipfs = len(
-            context.preferences.addons[metaverse_tools.__name__].preferences.gateway_token) > 0
-
-        if (oven_tool is not None and "oven" in oven_tool):
-            layout.prop(self, "bake")
-
-        if enabled_ipfs:
-            
-            row = layout.row()
-            row = layout.row()
-            row = layout.row()
-            row = layout.row()
-            row.label(
-                text="Warning: Anything you put into the ipfs is public for anyone", icon="ERROR")
-
-            row = layout.row()
-            row.label(
-                "with the url to see / download and will be impossible to remove after ")
-
-            row = layout.row()
-            row.label(text="being distributed to ipfs, unless links of it are forgotten.")
-
-            row = layout.row()
-            row.label(text="Distribution may take a while. You may need to refresh the page after a few minutes.")
-
-            row = layout.row()
-            row.label(
-                "Do you want to upload assets to IPFS? ")
-
-            layout.prop(self, "ipfs")
-        
-
 
     def execute(self, context):
         if not self.filepath:
@@ -273,10 +232,8 @@ class EXPORT_OT_MVT_TOOLSET_FST_Writer_Operator(bpy.types.Operator, ExportHelper
             return val
 
 
-
-
 classes = (
-    EXPORT_OT_MVT_TOOLSET_FST_Writer_Operator,
+    EXPORT_OT_MVT_TOOLSET_Hifi_FST_Writer_Operator,
     EXPORT_OT_MVT_TOOLSET_Message_Warn_Bone,
     EXPORT_OT_MVT_TOOLSET_Message_Error,
     EXPORT_OT_MVT_TOOLSET_Message_Error_No_Armature,

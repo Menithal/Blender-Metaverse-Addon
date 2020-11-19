@@ -25,7 +25,7 @@ import re
 from math import pi, acos
 from mathutils import Quaternion, Matrix, Vector, Euler
 
-from metaverse_tools.utils.helpers import mesh, extra_math
+from metaverse_tools.utils.helpers import mesh, extra_math, common
 
 from metaverse_tools.armature import SkeletonTypes
 
@@ -152,7 +152,6 @@ def get_bone_angle(bone, axis):
     d = (bone.head - bone.tail)
     h = d.magnitude
     a = abs(d[axis])
-    m = 0
     return acos(a/h)
 
 
@@ -213,8 +212,6 @@ def reparent_to_parent(parent, selected):
         bone.use_connect = False
         bone.parent.name = parent
 
-    
-
 
 def scale_helper(obj):
     if obj.dimensions.y > 2.4:
@@ -240,12 +237,7 @@ def remove_all_actions():
 
 
 def find_armatures(selection):
-    armatures = []
-    for selected in selection:
-        if selected.type == "ARMATURE":
-            armatures.append(selected)
-
-    return armatures
+    return common.of(selection, "ARMATURE")
 
 
 def find_armature(selection):
@@ -356,7 +348,6 @@ def pin_common_bones(obj, fix_rolls=True):
 
             else:
                 sides = extra_math.get_sides(ebone, corrector.theta)
-                h = sides[0]
                 a = sides[1]
                 o = sides[2]
 
@@ -507,7 +498,6 @@ def correct_bone_rotations(ebone):
     else:
         axises = corrected_axis.keys()
         correction = None
-        found = False
         for axis in axises:
             corrections = corrected_axis.get(axis)
             for correction in corrections:

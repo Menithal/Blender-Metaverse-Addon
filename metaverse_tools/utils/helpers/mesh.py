@@ -16,19 +16,14 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
-# Copyright 2019 Matti 'Menithal' Lahtinen
+# Copyright 2020 Matti 'Menithal' Lahtinen
 import bpy
 import copy
+from metaverse_tools.utils.helpers import common
 
 
 def get_mesh_from(selected):
-    meshes = []
-
-    for select in selected:
-        if select.type == "MESH":
-            meshes.append(select)
-
-    return meshes
+    return common.of(selected, "MESH")
 
 
 def mix_weights(a, b):
@@ -122,6 +117,7 @@ def generate_empty_shapekeys(obj, target_shapekey_list):
         if shape_keys.find(key) is -1:
             bpy.ops.object.shape_key_clear()
             obj.shape_key_add(name=key)
+            
 
 def boolean_union_objects(active, meshes):
         # Now if above is a mesh type to do join / boolean operations on

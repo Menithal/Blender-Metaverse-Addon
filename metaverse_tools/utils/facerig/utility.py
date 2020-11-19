@@ -16,5 +16,22 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
-# Copyright 2019 Matti 'Menithal' Lahtinen
-from . import client
+# Copyright 2020 Matti 'Menithal' Lahtinen
+
+from metaverse_tools.utils.facerig.models import FaceRigMaterialOptions
+from metaverse_tools.utils.facerig.statics import SHADER_DOUBLE_SIDED_NORMALS, SHADER_MASK, SHADER_BLENDING
+
+def setFaceRigMaterialName(base_model_name, material_name, options = FaceRigMaterialOptions()):
+    current_name = base_model_name + "_" + options.material_type + "_" + material_name
+
+    if(options.both_normals):
+        current_name = current_name + SHADER_DOUBLE_SIDED_NORMALS
+    
+    if (options.alpha_enabled):
+        if (options.alpha_mask):
+            current_name = current_name + SHADER_MASK
+        else:
+            current_name = current_name + SHADER_BLENDING
+    
+    return current_name.lower()
+
