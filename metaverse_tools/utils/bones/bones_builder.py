@@ -88,6 +88,9 @@ posterior_chain_correction = {
     'RightShoulder': RotationTheta(0, 'x',  '-x', False)
 }
 
+# TODO: Move this somewhere as its more common than just bones.
+mirrorable_name_re = re.compile(r'\*+')
+
 
 physical_re = re.compile("^sim")
 number_end_re = re.compile(r"(\d+)$")
@@ -103,7 +106,7 @@ side_end_re = re.compile(r"(l|r|L|R)$")
 
 
 # Redo this to also make use of "Center Line" bones.
-class BoneInfo():
+class BoneMirrorableInfo():
     side = ""
     mirror = ""
     name = ""
@@ -369,41 +372,41 @@ def pin_common_bones(obj, fix_rolls=True):
     bpy.ops.object.mode_set(mode='OBJECT')
 
 
-def get_bone_side_and_mirrored(bone_name):
+def get_bone_side_and_mirrored(bone_name) -> BoneMirrorableInfo : 
     cleaned_bones = camel_case_split(bone_name)
     cleaned_bones = bone_name.replace(".", "_").replace(" ", "_")
     split = cleaned_bones.split("_")
     length = len(split)
     if length == 1:
         if "left" in split[0].lower():
-            return BoneInfo("Left", "Right", bone_name, bone_name.replace("Left", "Right").replace('left', 'Right'))
+            return BoneMirrorableInfo("Left", "Right", bone_name, bone_name.replace("Left", "Right").replace('left', 'Right'))
         elif "right" in split[0].lower():
-            return BoneInfo("Right", "Left", bone_name, bone_name.replace("Right", "Left").replace('right', 'Left'))
+            return BoneMirrorableInfo("Right", "Left", bone_name, bone_name.replace("Right", "Left").replace('right', 'Left'))
     else:
         if "left" in split or "Left" in split or "LEFT" in split:
-            return BoneInfo("Left", "Right", bone_name, bone_name.replace("Left", "Right").replace('left', 'Right'))
+            return BoneMirrorableInfo("Left", "Right", bone_name, bone_name.replace("Left", "Right").replace('left', 'Right'))
         elif "right" in split or "Right" in split or "RIGHT" in split:
-            return BoneInfo("Right", "Left", bone_name, bone_name.replace("Right", "Left").replace('right', 'Left'))
+            return BoneMirrorableInfo("Right", "Left", bone_name, bone_name.replace("Right", "Left").replace('right', 'Left'))
         elif "r" in split:
             index = split.index('r')
             if index == 0:
-                return BoneInfo("Right", "Left", bone_name, side_front_re.sub('l', bone_name))
-            return BoneInfo("Right", "Left", bone_name, side_end_re.sub('l', bone_name))
+                return BoneMirrorableInfo("Right", "Left", bone_name, side_front_re.sub('l', bone_name))
+            return BoneMirrorableInfo("Right", "Left", bone_name, side_end_re.sub('l', bone_name))
         elif "l" in split:
             index = split.index('l')
             if index == 0:
-                return BoneInfo("Left", "Right", bone_name,  side_front_re.sub('r', bone_name))
-            return BoneInfo("Left", "Right", bone_name, side_end_re.sub('r', bone_name))
+                return BoneMirrorableInfo("Left", "Right", bone_name,  side_front_re.sub('r', bone_name))
+            return BoneMirrorableInfo("Left", "Right", bone_name, side_end_re.sub('r', bone_name))
         elif "R" in split:
             index = split.index('R')
             if index == 0:
-                return BoneInfo("Right", "Left", bone_name, side_front_re.sub('L', bone_name))
-            return BoneInfo("Right", "Left", bone_name, side_end_re.sub('L', bone_name))
+                return BoneMirrorableInfo("Right", "Left", bone_name, side_front_re.sub('L', bone_name))
+            return BoneMirrorableInfo("Right", "Left", bone_name, side_end_re.sub('L', bone_name))
         elif "L" in split:
             index = split.index('L')
             if index == 0:
-                return BoneInfo("Left", "Right", bone_name, side_front_re.sub('R', bone_name))
-            return BoneInfo("Left", "Right", bone_name, side_end_re.sub('R', bone_name))
+                return BoneMirrorableInfo("Left", "Right", bone_name, side_front_re.sub('R', bone_name))
+            return BoneMirrorableInfo("Left", "Right", bone_name, side_end_re.sub('R', bone_name))
 
     return None
 

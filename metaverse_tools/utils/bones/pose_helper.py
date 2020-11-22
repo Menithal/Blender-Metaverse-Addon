@@ -23,7 +23,7 @@
 
 import bpy
 import copy
-from metaverse_tools.utils.bones.bones_builder import BoneInfo, get_bone_side_and_mirrored
+from metaverse_tools.utils.bones.bones_builder import BoneMirrorableInfo, get_bone_side_and_mirrored
 
 
 def purge_constraints(from_selected):

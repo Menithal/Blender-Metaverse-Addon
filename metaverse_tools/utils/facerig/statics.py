@@ -19,6 +19,9 @@
 # Copyright 2020 Matti 'Menithal' Lahtinen
 
 from metaverse_tools.utils.facerig.models import FaceRigAnimationSet, FaceRigAnimationSetFlags, FaceRigAnimationSetFrames
+import re
+from metaverse_tools.utils.bones.bones_builder import mirrorable_name_re
+from metaverse_tools.utils.animation.action import return_sides
 
 required_bones = [
     "BipHead",
@@ -74,22 +77,15 @@ DEFAULT_FLAGS = FaceRigAnimationSetFlags()
 IDLE_ROOT = FaceRigAnimationSetFrames(0)
 
 
-short_sides = ["L", "R"]
-long_sides = ["Left", "Right"]
 
 def set_to_list(animation_set_list: [FaceRigAnimationSet]):
     animation_names = []
     for animation_set in animation_set_list:
         name = animation_set.name
         if(animation_set.options.mirrorable):
-            if (name.find("**") != -1):
-                s = name.split("**")
-                for side in long_sides:
-                    animation_names.append(s[0] + side + s[1])
-            elif (name.find("*") != -1):
-                s = name.split("*")
-                for side in short_sides:
-                    animation_names.append(s[0] + side + s[1])
+            s = mirrorable_name_re.split(name)
+            for side in return_sides(name):
+                animation_names.append(s[0] + side + s[1])
         else:
             animation_names.append(name)
 

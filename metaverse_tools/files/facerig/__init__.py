@@ -105,7 +105,6 @@ class EXPORT_OT_MVT_TOOLSET_Writer_Facerig_Bundle_DAE(bpy.types.Operator, Export
 
             if directory is not None:
                 action_file = ntpath.join(directory, name)
-                print("Exporting Action " + action_file)
                 export_collada_file(action_file, True)
 
 
