@@ -21,6 +21,7 @@
 from metaverse_tools.utils.facerig.models import FaceRigMaterialOptions
 from metaverse_tools.utils.facerig.statics import SHADER_DOUBLE_SIDED_NORMALS, SHADER_MASK, SHADER_BLENDING
 
+
 def setFaceRigMaterialName(base_model_name, material_name, options = FaceRigMaterialOptions()):
     current_name = base_model_name + "_" + options.material_type + "_" + material_name
 

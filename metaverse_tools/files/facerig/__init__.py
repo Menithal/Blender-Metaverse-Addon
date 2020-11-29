@@ -24,9 +24,11 @@ import os.path as ntpath
 from bpy_extras.io_utils import (
     ExportHelper
 )
-
+from metaverse_tools.utils.animation.action import *
 from metaverse_tools.utils.facerig.statics import *
 from metaverse_tools.utils.bones.bones_builder import find_armature, clear_pose
+from metaverse_tools.utils.animation.action import get_max_frames_in_action
+
 from bpy.props import (
     StringProperty,
     BoolProperty,
@@ -53,7 +55,6 @@ class EXPORT_OT_MVT_TOOLSET_Writer_Facerig_Bundle_DAE(bpy.types.Operator, Export
             raise Exception("filepath not set")
         
         # Export Main Dae
-        print(context.selected_objects)
         
         armature = find_armature(context.selected_objects)
 
@@ -64,10 +65,15 @@ class EXPORT_OT_MVT_TOOLSET_Writer_Facerig_Bundle_DAE(bpy.types.Operator, Export
         if bpy.data.actions["idle1"] is  None:
             return {'CANCELLED'}
 
+        # Lets make sure we dont accidentally override shit.
+        bpy.context.scene.tool_settings.use_keyframe_insert_auto = False
+
+      
+
         # bpy.context.active_object.animation_data.action
         # Lets Export
         # generalMovement Folder
-        
+
         # Create Folders.
         armature.animation_data.action = bpy.data.actions["idle1"]
         filename = ntpath.basename(self.filepath).replace('.dae', "")
@@ -85,11 +91,19 @@ class EXPORT_OT_MVT_TOOLSET_Writer_Facerig_Bundle_DAE(bpy.types.Operator, Export
 
         export_collada_file(actual_model_file)
 
+        split_all_actions(armature, bpy.data.actions)
         bpy.ops.object.select_all(action="DESELECT")
         armature.select_set(True)
 
         for action in bpy.data.actions:
             name = action.name
+            # TODO: Excepted Animations here instead of just idle.
+            if name in "idle1":
+                # Detect Max frame in action
+                bpy.context.scene.frame_end = get_max_frames_in_action(armature, action)
+            else:
+                bpy.context.scene.frame_end = 30
+
             clear_pose([armature])
             armature.animation_data.action = action
             
@@ -102,6 +116,13 @@ class EXPORT_OT_MVT_TOOLSET_Writer_Facerig_Bundle_DAE(bpy.types.Operator, Export
             elif name in mouth_and_nose_names:
                 directory = ntpath.join(anim_directory, mouth_and_nose_directory )
                 mkdir_if_not_exist(directory)
+            elif name in viseme_names:
+                directory = ntpath.join(anim_directory, viseme_directory)
+                mkdir_if_not_exist(directory)
+            else:
+                # Skip if we dont know file.
+                directory = None
+                continue
 
             if directory is not None:
                 action_file = ntpath.join(directory, name)
@@ -116,12 +137,10 @@ class EXPORT_OT_MVT_TOOLSET_Writer_Facerig_Bundle_DAE(bpy.types.Operator, Export
 
 def mkdir_if_not_exist(directory):
     if os.path.isdir(directory) == False:
-        print("making missing directory " + directory)    
         os.mkdir(directory)
 
 
 def export_collada_file(filepath, selected = False):
-    print("export collada file " + filepath)
     bpy.ops.wm.collada_export(filepath=filepath, check_existing=False, selected=selected, include_all_actions = False )
 
 

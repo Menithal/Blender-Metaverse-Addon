@@ -30,6 +30,7 @@ from . import texture_tools
 from . import sculpt_tools
 from . import pose_tools
 from . import mesh_tools
+from . import action_tools
 
 from .modules import hifi as hifi_ui
 from .modules import vrc as vrc_ui
@@ -79,6 +80,7 @@ def register_operators():
     hifi_ui.module_register()
     vrc_ui.module_register()
     tu_ui.module_register()
+    action_tools.module_register()
     mesh_tools.module_register()
     sculpt_tools.module_register()
 
@@ -90,5 +92,6 @@ def unregister_operators():
     hifi_ui.module_unregister()
     vrc_ui.module_unregister()
     tu_ui.module_unregister()
+    action_tools.module_unregister()
     mesh_tools.module_unregister()
     sculpt_tools.module_unregister()

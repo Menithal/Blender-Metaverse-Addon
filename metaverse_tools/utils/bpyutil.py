@@ -21,6 +21,13 @@
 import bpy
 
 
+def list_has_item(list_var: list, item):
+    try:
+        return list_var.index(item) != None
+    except:
+        return False
+
+
 def get_selected_or_all():
     selected = bpy.context.selected_objects
     if len(selected) < 1:

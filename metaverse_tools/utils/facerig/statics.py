@@ -20,6 +20,7 @@
 
 from metaverse_tools.utils.facerig.models import FaceRigAnimationSet, FaceRigAnimationSetFlags, FaceRigAnimationSetFrames
 import re
+import enum
 from metaverse_tools.utils.bones.bones_builder import mirrorable_name_re
 from metaverse_tools.utils.animation.action import return_sides
 
@@ -128,6 +129,7 @@ mouth_and_nose = [
     FaceRigAnimationSet("Mouth_unveilledTeeth_D", DEFAULT_FLAGS, IDLE_ROOT), # The lower lips moves down
     FaceRigAnimationSet("Mouth_unveilledTeeth_U", DEFAULT_FLAGS, IDLE_ROOT), # The Upper lips move up 
     FaceRigAnimationSet("MouthClosed**_D", FaceRigAnimationSetFlags(True, "_unveilTeeth"), IDLE_ROOT), # Mouth Corner moves down *frown*
+    FaceRigAnimationSet("MouthClosed**_D_visime", MIRRORED, IDLE_ROOT), # Mouth closed moves up, while keeping lips together, *less pronounced* used while speech
     FaceRigAnimationSet("MouthClosed**_U", FaceRigAnimationSetFlags(True, "_unveilTeeth"), IDLE_ROOT), # Mouth Corner moves up *smile*
     FaceRigAnimationSet("MouthClosed**_U_visime", MIRRORED, IDLE_ROOT), # Mouth closed moves up, while keeping lips together, *less pronounced* used while speech
     FaceRigAnimationSet("MouthOpen", DEFAULT_FLAGS, IDLE_ROOT), # Mouth Open Idle from 0, to fully open 30
@@ -142,6 +144,7 @@ mouth_and_nose = [
     FaceRigAnimationSet("TongueOut_LR", DEFAULT_FLAGS),
     FaceRigAnimationSet("TongueOut_UD", DEFAULT_FLAGS),
 ]
+
 
 mouth_and_nose_names = set_to_list(mouth_and_nose)
 
@@ -163,30 +166,93 @@ shoulders_and_hand = [
     FaceRigAnimationSet("Hand*_solo_Twist", MIRRORED),
 ]
 
+
 shoulders_and_hand_names = set_to_list(shoulders_and_hand)
 # start and end frames must match.
 
-viseme_directory = "ShouldersAndHand"
-viseme = [
-    FaceRigAnimationSet("viseme_new_AA"),
-    FaceRigAnimationSet("viseme_new_AO"),
-    FaceRigAnimationSet("viseme_new_AW-OW"),
-    FaceRigAnimationSet("viseme_new_CH-J-SH"),
-    FaceRigAnimationSet("viseme_new_EH-AE"),
-    FaceRigAnimationSet("viseme_new_EY"),
-    FaceRigAnimationSet("viseme_new_FB"),
-    FaceRigAnimationSet("viseme_new_IH-AY"),
-    FaceRigAnimationSet("viseme_new_L"),
-    FaceRigAnimationSet("viseme_new_M-P-B"),
-    FaceRigAnimationSet("viseme_new_N-NG-DH"),
-    FaceRigAnimationSet("viseme_new_OY-UH-UW"),
-    FaceRigAnimationSet("viseme_new_R_ER"),
-    FaceRigAnimationSet("viseme_new_W"),
-    FaceRigAnimationSet("viseme_new_X"),
-    FaceRigAnimationSet("viseme_new_Y-IY"),
+## Incorrectly spelled in FaceRig
+viseme_directory = "visimes"
+visemes = [
+    FaceRigAnimationSet("visime_new_AA"),
+    FaceRigAnimationSet("visime_new_AH"),
+    FaceRigAnimationSet("visime_new_AO"),
+    FaceRigAnimationSet("visime_new_AW-OW"),
+    FaceRigAnimationSet("visime_new_CH-J-SH"),
+    FaceRigAnimationSet("visime_new_EH-AE"),
+    FaceRigAnimationSet("visime_new_EY"),
+    FaceRigAnimationSet("visime_new_FB"),
+    FaceRigAnimationSet("visime_new_FV"),
+    FaceRigAnimationSet("visime_new_IH-AY"),
+    FaceRigAnimationSet("visime_new_L"),
+    FaceRigAnimationSet("visime_new_M-P-B"),
+    FaceRigAnimationSet("visime_new_N-NG-DH"),
+    FaceRigAnimationSet("visime_new_OY-UH-UW"),
+    FaceRigAnimationSet("visime_new_R-ER"),
+    FaceRigAnimationSet("visime_new_W"),
+    FaceRigAnimationSet("visime_new_X"),
+    FaceRigAnimationSet("visime_new_Y-IY"),
 ]
 
-viseme_names = set_to_list(viseme)
+viseme_names = set_to_list(visemes)
 weighted_geometry_append = "_skin"
 
+class FaceRigConstraintType(enum.Enum):
+    ROTATION_X = "rotation_x"
+    ROTATION_Y = "rotation_y"
+    ROTATION_Z = "rotation_z"
 
+
+# TODO: robably could do a universal class Min Max stuff?
+class FaceRigBoneValueConstraint:
+    def __init__(self, constraint_type: FaceRigConstraintType, max_value, min_value = None):
+        self.type: FaceRigConstraintType = constraint_type
+        if(min_value == None):
+            self.min: float = -max_value
+        else:
+            self.min: float = max_value
+
+        self.max: float = max_value
+
+
+# TODO: Probably could do a universal class for typing later? Seems fairly common
+class FaceRigBoneConstraints:
+    def __init__(self, name):
+        self.name = name
+        self.constraints: [FaceRigBoneValueConstraint] = []
+
+    def append_constraint(self, constraint: FaceRigBoneValueConstraint = None):
+        self.constraints.append(constraint)
+        return self
+    
+# Left is Biggest Value (frist frame)
+# Right is Smallest value (last frame)
+spine_default_constraints = FaceRigBoneConstraints("spine") # Body 
+spine_default_constraints.append_constraint(FaceRigBoneValueConstraint(FaceRigConstraintType.ROTATION_X, 20, -10)) # Avatar_FD
+spine_default_constraints.append_constraint(FaceRigBoneValueConstraint(FaceRigConstraintType.ROTATION_Z, 16)) # Avatar_LR
+spine_default_constraints.append_constraint(FaceRigBoneValueConstraint(FaceRigConstraintType.ROTATION_Y, 35)) # Avatar_Twist
+
+neck_default_constraints = FaceRigBoneConstraints("neck")
+neck_default_constraints.append_constraint(FaceRigBoneValueConstraint(FaceRigConstraintType.ROTATION_X, 20, -27)) # Head_UD
+neck_default_constraints.append_constraint(FaceRigBoneValueConstraint(FaceRigConstraintType.ROTATION_Z, 17)) # Head_LR
+neck_default_constraints.append_constraint(FaceRigBoneValueConstraint(FaceRigConstraintType.ROTATION_Y, 12)) # Head_Twist
+
+head_default_constraints = FaceRigBoneConstraints("head")
+head_default_constraints.append_constraint(FaceRigBoneValueConstraint(FaceRigConstraintType.ROTATION_X, 18.5, -35)) # Head_UD
+head_default_constraints.append_constraint(FaceRigBoneValueConstraint(FaceRigConstraintType.ROTATION_Z, 17)) # Head_LR
+head_default_constraints.append_constraint(FaceRigBoneValueConstraint(FaceRigConstraintType.ROTATION_Y, 37.5)) # Head_Twist
+
+left_eye_default_constraints = FaceRigBoneConstraints("left_eye")
+right_eye_default_constraints = FaceRigBoneConstraints("right_eye")
+
+left_eye_default_constraints.append_constraint(FaceRigBoneValueConstraint(FaceRigConstraintType.ROTATION_X, 40, -27)) # LeftEye_UD
+right_eye_default_constraints.append_constraint(FaceRigBoneValueConstraint(FaceRigConstraintType.ROTATION_X, 40, -27)) # RightEye_UD
+
+# Left is Biggest Value (frist frame)
+# Right is Smallest value (last frame)
+left_eye_default_constraints.append_constraint(FaceRigBoneValueConstraint(FaceRigConstraintType.ROTATION_Y, 26, -55)) # LeftEye_LR
+right_eye_default_constraints.append_constraint(FaceRigBoneValueConstraint(FaceRigConstraintType.ROTATION_Y, 55, -26)) # RightEye_LR
+
+
+
+avatar_anim_set = [spine_default_constraints]
+head_anim_set = [neck_default_constraints, head_default_constraints]

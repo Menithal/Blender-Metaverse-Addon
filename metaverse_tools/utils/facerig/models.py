@@ -18,6 +18,7 @@
 # ##### END GPL LICENSE BLOCK #####
 # Copyright 2020 Matti 'Menithal' Lahtinen
 
+# TODO: Should Probably Universal 
 class FaceRigAnimationSetFlags:
     def __init__(self, mirrorable=False, relatedAnim=""):
         self.mirrorable = mirrorable
