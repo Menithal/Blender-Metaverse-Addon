@@ -197,12 +197,6 @@ class EXPORT_OT_MVT_TOOLSET_Hifi_FST_Writer_Operator(bpy.types.Operator, ExportH
         if not self.filepath:
             raise Exception("filepath not set")
 
-        preferences = bpy.context.preferences.addons[metaverse_tools.__name__].preferences
-
-        if self.bake and (preferences.oventool is None or "oven" not in preferences.oventool):
-            raise Exception(
-                "Please set the oven path for the plugin. eg <pathToHighFidelity>/oven.exe")
-
         to_export = None
 
         if self.selected_only:
@@ -238,6 +232,6 @@ classes = (
     EXPORT_OT_MVT_TOOLSET_Message_Error,
     EXPORT_OT_MVT_TOOLSET_Message_Error_No_Armature,
     EXPORT_OT_MVT_TOOLSET_Message_Success
-)
+) 
 
 module_register, module_unregister = bpy.utils.register_classes_factory(classes)    

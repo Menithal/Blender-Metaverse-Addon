@@ -20,9 +20,9 @@
 
 from metaverse_tools.utils.facerig.models import FaceRigMaterialOptions
 from metaverse_tools.utils.facerig.statics import SHADER_DOUBLE_SIDED_NORMALS, SHADER_MASK, SHADER_BLENDING
+from metaverse_tools.utils.facerig.models import *
 
-
-def setFaceRigMaterialName(base_model_name, material_name, options = FaceRigMaterialOptions()):
+def set_facerig_material_name(base_model_name:str, material_name:str, options:FaceRigMaterialOptions = FaceRigMaterialOptions()):
     current_name = base_model_name + "_" + options.material_type + "_" + material_name
 
     if(options.both_normals):
@@ -36,3 +36,7 @@ def setFaceRigMaterialName(base_model_name, material_name, options = FaceRigMate
     
     return current_name.lower()
 
+
+def apply_constraints(bone: PoseBone, constraints: [FaceRigBoneConstraints]):
+
+    pass

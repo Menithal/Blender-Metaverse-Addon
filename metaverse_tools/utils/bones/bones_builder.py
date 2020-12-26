@@ -161,10 +161,12 @@ def get_bone_angle(bone, axis):
 def combine_bones(selected_bones, active_bone, active_object, use_connect=True):
     print("----------------------")
     print("Combining Bones", len(selected_bones),
-          "-", active_bone, "-", active_object)
+          "-", active_bone.name, "-", active_object.name)
     meshes = mesh.get_mesh_from(active_object.children)
     names_to_combine = []
     active_bone_name = active_bone.name
+    # TODO: make sure start of list.
+
 
     bpy.ops.object.mode_set(mode="EDIT")
     for bone in selected_bones:
@@ -177,23 +179,27 @@ def combine_bones(selected_bones, active_bone, active_object, use_connect=True):
             for child in children:
                 child.use_connect = use_connect
 
-    print("Combining weights.", meshes)
+    print("Combining weights 2.", meshes)
     bpy.ops.object.mode_set(mode="OBJECT")
     for name in names_to_combine:
         if name != active_bone_name:
             for me in meshes:
-                print("Mesh: ", me.name)
-                bpy.context.view_layer.objects.active = me
+                print("check if mesh " + me.name + "exists")
+                print(me not in bpy.context.view_layer.objects.items() )
+                if bpy.context.view_layer.objects.get(me.name):
+                    print("Mesh: ", me.name, name)
+                    bpy.context.view_layer.objects.active = me
 
-                vertex_group_b = me.vertex_groups.get(name)
-                vertex_group_a = me.vertex_groups.get(active_bone_name)
+                    vertex_group_b = me.vertex_groups.get(name)
+                    vertex_group_a = me.vertex_groups.get(active_bone_name)
 
-                print("A", vertex_group_a, name)
-                print("B", vertex_group_b, active_bone_name)
+                    print("A", vertex_group_a, name)
+                    print("B", vertex_group_b, active_bone_name)
 
-                if vertex_group_b is not None and vertex_group_a is not None:
-                    mesh.mix_weights(active_bone_name, name)
-                    me.vertex_groups.remove(me.vertex_groups.get(name))
+                    if vertex_group_b is not None and vertex_group_a is not None:
+                        mesh.mix_weights(active_bone_name, name)
+                        me.vertex_groups.remove(me.vertex_groups.get(name))
+
 
     bpy.context.view_layer.objects.active = active_object
     bpy.ops.object.mode_set(mode="EDIT")

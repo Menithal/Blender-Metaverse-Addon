@@ -11,7 +11,6 @@ class ACTION_PT_MVT_TOOLSET(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        layout.prop(self, "test text")
         layout.operator(ACTION_OT_MVT_Split_Mirrored.bl_idname)
 
         return None
@@ -34,10 +33,8 @@ classes = (
     ACTION_OT_MVT_Split_Mirrored
 )
 
-
 module_register, module_unregister = bpy.utils.register_classes_factory(
     classes)
-
 
 def register_operators():
     module_register()

@@ -23,6 +23,7 @@ import re
 import enum
 from metaverse_tools.utils.bones.bones_builder import mirrorable_name_re
 from metaverse_tools.utils.animation.action import return_sides
+from metaverse_tools.utils.facerig.models import *
 
 required_bones = [
     "BipHead",
@@ -196,34 +197,6 @@ visemes = [
 viseme_names = set_to_list(visemes)
 weighted_geometry_append = "_skin"
 
-class FaceRigConstraintType(enum.Enum):
-    ROTATION_X = "rotation_x"
-    ROTATION_Y = "rotation_y"
-    ROTATION_Z = "rotation_z"
-
-
-# TODO: robably could do a universal class Min Max stuff?
-class FaceRigBoneValueConstraint:
-    def __init__(self, constraint_type: FaceRigConstraintType, max_value, min_value = None):
-        self.type: FaceRigConstraintType = constraint_type
-        if(min_value == None):
-            self.min: float = -max_value
-        else:
-            self.min: float = max_value
-
-        self.max: float = max_value
-
-
-# TODO: Probably could do a universal class for typing later? Seems fairly common
-class FaceRigBoneConstraints:
-    def __init__(self, name):
-        self.name = name
-        self.constraints: [FaceRigBoneValueConstraint] = []
-
-    def append_constraint(self, constraint: FaceRigBoneValueConstraint = None):
-        self.constraints.append(constraint)
-        return self
-    
 # Left is Biggest Value (frist frame)
 # Right is Smallest value (last frame)
 spine_default_constraints = FaceRigBoneConstraints("spine") # Body 
@@ -253,6 +226,6 @@ left_eye_default_constraints.append_constraint(FaceRigBoneValueConstraint(FaceRi
 right_eye_default_constraints.append_constraint(FaceRigBoneValueConstraint(FaceRigConstraintType.ROTATION_Y, 55, -26)) # RightEye_LR
 
 
-
-avatar_anim_set = [spine_default_constraints]
-head_anim_set = [neck_default_constraints, head_default_constraints]
+avatar_default_constraint_set = [spine_default_constraints]
+head_default_constraint_set = [neck_default_constraints, head_default_constraints]
+eyes_default_constraint_set = [left_eye_default_constraints, right_eye_default_constraints]

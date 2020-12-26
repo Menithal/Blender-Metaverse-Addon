@@ -36,9 +36,6 @@ class BONES_PT_MVT_TOOLSET(bpy.types.Panel):
         return None
 
 
-
-
-
 class BONES_OT_MVT_TOOLSET_Connect_Selected(bpy.types.Operator):
     """ Connect selected bones to their Parent bones """
     bl_idname = "metaverse_toolset.connect_selected_bones"
