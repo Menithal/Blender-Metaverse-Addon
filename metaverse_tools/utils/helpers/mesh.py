@@ -16,36 +16,26 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
-# Copyright 2019 Matti 'Menithal' Lahtinen
+# Copyright 2020 Matti 'Menithal' Lahtinen
 import bpy
 import copy
+from metaverse_tools.utils.helpers import common
 
 
 def get_mesh_from(selected):
-    meshes = []
-
-    for select in selected:
-        if select.type == "MESH":
-            meshes.append(select)
-
-    return meshes
+    return common.of(selected, "MESH")
 
 
 def mix_weights(a, b):
-    print("  Mixing", a, b)
     bpy.ops.object.modifier_add(type='VERTEX_WEIGHT_MIX')
 
     bpy.context.object.modifiers["VertexWeightMix"].vertex_group_a = a
     bpy.context.object.modifiers["VertexWeightMix"].vertex_group_b = b
     bpy.context.object.modifiers["VertexWeightMix"].mix_mode = 'ADD'
     bpy.context.object.modifiers["VertexWeightMix"].mix_set = 'OR'
+    bpy.ops.object.modifier_add(type="VERTEX_WEIGHT_MIX")
 
-    bpy.ops.object.modifier_move_up(modifier="VertexWeightMix")
-    bpy.ops.object.modifier_move_up(modifier="VertexWeightMix")
-    bpy.ops.object.modifier_move_up(modifier="VertexWeightMix")
-    bpy.ops.object.modifier_move_up(modifier="VertexWeightMix")
-
-    bpy.ops.object.modifier_apply(apply_as='DATA', modifier="VertexWeightMix")
+    bpy.ops.object.modifier_apply(modifier="VertexWeightMix")
 
 
 def clean_unused_vertex_groups(obj):
@@ -122,6 +112,7 @@ def generate_empty_shapekeys(obj, target_shapekey_list):
         if shape_keys.find(key) is -1:
             bpy.ops.object.shape_key_clear()
             obj.shape_key_add(name=key)
+            
 
 def boolean_union_objects(active, meshes):
         # Now if above is a mesh type to do join / boolean operations on

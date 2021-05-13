@@ -28,7 +28,6 @@ from metaverse_tools.armature import SkeletonTypes
 #temporary
 from .hifi import BONES_OT_MVT_TOOLSET_Pin_Problem_Bones, BONES_OT_MVT_TOOLSET_Fix_Rolls
 
-
 category = "MVT: VRC Tools"
 
 expected_vrc_shapekeys = [

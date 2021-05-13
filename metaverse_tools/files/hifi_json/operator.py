@@ -67,7 +67,7 @@ class EXPORT_OT_MVT_TOOLSET_Message_Error_Missing_ATP_Override(bpy.types.Operato
         row.label(text=" (be it marketplace or your own)")
 
 
-class EXPORT_OT_MVT_TOOLSET_Export_FBX_JSON(bpy.types.Operator, ExportHelper):
+class EXPORT_OT_MVT_TOOLSET_Writer_FBX_JSON(bpy.types.Operator, ExportHelper):
     """ This Operator to show an error that the ATP Override is missing from export
     """
     bl_idname = "metaverse_toolset.export_fbx_json"
@@ -122,7 +122,7 @@ class EXPORT_OT_MVT_TOOLSET_Export_FBX_JSON(bpy.types.Operator, ExportHelper):
 
         return {'FINISHED'}
 
-class EXPORT_OT_MVT_TOOLSET_Export_GLTF_JSON(bpy.types.Operator, ExportHelper):
+class EXPORT_OT_MVT_TOOLSET_Writer_GLTF_JSON(bpy.types.Operator, ExportHelper):
     """ This Operator to show an error that the ATP Override is missing from export
     """
     bl_idname = "metaverse_toolset.export_gltb_json"

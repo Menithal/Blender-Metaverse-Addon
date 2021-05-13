@@ -550,22 +550,22 @@ class AVATAR_OT_MVT_TOOLSET_Custom_Avatar_Binder_Operator(bpy.types.Operator):
 # https://blender.stackexchange.com/questions/19293/prop-search-armature-bones
 
 
-def scene_define():
+def bones_scene_define():
     bpy.types.Scene.custom_armature_name = bpy.props.StringProperty()
     bpy.types.Scene.custom_armature_collection = bpy.props.CollectionProperty(
         type=bpy.types.PropertyGroup)
 
 
-def scene_delete():
+def bones_scene_clean():
     del bpy.types.Scene.custom_armature_collection
     del bpy.types.Scene.custom_armature_name
 
 
-def custom_register():
+def bones_binder_register():
     bpy.utils.register_class(
         AVATAR_OT_MVT_TOOLSET_Custom_Avatar_Binder_Operator)
 
 
-def custom_unregister():
+def bones_binder_unregister():
     bpy.utils.unregister_class(
         AVATAR_OT_MVT_TOOLSET_Custom_Avatar_Binder_Operator)
