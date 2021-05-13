@@ -35,6 +35,7 @@ from . import action_tools
 from .modules import hifi as hifi_ui
 from .modules import vrc as vrc_ui
 from .modules import tu as tu_ui
+from .modules import generic as generic_ui
 
 category = "MVT: General Tools"
 
@@ -83,6 +84,7 @@ def register_operators():
     action_tools.module_register()
     mesh_tools.module_register()
     sculpt_tools.module_register()
+    generic_ui.module_register()
 
 def unregister_operators():
     module_unregister()
@@ -95,3 +97,4 @@ def unregister_operators():
     action_tools.module_unregister()
     mesh_tools.module_unregister()
     sculpt_tools.module_unregister()
+    generic_ui.module_unregister()

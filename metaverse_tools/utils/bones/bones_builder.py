@@ -21,12 +21,11 @@
 # Copyright 2019 Matti 'Menithal' Lahtinen
 import bpy
 import re
+from bpy.types import EditBone
 
 from math import pi, acos
 from mathutils import Quaternion, Matrix, Vector, Euler
-
 from metaverse_tools.utils.helpers import mesh, extra_math, common
-
 from metaverse_tools.armature import SkeletonTypes
 
 
@@ -104,6 +103,40 @@ mixamo_prefix = "mixamo:"
 side_front_re = re.compile(r"^(l|r|L|R)")
 side_end_re = re.compile(r"(l|r|L|R)$")
 
+remove_end_character = re.compile("[_\-\.\s]$")
+remove_start_character = re.compile("^[_\-\.\s]")
+remove_numbers_re = re.compile("([a-zA-Z_\-\.\s]+)")
+
+def get_base_bone_name(bone_name: str):
+    ## Remove number
+    m = remove_numbers_re.search(bone_name)
+    if m is not None:
+        r = m.group(0)
+        st = remove_start_character.split(r)
+        et = remove_end_character.split(st[len(st)-1])
+        return et[0]
+    return bone_name
+
+
+def select_chain_children(bones, active: EditBone, ignore_non_matching = False):
+    bones.append(active)
+    current_name = get_base_bone_name(active.name)
+    if len(active.children) == 1:
+        next_name = get_base_bone_name(active.children[0].name)
+        if not ignore_non_matching or (ignore_non_matching and next_name == current_name):
+            select_chain_children(bones, active.children[0], ignore_non_matching)
+    else:
+        similar_bones = []
+        for bone in active.children:
+            next_name = get_base_bone_name(bone.name)
+            if current_name == next_name:
+                similar_bones.append(bone)
+        
+        if len(similar_bones) == 1:
+            select_chain_children(bones, similar_bones[0], True)
+        elif len(similar_bones) > 0:
+            print("Found more than ", len(similar_bones) , " bones with the name ", current_name )
+
 
 # Redo this to also make use of "Center Line" bones.
 class BoneMirrorableInfo():
@@ -118,7 +151,7 @@ class BoneMirrorableInfo():
         self.mirror = mirror
         self.name = name
 
-        m = number_end_re.search(clean_up_bone_name(name))
+        m = number_end_re.search(parse_bone_name(name))
         if m is not None:
             self.index = m.group(0)
         else:
@@ -417,7 +450,7 @@ def get_bone_side_and_mirrored(bone_name) -> BoneMirrorableInfo :
     return None
 
 
-def clean_up_bone_name(bone_name, remove_clones=True):
+def parse_bone_name(bone_name, remove_clones=True):
 
     cleaned_bones = camel_case_split(
         bone_name).replace(".", "_").replace(" ", "_")
@@ -468,7 +501,7 @@ def clean_up_bone_name(bone_name, remove_clones=True):
 def set_selected_bones_physical(bones):
     for bone in bones:
         if physical_re.search(bone.name) is None:
-            bone.name = "sim" + clean_up_bone_name(bone.name)
+            bone.name = "sim" + parse_bone_name(bone.name)
 
 
 def remove_selected_bones_physical(bones):
