@@ -126,7 +126,7 @@ def apply_all_modifiers(modifiers):
      for modifier in modifiers:
         #Apply all but Armature
         if modifier.type != 'ARMATURE':
-            bpy.ops.object.modifier_apply(apply_as='DATA', modifier=modifier.name)
+            bpy.ops.object.modifier_apply( modifier=modifier.name)
 
 def set_relative_to_parent(blender_object, json_data):
     if blender_object.parent:

@@ -297,12 +297,12 @@ def add_sphere(entity):
     bpy.context.object.modifiers["Subsurf"].levels = 3
     bpy.context.object.modifiers["Subsurf"].use_subsurf_uv = False
 
-    bpy.ops.object.modifier_apply(apply_as='DATA', modifier="Subsurf")
+    bpy.ops.object.modifier_apply(modifier="Subsurf")
     bpy.ops.object.modifier_add(type='SMOOTH')
     bpy.context.object.modifiers["Smooth"].factor = 3.5
     bpy.context.object.modifiers["Smooth"].iterations = 1
 
-    bpy.ops.object.modifier_apply(apply_as='DATA', modifier="Smooth")
+    bpy.ops.object.modifier_apply(modifier="Smooth")
     bpy.ops.object.mode_set(mode = 'EDIT')
     
     bpy.ops.mesh.faces_shade_smooth()

@@ -165,7 +165,7 @@ def unregister_operators():
     module_unregister()
     armature_tools.module_unregister()
     pose_tools.module_unregister()
-    texture_tools.module_register()
+    texture_tools.module_unregister()
     hifi_ui.module_unregister()
     vrc_ui.module_unregister()
     tu_ui.module_unregister()

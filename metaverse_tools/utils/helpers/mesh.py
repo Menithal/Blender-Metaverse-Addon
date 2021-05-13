@@ -45,7 +45,7 @@ def mix_weights(a, b):
     bpy.ops.object.modifier_move_up(modifier="VertexWeightMix")
     bpy.ops.object.modifier_move_up(modifier="VertexWeightMix")
 
-    bpy.ops.object.modifier_apply(apply_as='DATA', modifier="VertexWeightMix")
+    bpy.ops.object.modifier_apply(modifier="VertexWeightMix")
 
 
 def clean_unused_vertex_groups(obj):
@@ -143,7 +143,7 @@ def boolean_union_objects(active, meshes):
                 bpy.context.object.modifiers[name].operation = 'UNION'
                 bpy.context.object.modifiers[name].object = mesh
                 bpy.ops.object.modifier_apply(
-                    apply_as='DATA', modifier=name)
+                    modifier=name)
                 # Clean up the child object from the blender scene.
                 bpy.data.objects.remove(mesh)
                 # TODO: Set Child.blender_object as the blender object of the parent to maintain links
