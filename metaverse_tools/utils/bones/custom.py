@@ -40,8 +40,9 @@ def get_armatures(self, context):
         if ob.type == 'ARMATURE':
             # (key, label, descr, id, icon)
             # [(identifier, name, description, icon, number)
-            obj.append((ob.name, ob.name, "ARMATURE_DATA"))
-            count += 1
+            if(ob.visible_get()):
+                obj.append((ob.name, ob.name, "ARMATURE_DATA"))
+                count += 1
 
     return obj
 
@@ -452,7 +453,9 @@ class AVATAR_OT_MVT_TOOLSET_Custom_Avatar_Binder_Operator(bpy.types.Operator):
     def invoke(self, context, event):
         if self.armatures:
             armature = context.scene.objects[self.armatures]
-            bpy.ops.object.mode_set(mode="OBJECT")
+            if context.active_object:
+                if context.active_object.mode == "EDIT":
+                    bpy.ops.object.mode_set(mode="OBJECT")
 
             bpy.ops.object.select_all(action='DESELECT')
             armature.select_set(state=True)
