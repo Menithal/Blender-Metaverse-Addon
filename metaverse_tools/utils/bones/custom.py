@@ -553,7 +553,7 @@ class AVATAR_OT_MVT_TOOLSET_Custom_Avatar_Binder_Operator(bpy.types.Operator):
 
 
 class AVATAR_OT_MVT_TOOLSET_Avatar_Rebinder_Operator(bpy.types.Operator):
-    """ Avatar Binding Tool allowing one to attempt convert a existing custom skeleton with mesh into a user defined skeleton
+    """ Avatar Binding Tool allows one to attempt convert a existing custom skeleton with mesh into a user defined skeleton
     """
     bl_idname = "metaverse_toolset.open_custom_avatar_binder"
     bl_label = "Custom Avatar Binding Tool"
