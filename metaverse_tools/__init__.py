@@ -103,7 +103,7 @@ def menu_func_export(self, context):
    # self.layout.operator(EXPORT_OT_MVT_TOOLSET_Writer_GLTF_JSON.bl_idname,
    #                      text="HiFi Metaverse Scene JSON / GLTF (.json/.glb/.glm)")
     self.layout.operator(EXPORT_OT_MVT_TOOLSET_Writer_FBX_JSON.bl_idname,
-                         text="Tivoli/Vircadia Metaverse Scene JSON / FBX (.json/.fbx)")
+                         text="Vircadia Metaverse Scene JSON / FBX (.json/.fbx)")
     self.layout.operator(EXPORT_OT_MVT_TOOLSET_Writer_Facerig_Bundle_DAE.bl_idname,
                          text="FaceRig/Animaze Bundle Export (.dae)")
 
