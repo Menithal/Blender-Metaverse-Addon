@@ -157,7 +157,7 @@ class EXPORT_OT_MVT_TOOLSET_Message_Success(bpy.types.Operator):
 
 
 class EXPORT_OT_MVT_TOOLSET_Hifi_FST_Writer_Operator(bpy.types.Operator, ExportHelper):
-    """ This Operator is export a HighFidelity compatible FST and FBX of the current avatar.
+    """ This Operator exports a Vircadia compatible FST and FBX of the current avatar.
     """
     bl_idname = "metaverse_toolset.export_fst"
     bl_label = "Export Hifi Avatar"
@@ -182,7 +182,7 @@ class EXPORT_OT_MVT_TOOLSET_Hifi_FST_Writer_Operator(bpy.types.Operator, ExportH
                         description="Adds flow script template as an additional Avatar script")
 
     embed: BoolProperty(default=False, name="Embed Textures",
-                         description="Embed Textures to Exported Model. Turn this off if you are having issues of Textures  not showing correctly in elsewhere.")
+                         description="Embed Textures to Exported Model. Turn this off if you are having issues of Textures not showing correctly in elsewhere.")
 
     def draw(self, context):
         layout = self.layout
