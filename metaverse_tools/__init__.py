@@ -99,7 +99,7 @@ def menu_func_export(self, context):
     
     self.layout.operator(EXPORT_OT_MVT_TOOLSET_FBX.bl_idname, text="Vircadia FBX (.fbx)")
     self.layout.operator(EXPORT_OT_MVT_TOOLSET_Hifi_FST_Writer_Operator.bl_idname,
-                         text="Tivoli/Vircadia Avatar FST (.fst)")
+                         text="Vircadia Avatar FST (.fst)")
    # self.layout.operator(EXPORT_OT_MVT_TOOLSET_Writer_GLTF_JSON.bl_idname,
    #                      text="HiFi Metaverse Scene JSON / GLTF (.json/.glb/.glm)")
     self.layout.operator(EXPORT_OT_MVT_TOOLSET_Writer_FBX_JSON.bl_idname,
