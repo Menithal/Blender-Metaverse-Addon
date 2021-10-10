@@ -10,8 +10,9 @@ Currently Supports
 - HiFi and Forks
 - VRC (NeosVR by Proxy)
 - Tower Unite
+- Faceshift/Animaze
 
-## 2.0 works only with 2.81 or later, use older version for 2.80.
+## 3.1+ Works with blender 2.90 or later.
 
 # Installation Guide
 
