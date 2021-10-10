@@ -40,8 +40,9 @@ def get_armatures(self, context):
         if ob.type == 'ARMATURE':
             # (key, label, descr, id, icon)
             # [(identifier, name, description, icon, number)
-            obj.append((ob.name, ob.name, "ARMATURE_DATA"))
-            count += 1
+            if(ob.visible_get()):
+                obj.append((ob.name, ob.name, "ARMATURE_DATA"))
+                count += 1
 
     return obj
 
@@ -111,7 +112,7 @@ def automatic_bind_bones(self, avatar_bones):
     knee_check = False
     cleaned_bones = dict()
     for bone in avatar_bones:
-        cleaned_bones[bones_builder.clean_up_bone_name(
+        cleaned_bones[bones_builder.parse_bone_name(
             bone.name).lower()] = bone
 
     keys = list(cleaned_bones.keys())
@@ -313,7 +314,7 @@ def rename_bones_and_fix_most_things(self, context):
 
     for bone in ebones:
         bone.hide = False
-        bone.name = bones_builder.clean_up_bone_name(bone.name)
+        bone.name = bones_builder.parse_bone_name(bone.name)
         bones_builder.correct_bone(bone, ebones)
 
     bones_builder.correct_bone_parents(armature.edit_bones)
@@ -452,7 +453,9 @@ class AVATAR_OT_MVT_TOOLSET_Custom_Avatar_Binder_Operator(bpy.types.Operator):
     def invoke(self, context, event):
         if self.armatures:
             armature = context.scene.objects[self.armatures]
-            bpy.ops.object.mode_set(mode="OBJECT")
+            if context.active_object:
+                if context.active_object.mode == "EDIT":
+                    bpy.ops.object.mode_set(mode="OBJECT")
 
             bpy.ops.object.select_all(action='DESELECT')
             armature.select_set(state=True)
@@ -547,25 +550,152 @@ class AVATAR_OT_MVT_TOOLSET_Custom_Avatar_Binder_Operator(bpy.types.Operator):
 
         # After selecting armature, iterate through bones.
 
+
+
+class AVATAR_OT_MVT_TOOLSET_Avatar_Rebinder_Operator(bpy.types.Operator):
+    """ Avatar Binding Tool allows one to attempt convert a existing custom skeleton with mesh into a user defined skeleton
+    """
+    bl_idname = "metaverse_toolset.open_custom_avatar_binder"
+    bl_label = "Custom Avatar Binding Tool"
+
+    custom_armature_name: bpy.props.StringProperty()
+    armatures: bpy.props.EnumProperty(
+        name="Select Armature", items=get_armatures)
+
+    armature: bpy.props.StringProperty()
+    # region Bones
+
+
+    ## TODO: Store default values are a setting for end user.
+    hips: bpy.props.StringProperty()
+    hips_target_name: bpy.props.StringProperty(default="Hips")
+
+    spine: bpy.props.StringProperty()
+    spine_target_name: bpy.props.StringProperty(default="Spine")
+
+    chest: bpy.props.StringProperty()
+    chest_target_name: bpy.props.StringProperty(default="Chest")
+
+    neck: bpy.props.StringProperty()
+    neck_target_name: bpy.props.StringProperty(default="Neck")
+
+    head: bpy.props.StringProperty()
+    head_target_name: bpy.props.StringProperty(default="Head")
+    # Head
+    eye: bpy.props.StringProperty()
+    eye_target_name: bpy.props.StringProperty(default="Eye")
+
+    # Arms
+    # right
+    shoulder: bpy.props.StringProperty()
+    shoulder_target_name: bpy.props.StringProperty(default="Shoulder")
+
+    upper_arm: bpy.props.StringProperty()
+    upper_arm_target_name: bpy.props.StringProperty(default="UpperArm")
+
+    lower_arm: bpy.props.StringProperty()
+    lower_arm_target_name: bpy.props.StringProperty(default="LowerArm")
+
+    hand: bpy.props.StringProperty()
+    hand_target_name: bpy.props.StringProperty(default="Hand")
+
+    # Fingers
+    hand_thumb: bpy.props.StringProperty()
+    hand_thumb_target_name: bpy.props.StringProperty(default="HandThumb")
+
+    hand_index: bpy.props.StringProperty()
+    hand_index_target_name: bpy.props.StringProperty(default="HandIndex")
+
+    hand_middle: bpy.props.StringProperty()
+    hand_middle_target_name: bpy.props.StringProperty(default="HandMiddle")
+
+    hand_ring: bpy.props.StringProperty()
+    hand_ring_target_name: bpy.props.StringProperty(default="HandRing")
+
+    hand_pinky: bpy.props.StringProperty()
+    hand_pinky_target_name: bpy.props.StringProperty(default="HandPinky")
+
+    # Legs
+    up_leg: bpy.props.StringProperty()
+    up_leg_target_name: bpy.props.StringProperty(default="Thigh")
+
+    leg: bpy.props.StringProperty()
+    leg_target_name: bpy.props.StringProperty(default="Leg")
+
+    foot: bpy.props.StringProperty()
+    foot_target_name: bpy.props.StringProperty(default="Foot")
+
+    foot_toe: bpy.props.StringProperty()
+    foot_toe_target_name: bpy.props.StringProperty(default="Toe")
+    #endregion
+    
+    target_list = ["hips", "spine", "chest", "neck", "head", "eye", "shoulder", "upper_arm", "lower_arm", "hand", "hand_thumb", "hand_index", "hand_middle", "hand_ring", "hand_pinky", "up_leg", "leg", "foot", "foot_toe"]
+
+    left_target: bpy.props.StringProperty(default="Left")
+    right_target: bpy.props.StringProperty(default="Right")
+    
+    def execute(self, context):
+        return {"CANCELLED"}
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self, width=600)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.label(text="Experimental Feature. Please report any issues.")
+        layout.label(text="Everything is mirrored.")
+
+        if self.armatures is not "":
+            data = context.scene.objects[self.armatures].data
+
+            def row_builder(target: str):
+                row = layout.row()
+                placeholder = target.capitalize().replace('_', ' ')
+                row.prop_search(self, target, data, 'bones', icon='BONE_DATA', text=(placeholder))
+                row.prop(self, target+"_target_name", text="To")
+
+            for bone in self.target_list:
+                row_builder(bone)
+            layout.row()
+            layout.row()
+            layout.row()
+
+            row = layout.row()
+            row.prop(self, "left_target", text="Left Target")
+            row.prop(self, "right_target", text="Right Target")
+
+        else:
+            print(" No Armatures")
+
+        # After selecting armature, iterate through bones.
+ 
+
+ 
+
+
 # https://blender.stackexchange.com/questions/19293/prop-search-armature-bones
 
 
-def scene_define():
+def bones_scene_define():
     bpy.types.Scene.custom_armature_name = bpy.props.StringProperty()
     bpy.types.Scene.custom_armature_collection = bpy.props.CollectionProperty(
         type=bpy.types.PropertyGroup)
 
 
-def scene_delete():
+def bones_scene_clean():
     del bpy.types.Scene.custom_armature_collection
     del bpy.types.Scene.custom_armature_name
 
 
-def custom_register():
+def bones_binder_register():
+    bpy.utils.register_class(AVATAR_OT_MVT_TOOLSET_Avatar_Rebinder_Operator)
+    #depricate
     bpy.utils.register_class(
         AVATAR_OT_MVT_TOOLSET_Custom_Avatar_Binder_Operator)
 
 
-def custom_unregister():
+def bones_binder_unregister():
+    bpy.utils.unregister_class(AVATAR_OT_MVT_TOOLSET_Avatar_Rebinder_Operator)
+    #depricate
     bpy.utils.unregister_class(
         AVATAR_OT_MVT_TOOLSET_Custom_Avatar_Binder_Operator)

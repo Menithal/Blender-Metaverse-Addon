@@ -156,8 +156,8 @@ class EXPORT_OT_MVT_TOOLSET_Message_Success(bpy.types.Operator):
         row.label(text="Avatar Export Successful.")
 
 
-class EXPORT_OT_MVT_TOOLSET_FST_Writer_Operator(bpy.types.Operator, ExportHelper):
-    """ This Operator is export a HighFidelity compatible FST and FBX of the current avatar.
+class EXPORT_OT_MVT_TOOLSET_Hifi_FST_Writer_Operator(bpy.types.Operator, ExportHelper):
+    """ This Operator exports a Vircadia compatible FST and FBX of the current avatar.
     """
     bl_idname = "metaverse_toolset.export_fst"
     bl_label = "Export Hifi Avatar"
@@ -182,13 +182,7 @@ class EXPORT_OT_MVT_TOOLSET_FST_Writer_Operator(bpy.types.Operator, ExportHelper
                         description="Adds flow script template as an additional Avatar script")
 
     embed: BoolProperty(default=False, name="Embed Textures",
-                         description="Embed Textures to Exported Model. Turn this off if you are having issues of Textures  not showing correctly in elsewhere.")
-
-    bake: BoolProperty(default=False, name="Oven Bake (Experimental)",
-                        description="Use the HiFi Oven Tool to bake")
-
-    ipfs: BoolProperty(default=False, name="Yes, Upload to IPFS",
-                        description="Upload files to the \n InterPlanetary File System Blockchain via a Gateway")
+                         description="Embed Textures to Exported Model. Turn this off if you are having issues of Textures not showing correctly in elsewhere.")
 
     def draw(self, context):
         layout = self.layout
@@ -196,53 +190,12 @@ class EXPORT_OT_MVT_TOOLSET_FST_Writer_Operator(bpy.types.Operator, ExportHelper
        #layout.prop(self, "flow")
         layout.prop(self, "embed")
 
-        oven_tool = context.preferences.addons[metaverse_tools.__name__].preferences.oventool
-        
         #layout.prop(self, "anim_graph_url")
         layout.prop(self, "script")
-
-        enabled_ipfs = len(
-            context.preferences.addons[metaverse_tools.__name__].preferences.gateway_token) > 0
-
-        if (oven_tool is not None and "oven" in oven_tool):
-            layout.prop(self, "bake")
-
-        if enabled_ipfs:
-            
-            row = layout.row()
-            row = layout.row()
-            row = layout.row()
-            row = layout.row()
-            row.label(
-                text="Warning: Anything you put into the ipfs is public for anyone", icon="ERROR")
-
-            row = layout.row()
-            row.label(
-                "with the url to see / download and will be impossible to remove after ")
-
-            row = layout.row()
-            row.label(text="being distributed to ipfs, unless links of it are forgotten.")
-
-            row = layout.row()
-            row.label(text="Distribution may take a while. You may need to refresh the page after a few minutes.")
-
-            row = layout.row()
-            row.label(
-                "Do you want to upload assets to IPFS? ")
-
-            layout.prop(self, "ipfs")
-        
-
 
     def execute(self, context):
         if not self.filepath:
             raise Exception("filepath not set")
-
-        preferences = bpy.context.preferences.addons[metaverse_tools.__name__].preferences
-
-        if self.bake and (preferences.oventool is None or "oven" not in preferences.oventool):
-            raise Exception(
-                "Please set the oven path for the plugin. eg <pathToHighFidelity>/oven.exe")
 
         to_export = None
 
@@ -273,14 +226,12 @@ class EXPORT_OT_MVT_TOOLSET_FST_Writer_Operator(bpy.types.Operator, ExportHelper
             return val
 
 
-
-
 classes = (
-    EXPORT_OT_MVT_TOOLSET_FST_Writer_Operator,
+    EXPORT_OT_MVT_TOOLSET_Hifi_FST_Writer_Operator,
     EXPORT_OT_MVT_TOOLSET_Message_Warn_Bone,
     EXPORT_OT_MVT_TOOLSET_Message_Error,
     EXPORT_OT_MVT_TOOLSET_Message_Error_No_Armature,
     EXPORT_OT_MVT_TOOLSET_Message_Success
-)
+) 
 
 module_register, module_unregister = bpy.utils.register_classes_factory(classes)    

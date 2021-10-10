@@ -4,7 +4,6 @@ from metaverse_tools.armature import SkeletonTypes
 
 
 
-
 class BONES_PT_MVT_TOOLSET(bpy.types.Panel):
     """ Panel for Bone related tools """
     bl_label = "General Bones Tools"
@@ -25,7 +24,8 @@ class BONES_PT_MVT_TOOLSET(bpy.types.Panel):
         layout.operator(BONES_OT_MVT_TOOLSET_Combine_Disconnected.bl_idname)
         layout.operator(BONES_OT_MVT_TOOLSET_Connect_Selected.bl_idname)
         layout.operator(BONES_OT_MVT_TOOLSET_Disconnect_Selected.bl_idname)
-        layout.operator(BONES_OT_MVT_TOOLSET_Rename_Chain.bl_idname)
+        layout.operator(BONES_OT_MVT_TOOLSET_Rename_Full_Chain.bl_idname)
+#       layout.operator(BONES_OT_MVT_TOOLSET_Rename_Chain.bl_idname)
         layout.operator(BONES_OT_MVT_TOOLSET_Remove_001.bl_idname)
         layout.operator(BONES_OT_MVT_TOOLSET_Mirror_And_Rename_On_X.bl_idname)
 
@@ -34,9 +34,6 @@ class BONES_PT_MVT_TOOLSET(bpy.types.Panel):
         layout.operator(BONES_OT_MVT_TOOLSET_Add_Deform.bl_idname)
         layout.operator(BONES_OT_MVT_TOOLSET_Remove_Deform.bl_idname)
         return None
-
-
-
 
 
 class BONES_OT_MVT_TOOLSET_Connect_Selected(bpy.types.Operator):
@@ -107,6 +104,53 @@ class BONES_OT_MVT_TOOLSET_Combine(bpy.types.Operator):
                                     context.active_bone, context.active_object)
         bpy.context.object.data.use_mirror_x = use_mirror_x
         return {'FINISHED'}
+
+
+class BONES_OT_MVT_TOOLSET_Rename_Full_Chain(bpy.types.Operator):
+    """ Rename bones to Chain From Root Name and Numbers Accordingly """
+    bl_idname = "metaverse_toolset.rename_full_bone_chain"
+    bl_label = "Rename Chain"
+
+    bl_region_type = "TOOLS"
+    bl_space_type = "VIEW_3D"
+    bl_options = {'REGISTER', 'UNDO', 'INTERNAL'}
+
+    target_name: bpy.props.StringProperty()
+    different_name: bpy.props.BoolProperty(default=False)
+
+    @classmethod
+    def poll(self, context):
+        return context.selected_bones is not None and len(context.selected_bones) >= 1
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self, width=400)
+
+
+    def execute(self, context):
+        print("Execute", self.target_name, self.different_name)
+        chain = []
+        if len(context.selected_bones) > 1:
+            # TODO: Order by what is parent to what
+            # TODO: Check if connected or not.
+            chain = context.selected_bones
+        else:
+            bones_builder.select_chain_children(chain, bpy.context.active_bone, not self.different_name)
+        
+        bones_builder.rename_selected_bone_chain(self.target_name, chain)
+
+        return {'FINISHED'}
+    
+    def draw(self, context):
+        layout = self.layout
+        row = layout.row()
+        row.prop(self, 'target_name', text="Target Name")
+        
+        if len(context.selected_bones) > 1:
+            row = layout.row()
+            row.prop(self, 'different_name', text="Only Of Same Name" )
+
+
 
 class BONES_OT_MVT_TOOLSET_Rename_Chain(bpy.types.Operator):
     """ Rename bones to Chain From Root Name and Numbers Accordingly """
@@ -218,7 +262,8 @@ classes = (
     BONES_OT_MVT_TOOLSET_Combine_Disconnected,
     BONES_OT_MVT_TOOLSET_Connect_Selected,
     BONES_OT_MVT_TOOLSET_Disconnect_Selected,
-    BONES_OT_MVT_TOOLSET_Rename_Chain,
+    BONES_OT_MVT_TOOLSET_Rename_Full_Chain,
+#   BONES_OT_MVT_TOOLSET_Rename_Chain,
     BONES_OT_MVT_TOOLSET_Remove_001,
     BONES_OT_MVT_TOOLSET_Mirror_And_Rename_On_X,
     BONES_OT_MVT_TOOLSET_Reparent_To_Last,

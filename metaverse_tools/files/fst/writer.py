@@ -28,9 +28,9 @@ import shutil
 
 from metaverse_tools.utils.bones.bones_builder import find_armature
 from metaverse_tools.utils.helpers.mesh import get_mesh_from
+from metaverse_tools.utils.helpers.common import of
 from metaverse_tools.utils.helpers.materials import get_images_from
 from metaverse_tools.utils.helpers.bake_tool import bake_fbx
-from metaverse_tools.gateway import client as GatewayClient
 
 import webbrowser
 import shutil
@@ -175,7 +175,7 @@ def fst_export(context, selected):
             # Blender doesnt export the rest of the information, so the behavior is strange.
 
             print("Getting Textures from selected Mesh.")
-            images = get_images_from(get_mesh_from(selected))
+            images = get_images_from(of(selected, "MESH"))
             print(images)
             print("Copying Textures to export folder.")
 
@@ -194,57 +194,6 @@ def fst_export(context, selected):
         return {"CANCELLED"}
 
     f.close()
-
-    if context.ipfs:
-        try:
-            bpy.ops.wm.console_toggle()
-        except:
-            print("Console was toggled")
-
-        print("IPFS Upload Enabled!")
-
-        token = preferences.gateway_token
-        username = preferences.gateway_username
-        server = preferences.gateway_server
-
-        filename = ntpath.basename(context.filepath).replace('.fst', "")
-
-        zip_file = directory + "/../" + filename  # context.filepath
-
-        print("Packing", directory, "to", zip_file)
-
-        archive_name = shutil.make_archive(
-            zip_file, 'zip', root_dir=directory)
-
-        response = json.loads(GatewayClient.upload(
-            server, username, token, filename, archive_name))
-
-        if isinstance(response,  list):
-            file = None
-            # Choose from multiple?
-            print("For Now using gateway.ipfs.io gateway as reference point. Look at https://ipfs.github.io/public-gateway-checker/ for others!")
-
-            # TODO: use https://ipfs.github.io/public-gateway-checker/gateways.json for other gateways
-
-            gateway_default = "https://gateway.ipfs.io/ipfs/"
-
-            for item in response:
-                if item["Name"] == filename+".zip" or item["Name"] == filename:
-                    file = item["Hash"] + "/" + filename + ".fst"
-                    print("Found Directory at", file)
-                    break
-
-            if file is not None:
-                browsers = webbrowser._browsers
-                print("Opening Web Browser on OS to point to uploaded directory.")
-                if "windows-default" in browsers:
-                    print("Windows detected")
-                    webbrowser.get(
-                        "windows-default").open(gateway_default + file)
-                else:
-                    webbrowser.open(gateway_default + file)
-        else:
-            print("ERROR")
 
     return {"FINISHED"}
     # FST Exporter

@@ -21,12 +21,11 @@
 # Copyright 2019 Matti 'Menithal' Lahtinen
 import bpy
 import re
+from bpy.types import EditBone
 
 from math import pi, acos
 from mathutils import Quaternion, Matrix, Vector, Euler
-
-from metaverse_tools.utils.helpers import mesh, extra_math
-
+from metaverse_tools.utils.helpers import mesh, extra_math, common
 from metaverse_tools.armature import SkeletonTypes
 
 
@@ -88,6 +87,9 @@ posterior_chain_correction = {
     'RightShoulder': RotationTheta(0, 'x',  '-x', False)
 }
 
+# TODO: Move this somewhere as its more common than just bones.
+mirrorable_name_re = re.compile(r'\*+')
+
 
 physical_re = re.compile("^sim")
 number_end_re = re.compile(r"(\d+)$")
@@ -101,9 +103,43 @@ mixamo_prefix = "mixamo:"
 side_front_re = re.compile(r"^(l|r|L|R)")
 side_end_re = re.compile(r"(l|r|L|R)$")
 
+remove_end_character = re.compile("[_\-\.\s]$")
+remove_start_character = re.compile("^[_\-\.\s]")
+remove_numbers_re = re.compile("([a-zA-Z_\-\.\s]+)")
+
+def get_base_bone_name(bone_name: str):
+    ## Remove number
+    m = remove_numbers_re.search(bone_name)
+    if m is not None:
+        r = m.group(0)
+        st = remove_start_character.split(r)
+        et = remove_end_character.split(st[len(st)-1])
+        return et[0]
+    return bone_name
+
+
+def select_chain_children(bones, active: EditBone, ignore_non_matching = False):
+    bones.append(active)
+    current_name = get_base_bone_name(active.name)
+    if len(active.children) == 1:
+        next_name = get_base_bone_name(active.children[0].name)
+        if not ignore_non_matching or (ignore_non_matching and next_name == current_name):
+            select_chain_children(bones, active.children[0], ignore_non_matching)
+    else:
+        similar_bones = []
+        for bone in active.children:
+            next_name = get_base_bone_name(bone.name)
+            if current_name == next_name:
+                similar_bones.append(bone)
+        
+        if len(similar_bones) == 1:
+            select_chain_children(bones, similar_bones[0], True)
+        elif len(similar_bones) > 0:
+            print("Found more than ", len(similar_bones) , " bones with the name ", current_name )
+
 
 # Redo this to also make use of "Center Line" bones.
-class BoneInfo():
+class BoneMirrorableInfo():
     side = ""
     mirror = ""
     name = ""
@@ -115,7 +151,7 @@ class BoneInfo():
         self.mirror = mirror
         self.name = name
 
-        m = number_end_re.search(clean_up_bone_name(name))
+        m = number_end_re.search(parse_bone_name(name))
         if m is not None:
             self.index = m.group(0)
         else:
@@ -152,17 +188,18 @@ def get_bone_angle(bone, axis):
     d = (bone.head - bone.tail)
     h = d.magnitude
     a = abs(d[axis])
-    m = 0
     return acos(a/h)
 
 
 def combine_bones(selected_bones, active_bone, active_object, use_connect=True):
     print("----------------------")
     print("Combining Bones", len(selected_bones),
-          "-", active_bone, "-", active_object)
+          "-", active_bone.name, "-", active_object.name)
     meshes = mesh.get_mesh_from(active_object.children)
     names_to_combine = []
     active_bone_name = active_bone.name
+    # TODO: make sure start of list.
+
 
     bpy.ops.object.mode_set(mode="EDIT")
     for bone in selected_bones:
@@ -175,23 +212,27 @@ def combine_bones(selected_bones, active_bone, active_object, use_connect=True):
             for child in children:
                 child.use_connect = use_connect
 
-    print("Combining weights.", meshes)
+    print("Combining weights 2.", meshes)
     bpy.ops.object.mode_set(mode="OBJECT")
     for name in names_to_combine:
         if name != active_bone_name:
             for me in meshes:
-                print("Mesh: ", me.name)
-                bpy.context.view_layer.objects.active = me
+                print("check if mesh " + me.name + "exists")
+                print(me not in bpy.context.view_layer.objects.items() )
+                if bpy.context.view_layer.objects.get(me.name):
+                    print("Mesh: ", me.name, name)
+                    bpy.context.view_layer.objects.active = me
 
-                vertex_group_b = me.vertex_groups.get(name)
-                vertex_group_a = me.vertex_groups.get(active_bone_name)
+                    vertex_group_b = me.vertex_groups.get(name)
+                    vertex_group_a = me.vertex_groups.get(active_bone_name)
 
-                print("A", vertex_group_a, name)
-                print("B", vertex_group_b, active_bone_name)
+                    print("A", vertex_group_a, name)
+                    print("B", vertex_group_b, active_bone_name)
 
-                if vertex_group_b is not None and vertex_group_a is not None:
-                    mesh.mix_weights(active_bone_name, name)
-                    me.vertex_groups.remove(me.vertex_groups.get(name))
+                    if vertex_group_b is not None and vertex_group_a is not None:
+                        mesh.mix_weights(active_bone_name, name)
+                        me.vertex_groups.remove(me.vertex_groups.get(name))
+
 
     bpy.context.view_layer.objects.active = active_object
     bpy.ops.object.mode_set(mode="EDIT")
@@ -212,8 +253,6 @@ def reparent_to_parent(parent, selected):
     for bone in selected:
         bone.use_connect = False
         bone.parent.name = parent
-
-    
 
 
 def scale_helper(obj):
@@ -240,12 +279,7 @@ def remove_all_actions():
 
 
 def find_armatures(selection):
-    armatures = []
-    for selected in selection:
-        if selected.type == "ARMATURE":
-            armatures.append(selected)
-
-    return armatures
+    return common.of(selection, "ARMATURE")
 
 
 def find_armature(selection):
@@ -356,7 +390,6 @@ def pin_common_bones(obj, fix_rolls=True):
 
             else:
                 sides = extra_math.get_sides(ebone, corrector.theta)
-                h = sides[0]
                 a = sides[1]
                 o = sides[2]
 
@@ -378,46 +411,46 @@ def pin_common_bones(obj, fix_rolls=True):
     bpy.ops.object.mode_set(mode='OBJECT')
 
 
-def get_bone_side_and_mirrored(bone_name):
+def get_bone_side_and_mirrored(bone_name) -> BoneMirrorableInfo : 
     cleaned_bones = camel_case_split(bone_name)
     cleaned_bones = bone_name.replace(".", "_").replace(" ", "_")
     split = cleaned_bones.split("_")
     length = len(split)
     if length == 1:
         if "left" in split[0].lower():
-            return BoneInfo("Left", "Right", bone_name, bone_name.replace("Left", "Right").replace('left', 'Right'))
+            return BoneMirrorableInfo("Left", "Right", bone_name, bone_name.replace("Left", "Right").replace('left', 'Right'))
         elif "right" in split[0].lower():
-            return BoneInfo("Right", "Left", bone_name, bone_name.replace("Right", "Left").replace('right', 'Left'))
+            return BoneMirrorableInfo("Right", "Left", bone_name, bone_name.replace("Right", "Left").replace('right', 'Left'))
     else:
         if "left" in split or "Left" in split or "LEFT" in split:
-            return BoneInfo("Left", "Right", bone_name, bone_name.replace("Left", "Right").replace('left', 'Right'))
+            return BoneMirrorableInfo("Left", "Right", bone_name, bone_name.replace("Left", "Right").replace('left', 'Right'))
         elif "right" in split or "Right" in split or "RIGHT" in split:
-            return BoneInfo("Right", "Left", bone_name, bone_name.replace("Right", "Left").replace('right', 'Left'))
+            return BoneMirrorableInfo("Right", "Left", bone_name, bone_name.replace("Right", "Left").replace('right', 'Left'))
         elif "r" in split:
             index = split.index('r')
             if index == 0:
-                return BoneInfo("Right", "Left", bone_name, side_front_re.sub('l', bone_name))
-            return BoneInfo("Right", "Left", bone_name, side_end_re.sub('l', bone_name))
+                return BoneMirrorableInfo("Right", "Left", bone_name, side_front_re.sub('l', bone_name))
+            return BoneMirrorableInfo("Right", "Left", bone_name, side_end_re.sub('l', bone_name))
         elif "l" in split:
             index = split.index('l')
             if index == 0:
-                return BoneInfo("Left", "Right", bone_name,  side_front_re.sub('r', bone_name))
-            return BoneInfo("Left", "Right", bone_name, side_end_re.sub('r', bone_name))
+                return BoneMirrorableInfo("Left", "Right", bone_name,  side_front_re.sub('r', bone_name))
+            return BoneMirrorableInfo("Left", "Right", bone_name, side_end_re.sub('r', bone_name))
         elif "R" in split:
             index = split.index('R')
             if index == 0:
-                return BoneInfo("Right", "Left", bone_name, side_front_re.sub('L', bone_name))
-            return BoneInfo("Right", "Left", bone_name, side_end_re.sub('L', bone_name))
+                return BoneMirrorableInfo("Right", "Left", bone_name, side_front_re.sub('L', bone_name))
+            return BoneMirrorableInfo("Right", "Left", bone_name, side_end_re.sub('L', bone_name))
         elif "L" in split:
             index = split.index('L')
             if index == 0:
-                return BoneInfo("Left", "Right", bone_name, side_front_re.sub('R', bone_name))
-            return BoneInfo("Left", "Right", bone_name, side_end_re.sub('R', bone_name))
+                return BoneMirrorableInfo("Left", "Right", bone_name, side_front_re.sub('R', bone_name))
+            return BoneMirrorableInfo("Left", "Right", bone_name, side_end_re.sub('R', bone_name))
 
     return None
 
 
-def clean_up_bone_name(bone_name, remove_clones=True):
+def parse_bone_name(bone_name, remove_clones=True):
 
     cleaned_bones = camel_case_split(
         bone_name).replace(".", "_").replace(" ", "_")
@@ -468,7 +501,7 @@ def clean_up_bone_name(bone_name, remove_clones=True):
 def set_selected_bones_physical(bones):
     for bone in bones:
         if physical_re.search(bone.name) is None:
-            bone.name = "sim" + clean_up_bone_name(bone.name)
+            bone.name = "sim" + parse_bone_name(bone.name)
 
 
 def remove_selected_bones_physical(bones):
@@ -507,7 +540,6 @@ def correct_bone_rotations(ebone):
     else:
         axises = corrected_axis.keys()
         correction = None
-        found = False
         for axis in axises:
             corrections = corrected_axis.get(axis)
             for correction in corrections:

@@ -23,7 +23,8 @@
 
 import bpy
 import copy
-from metaverse_tools.utils.bones.bones_builder import BoneInfo, get_bone_side_and_mirrored
+from metaverse_tools.utils.bpyutil import list_has_item
+from metaverse_tools.utils.bones.bones_builder import BoneMirrorableInfo, get_bone_side_and_mirrored
 
 
 def purge_constraints(from_selected):
@@ -45,7 +46,6 @@ def add_local_pose_constraint_bone(parent, to_selected_bones, follow, constraint
         constraint.target_space = "LOCAL_WITH_PARENT"
         constraint.owner_space = "LOCAL_WITH_PARENT"
         constraints_list.append(constraint)
-
 
     if influence_by_distance:
         smallest = -1
@@ -71,7 +71,7 @@ def add_local_pose_constraint_bone(parent, to_selected_bones, follow, constraint
             influence = 1 - (((target_ebone.tail - ebone.tail).length - smallest) / (largest))
             constraints = pose_bone.constraints
             
-            constraints_list[ind].influence = influence
+            constraints[ind].influence = influence
 
 
 def mirror_location_or_rotation(source_constraint, target_constraints):
@@ -194,8 +194,6 @@ def mirror_pose_constraints(parent, selected_pose_bones):
 
 
 def normalize_influence_for(constraints, of_type, amount=1.0):
-    min_value = -1
-    max_value = -1
     total_value = 0
     filtered_constraints = []
     for constraint in constraints:
@@ -217,21 +215,20 @@ def remove_duplicate_constraints(constraints):
     duplicates = []
 
     targetable_constraints = ["COPY_LOCATION", "COPY_ROTATION", "COPY_SCALE", "COPY_TRANSFORMS"]
-    
-    constraint_types = get_constraint_types(constraints)
+    #constraint_types = get_constraint_types(constraints)
     for constraint in constraints:
         name = constraint.type
-        if target_constraints.has(constraint.type):
+        if list_has_item(targetable_constraints, constraint.type):
             if constraint.target is not None:
                 if constraint.target.type == "ARMATURE" and constraint.subtarget is not None:
                     name += "-" + constraint.target.name + "-" + constraint.subtarget.name
                 elif constraint.target.type == "ARMATURE":
                     name += "-" + constraint.target.name
         
-        if constraints_list.has(name):
+        if list_has_item(constraints_list, name):
             duplicates.append(constraint)
         else:
-            constraint_list.append(name)
+            constraints_list.append(name)
     
     for duplicate in duplicates:
         constraints.remove(duplicate)
@@ -240,7 +237,7 @@ def remove_duplicate_constraints(constraints):
 def get_constraint_types(constraints):
     constraint_types = []
     for constraint in constraints:
-        if not constraint_types.has(constraint.type):
+        if not list_has_item(constraint_types, constraint.type):
             constraint_types.append(constraint.type)
     
     return constraint_types

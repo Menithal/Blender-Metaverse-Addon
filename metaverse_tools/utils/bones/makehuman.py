@@ -196,7 +196,7 @@ def create_blink_shapes(shapekey, armature1, armature2):
         bpy.ops.object.mode_set(mode='OBJECT')
         bpy.ops.object.select_all(action='DESELECT')
         obj.select_set(state=True)
-        bpy.ops.object.modifier_apply(apply_as='SHAPE', modifier='ARMATURE')
+        bpy.ops.object.modifier_apply(modifier='ARMATURE')
         index = 0
         for key in bpy.data.shape_keys:
             for keyblock in key.key_blocks:

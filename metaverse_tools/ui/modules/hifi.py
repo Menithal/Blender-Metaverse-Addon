@@ -28,9 +28,9 @@ from metaverse_tools.armature import SkeletonTypes
 category = "MVT: HiFi Tools"
 
 
-class AVATAR_PT_MVT_metaverse_toolsET(bpy.types.Panel):
-    """ Panel for HF Avatar related conversion tools """
-    bl_label = "Hifi Avatar Tools"
+class AVATAR_PT_MVT_metaverse_toolset(bpy.types.Panel):
+    """ Panel for Vircadia Avatar related conversion tools """
+    bl_label = "Vircadia Avatar Tools"
     bl_icon = "BONES_DATA"
 
     bl_space_type = "VIEW_3D"
@@ -269,7 +269,7 @@ class BONES_OT_MVT_TOOLSET_Remove_Physical(bpy.types.Operator):
 
 
 classes = (
-    AVATAR_PT_MVT_metaverse_toolsET,
+    AVATAR_PT_MVT_metaverse_toolset,
     ARMATURE_OT_MVT_TOOLSET_Create_HIFI_Operator,
     BONES_OT_MVT_TOOLSET_Fix_Rolls,
     BONES_OT_MVT_TOOLSET_Pin_Problem_Bones,
