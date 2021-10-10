@@ -158,14 +158,14 @@ class ARMATURE_PT_MVT_POSE_TOOLSET(bpy.types.Panel):
             ARMATURE_OT_MVT_TOOLSET_Copy_Limits.bl_idname)
 
             
-        layout.operator(
-            ARMATURE_OT_MVT_TOOLSET_Normalize_Influences.bl_idname)
+    #    layout.operator(
+    #        ARMATURE_OT_MVT_TOOLSET_Normalize_Influences.bl_idname)
         return None
 
 
 
 class ARMATURE_OT_MVT_TOOLSET_Clear_Constraint(bpy.types.Operator):
-    """  """
+    """ Removes all Constraints from bones """
     bl_idname = "metaverse_toolset.armature_clear_constraint"
     bl_label = "Clear Constraints"
     bl_region_type = "TOOLS"
@@ -202,7 +202,7 @@ class ARMATURE_OT_MVT_TOOLSET_Add_Location_Constraint(bpy.types.Operator):
 
 
 class ARMATURE_OT_MVT_TOOLSET_Add_Copy_Rotational_Constraint(bpy.types.Operator):
-    """  """
+    """  Adds COPY Rotation constraint from active bone to selected bones """
     bl_idname = "metaverse_toolset.pose_rotation_copy_constraints"
     bl_label = "Rotational Copy"
     bl_region_type = "TOOLS"
@@ -242,7 +242,7 @@ class ARMATURE_OT_MVT_TOOLSET_Add_Influenced_Location_Constraint(bpy.types.Opera
 
     
 class ARMATURE_OT_MVT_TOOLSET_Mirror_Constraints(bpy.types.Operator):
-    """  """
+    """ Mirrors all constraints to selected bones from the last selected to ones selected before """
     bl_idname = "metaverse_toolset.mirror_constraints"
     bl_label = "Mirror Constraints"
     bl_region_type = "TOOLS"
@@ -372,7 +372,7 @@ class ARMATURE_OT_MVT_TOOLSET_Clear_Custom_Shapes(bpy.types.Operator):
 
 # Add Max Normalization Amount allowing for override?
 class ARMATURE_OT_MVT_TOOLSET_Copy_Limits(bpy.types.Operator):
-    """  """
+    """  Copies all Constraints that limit the movement of a bone from one to another """
     bl_idname = "metaverse_toolset.copy_pose_constraint_limits"
     bl_label = "Copy Limits"
     bl_region_type = "TOOLS"
@@ -387,20 +387,20 @@ class ARMATURE_OT_MVT_TOOLSET_Copy_Limits(bpy.types.Operator):
         return {'FINISHED'}
 
 # Add Max Normalization Amount allowing for override?
-class ARMATURE_OT_MVT_TOOLSET_Normalize_Influences(bpy.types.Operator):
-    """  """
-    bl_idname = "metaverse_toolset.normalize_pose_constrain_influences"
-    bl_label = "Normalize Constraint Influences"
-    bl_region_type = "TOOLS"
+#class ARMATURE_OT_MVT_TOOLSET_Normalize_Influences(bpy.types.Operator):
+#    """ Normalizes influences between any copy location/rotation/ """
+#    bl_idname = "metaverse_toolset.normalize_pose_constrain_influences"
+#    bl_label = "Normalize Constraint Influences"
+#    bl_region_type = "TOOLS"
 
-    bl_space_type = "VIEW_3D"
-    @classmethod
-    def poll(self, context):
-        return context.selected_pose_bones is not None and len(context.selected_pose_bones) >= 1
+#    bl_space_type = "VIEW_3D"
+#    @classmethod
+#    def poll(self, context):
+#        return context.selected_pose_bones is not None and len(context.selected_pose_bones) >= 1
 
-    def execute(self, context):
-        pose_helper.normalize_pose_copy_location_rotation(context.selected_pose_bones)
-        return {'FINISHED'}
+#    def execute(self, context):
+#        pose_helper.normalize_constraints_rotation(context.selected_pose_bones)
+#        return {'FINISHED'}
 
 
 classes = (
@@ -423,7 +423,7 @@ classes = (
     ARMATURE_OT_MVT_TOOLSET_Unlock_Translations,
     ARMATURE_OT_MVT_TOOLSET_Copy_Custom_Shapes,
     ARMATURE_OT_MVT_TOOLSET_Clear_Custom_Shapes,
-    ARMATURE_OT_MVT_TOOLSET_Normalize_Influences,
+    #ARMATURE_OT_MVT_TOOLSET_Normalize_Influences,
     ARMATURE_OT_MVT_TOOLSET_Copy_Limits,
     ARMATURE_OT_MVT_TOOLSET_Add_Copy_Rotational_Constraint,
     ARMATURE_PT_MVT_BONE_UTILITY

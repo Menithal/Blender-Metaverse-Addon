@@ -157,7 +157,7 @@ def split_bone_frames_into_mirrored_action(armature, action, half = False):
         return
 
     split_action_name = mirrorable_name_re.split(name)
-    keyframed_bones: List[BoneData] = get_bone_frames_in_action(armature, action)
+    keyframed_bones: [BoneData] = get_bone_frames_in_action(armature, action)
 
     def check_side (side, short_side, long_side, bone_side): 
         return (side == short_side or side == long_side) and long_side == bone_side
