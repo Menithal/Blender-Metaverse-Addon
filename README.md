@@ -17,7 +17,7 @@ Currently Supports
 # Installation Guide
 
 ## Simple
-Open the Github page, Go to releases and download the `metaverse_tools.zip` zip file. 
+Open the Github page, go to releases and download the `metaverse_tools.zip` zip file. 
 
 In Blender. Goto `User Preferences`, and `Add-ons`. From there `Install Add-on from File` and select the Zip file that we downloaded.
 
@@ -27,7 +27,7 @@ Enable the plugin under `Import-Export: Metaverse Toolkit Blender Add-on`.
 
 ## If you use the git repository:
 
-Make sure to `git submodule init` and `git submodule update` as we are using an external add on to bind shapkeys to new model.
+Make sure to `git submodule init` and `git submodule update` as we are using an external add on to bind shapekeys to new model.
 
 Copy `metaverse_tools` folder to your Blender Addons Directory. 
 
@@ -103,7 +103,7 @@ Note that Boolean operations work differently, and some may not keep the UV Unwr
 
 Work in progress module to try to stream line some "gotchas" when converting avatars to VRC without the duplicate operator additions from CATS (creating operators for Tools that are already in Blender, which create abit of clutter during operator searches). Also by proxy supports NeosVR, which automatically binds the visemes when fbx export is used.
 
-- A new Panel on the `3D View`'s right tool set is added, labled `MVT: VRC Tools`
+- A new Panel on the `3D View`'s right tool set is added, labeled `MVT: VRC Tools`
 - Armature Tools
     - `Add VRC Armature` - Adds an Armature which is compatible with VRC
     - `Generate VRC Shapekeys` - Generates empty shapekeys (for now, later will allow the use of various methods, including CATS, and custom)
@@ -113,7 +113,7 @@ Work in progress module to try to stream line some "gotchas" when converting ava
 
 Work in progress module to try to stream line some "gotchas" when converting avatars to TE.
 
-- A new Panel on the `3D View`'s right tool set is added, labled `MVT: TowerUnite Tools`
+- A new Panel on the `3D View`'s right tool set is added, labeled `MVT: TowerUnite Tools`
 - Armature Tools
     - `Add TU Armature` - Adds an Armature which is compatible with Tower Unite
     - `Clean Shapekeys` - Utility function to quickly remove all shapekeys from a model
@@ -143,7 +143,7 @@ Mostly Tools for assisting with creating rigs for animations into various platfo
 # Changelog:
 
 ### 3.1.0
-- Added `Facerig/Animaze Bundle export` - Creates a folder structure taht is compatible with animaze/facerig
+- Added `Facerig/Animaze Bundle export` - Creates a folder structure that is compatible with animaze/facerig
 - Hifi->Vircadia rename
 - `Split Mirrorable Actions` Mirror Actions into Actions allowing creation of mirrored actions
 - Using latest Apply Modifiers version for better Blender 2.90+ compatability
