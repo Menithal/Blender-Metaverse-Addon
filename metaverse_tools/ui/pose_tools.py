@@ -258,7 +258,7 @@ class ARMATURE_OT_MVT_TOOLSET_Mirror_Constraints(bpy.types.Operator):
 
 
 class ARMATURE_OT_MVT_TOOLSET_Clone_Locks(bpy.types.Operator):
-    """  """
+    """ Clones rotation/position locks from one bone to another """
     bl_idname = "metaverse_toolset.clone_pose_locks"
     bl_label = "Clone Locks"
     bl_region_type = "TOOLS"
@@ -274,7 +274,7 @@ class ARMATURE_OT_MVT_TOOLSET_Clone_Locks(bpy.types.Operator):
 
 
 class ARMATURE_OT_MVT_TOOLSET_Lock_Rotations(bpy.types.Operator):
-    """  """
+    """  Locks a bones ability to rotate """
     bl_idname = "metaverse_toolset.lock_pose_rotations"
     bl_label = "Lock Rotations"
     bl_region_type = "TOOLS"
@@ -290,7 +290,7 @@ class ARMATURE_OT_MVT_TOOLSET_Lock_Rotations(bpy.types.Operator):
 
 
 class ARMATURE_OT_MVT_TOOLSET_Unlock_Rotations(bpy.types.Operator):
-    """  """
+    """  Unlocks a bones ability to rotate """
     bl_idname = "metaverse_toolset.unlock_pose_rotations"
     bl_label = "Unlock Rotations"
     bl_region_type = "TOOLS"
@@ -306,7 +306,7 @@ class ARMATURE_OT_MVT_TOOLSET_Unlock_Rotations(bpy.types.Operator):
 
 
 class ARMATURE_OT_MVT_TOOLSET_Lock_Translations(bpy.types.Operator):
-    """  """
+    """  Locks a bones ability to translate  """
     bl_idname = "metaverse_toolset.lock_pose_translations"
     bl_label = "Lock Translations"
     bl_region_type = "TOOLS"
@@ -322,7 +322,7 @@ class ARMATURE_OT_MVT_TOOLSET_Lock_Translations(bpy.types.Operator):
 
 
 class ARMATURE_OT_MVT_TOOLSET_Unlock_Translations(bpy.types.Operator):
-    """  """
+    """  Unlocks a bones ability to translate """
     bl_idname = "metaverse_toolset.unlock_pose_translations"
     bl_label = "Unlock Translations"
     bl_region_type = "TOOLS"
@@ -338,7 +338,7 @@ class ARMATURE_OT_MVT_TOOLSET_Unlock_Translations(bpy.types.Operator):
 
 
 class ARMATURE_OT_MVT_TOOLSET_Copy_Custom_Shapes(bpy.types.Operator):
-    """  """
+    """ Copy Custom Shapes """
     bl_idname = "metaverse_toolset.copy_custom_pose_shape"
     bl_label = "Copy Custom Shapes"
     bl_region_type = "TOOLS"
@@ -354,7 +354,7 @@ class ARMATURE_OT_MVT_TOOLSET_Copy_Custom_Shapes(bpy.types.Operator):
 
         
 class ARMATURE_OT_MVT_TOOLSET_Clear_Custom_Shapes(bpy.types.Operator):
-    """  """
+    """ Clear Custom Shapes """
     bl_idname = "metaverse_toolset.clear_custom_pose_shpae"
     bl_label = "Clear Custom Shapes"
     bl_region_type = "TOOLS"
