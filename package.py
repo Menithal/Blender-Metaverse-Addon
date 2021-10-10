@@ -1,4 +1,4 @@
-#! python3.7
+
 
 import zipfile, os, re
 

@@ -69,7 +69,7 @@ docs/_build/
 
 # PyBuilder
 target/
-
+metaverse_tools/ext/apply_modifier_for_object_with_shapekeys/__pycache__
 # Jupyter Notebook
 .ipynb_checkpoints
 
