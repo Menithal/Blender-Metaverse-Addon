@@ -142,6 +142,12 @@ Mostly Tools for assisting with creating rigs for animations into various platfo
 
 # Changelog:
 
+### 3.1.0
+- Added `Facerig/Animaze Bundle export` - Creates a folder structure taht is compatible with animaze/facerig
+- Hifi->Vircadia rename
+- `Split Mirrorable Actions` Mirror Actions into Actions allowing creation of mirrored actions
+- Using latest Apply Modifiers version for better Blender 2.90+ compatability
+
 ### 2.1.0
 - Added Hotfix #29 and #28 Relating to Hifi FBX and the FBX changes in 2.8
 - Added `Pose Constraint Tools` for dealing with bone constraints
