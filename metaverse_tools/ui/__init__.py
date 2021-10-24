@@ -31,6 +31,7 @@ from . import sculpt_tools
 from . import pose_tools
 from . import mesh_tools
 from . import action_tools
+from . import weight_tools
 
 from .modules import hifi as hifi_ui
 from .modules import vrc as vrc_ui
@@ -85,6 +86,7 @@ def register_operators():
     mesh_tools.module_register()
     sculpt_tools.module_register()
     generic_ui.module_register()
+    weight_tools.module_register()
 
 def unregister_operators():
     module_unregister()
@@ -98,3 +100,4 @@ def unregister_operators():
     mesh_tools.module_unregister()
     sculpt_tools.module_unregister()
     generic_ui.module_unregister()
+    weight_tools.module_unregister()

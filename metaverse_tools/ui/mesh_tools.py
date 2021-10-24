@@ -1,6 +1,6 @@
 
 import bpy
-from metaverse_tools.utils.helpers import mesh
+from metaverse_tools.utils.helpers import common, mesh
 
 class MESH_PT_MVT_TOOLSET(bpy.types.Panel):
     """ Panel for Mesh related tools """
@@ -21,10 +21,10 @@ class MESH_PT_MVT_TOOLSET(bpy.types.Panel):
         layout.operator(
             MESH_OT_MVT_TOOL_Clean_Unused_Vertex_Groups.bl_idname, icon='NORMALS_VERTEX',  emboss=False)
         layout.operator(
-            OBJECT_OT_MVT_TOOL_Boolean_Unite.bl_idname, icon='SELECT_EXTEND',  emboss=False)
+            OBJECT_OT_MVT_TOOL_Duplicate_Merge.bl_idname, icon='SELECT_EXTEND',  emboss=False)
         return None
 
-# boolean_union_objects
+# boolean_mesh_data_duplicate
 
 class MESH_OT_MVT_TOOL_Message_Processing(bpy.types.Operator):
     """ This Operator is used show yes indeed we are doing something.
@@ -111,10 +111,10 @@ class MESH_OT_MVT_TOOL_Clean_Unused_Vertex_Groups(bpy.types.Operator):
         return {"FINISHED"}
 
 
-class OBJECT_OT_MVT_TOOL_Boolean_Unite(bpy.types.Operator):
-    """ Quick Helper Button to merge with Boolean Operation objects  """
-    bl_label = "Boolean Unite"
-    bl_idname = "metaverse_toolset.boolean_operate_unite_selected_to_active"
+class OBJECT_OT_MVT_TOOL_Duplicate_Merge(bpy.types.Operator):
+    """ Quick Helper Button to duplicate and MERGE mesh without losing old Merges """
+    bl_label = "Duplicate Merge"
+    bl_idname = "metaverse_toolset.duplicate_merge"
     bl_space_type = "VIEW_3D"
 
     @classmethod
@@ -122,7 +122,7 @@ class OBJECT_OT_MVT_TOOL_Boolean_Unite(bpy.types.Operator):
         return len(context.selected_objects) > 1 and context.active_object is not None and context.active_object.type == "MESH"
 
     def execute(self, context):
-        mesh.boolean_union_objects(context.active_object, context.selected_objects)
+        mesh.duplicate_join(context.selected_objects)
         return {"FINISHED"}
 
 
@@ -133,7 +133,7 @@ classes = (
     MESH_OT_MVT_TOOL_Message_Processing,
     MESH_OT_MVT_TOOL_Merge_Modifiers_Shapekey,
     MESH_OT_MVT_TOOL_Clean_Unused_Vertex_Groups,
-    OBJECT_OT_MVT_TOOL_Boolean_Unite
+    OBJECT_OT_MVT_TOOL_Duplicate_Merge
 )
 
 module_register, module_unregister = bpy.utils.register_classes_factory(

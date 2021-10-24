@@ -195,4 +195,4 @@ def split_bone_frames_into_mirrored_action(armature, action, half = False):
 def split_all_actions(armature, actions):
     for action in actions:
         split_bone_frames_into_mirrored_action(armature, action)
-    
+
