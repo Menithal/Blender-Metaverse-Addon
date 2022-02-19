@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # Scene Logic for Parsing and Navigating Content Tree
-# Copyright 2021 Matti 'Menithal' Lahtinen
+# Copyright 2022 Matti 'Menithal' Lahtinen
 
 
 import bpy

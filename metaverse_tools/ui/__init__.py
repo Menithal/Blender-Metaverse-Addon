@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # Adding Armature related functions to the Blender Hifi Tool set
-# Copyright 2021 Matti 'Menithal' Lahtinen
+# Copyright 2022 Matti 'Menithal' Lahtinen
 
 import bpy
 from bpy.props import StringProperty
