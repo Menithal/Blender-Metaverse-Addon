@@ -18,7 +18,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# Copyright 2019 Matti 'Menithal' Lahtinen
+# Copyright 2021 Matti 'Menithal' Lahtinen
 import bpy
 import re
 from . import bones_builder
@@ -361,6 +361,7 @@ def rename_bones_and_fix_most_things(self, context):
                         target_block = blocks.get(blend_map.to)
                         if target_block is None:
                             block.value = blend_map.value
+                            #TODO: blendmap not supported
                             child.shape_key_add(
                                 name=blend_map.to, from_mix=True)
                             block.value = 0

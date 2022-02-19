@@ -18,7 +18,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# Copyright 2019 Matti 'Menithal' Lahtinen
+# Copyright 2021 Matti 'Menithal' Lahtinen
 
 import bpy
 
@@ -26,7 +26,7 @@ from metaverse_tools.utils.bones import bones_builder, mmd, mixamo, makehuman
 from metaverse_tools.utils.helpers import mesh
 from metaverse_tools.armature import SkeletonTypes
 #temporary
-from .hifi import BONES_OT_MVT_TOOLSET_Pin_Problem_Bones, BONES_OT_MVT_TOOLSET_Fix_Rolls
+from .hifi import BONES_OT_MVT_TOOLSET_Fix_Rolls
 
 category = "MVT: VRC Tools"
 
@@ -35,21 +35,21 @@ expected_vrc_shapekeys = [
     'vrc.blink_right',
     'vrc.lowerlid_left',
     'vrc.lowerlid_right',
-    'vrc.v_aa',
-    'vrc.v_ch',
-    'vrc.v_dd',
-    'vrc.v_e',
-    'vrc.v_ff',
-    'vrc.v_ih',
-    'vrc.v_kk',
-    'vrc.v_nn',
-    'vrc.v_oh',
-    'vrc.v_ou',
-    'vrc.v_pp',
-    'vrc.v_rr',
-    'vrc.v_sil',
-    'vrc.v_ss',
-    'vrc.v_th',
+    'vrc.v_aa', #A
+    'vrc.v_ch', #CH
+    'vrc.v_dd', #DD
+    'vrc.v_e', #E
+    'vrc.v_ff', # FF
+    'vrc.v_ih', #I
+    'vrc.v_kk', # KK
+    'vrc.v_nn', # NN
+    'vrc.v_oh', #O 
+    'vrc.v_ou', #U
+    'vrc.v_pp', # pp
+    'vrc.v_rr', #rr
+    'vrc.v_sil', #SIL
+    'vrc.v_ss', # ss
+    'vrc.v_th', #Th
 ]
 
 

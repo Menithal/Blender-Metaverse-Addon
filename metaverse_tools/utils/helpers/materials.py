@@ -16,7 +16,7 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
-# Copyright 2019 Matti 'Menithal' Lahtinen
+# Copyright 2021 Matti 'Menithal' Lahtinen
 
 import copy
 import bpy
@@ -201,20 +201,23 @@ def correct_all_color_spaces_to_non_color(context):
     if colorspaces_on_save:
         print("Colorspace corrections")
         for mat in bpy.data.materials:
-            node = get_principled_bsdf_shader(mat.node_tree.nodes)
-            if node is not None:
-                correct_node_color_space_to_non_color(
-                    node.inputs.get("Metallic"))
-                correct_node_color_space_to_non_color(
-                    node.inputs.get("Roughness"))
-                correct_node_color_space_to_non_color(
-                    node.inputs.get("Subsurface Scattering"))
-                normal_map_socket = node.inputs.get("Normal")
-
-                if normal_map_socket is not None and len(normal_map_socket.links) is not 0:
-                    normal_map = normal_map_socket.links[0].from_node
+            if mat is None or mat.node_tree is None or mat.node_tree.nodes is None: 
+                continue
+            else:
+                node = get_principled_bsdf_shader(mat.node_tree.nodes)
+                if node is not None:
                     correct_node_color_space_to_non_color(
-                        normal_map.inputs.get("Color"))
+                        node.inputs.get("Metallic"))
+                    correct_node_color_space_to_non_color(
+                        node.inputs.get("Roughness"))
+                    correct_node_color_space_to_non_color(
+                        node.inputs.get("Subsurface Scattering"))
+                    normal_map_socket = node.inputs.get("Normal")
+
+                    if normal_map_socket is not None and len(normal_map_socket.links) is not 0:
+                        normal_map = normal_map_socket.links[0].from_node
+                        correct_node_color_space_to_non_color(
+                            normal_map.inputs.get("Color"))
 
 
 class HifiShaderWrapper(PrincipledBSDFWrapper):

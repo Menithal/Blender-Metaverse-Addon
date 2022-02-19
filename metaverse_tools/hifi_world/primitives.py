@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # Primitive Logic for Content from High Fidelity to match source.
-# Copyright 2019 Matti 'Menithal' Lahtinen
+# Copyright 2021 Matti 'Menithal' Lahtinen
 
 import bpy
 import addon_utils

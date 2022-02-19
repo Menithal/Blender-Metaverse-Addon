@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # Adding Armature related functions to the Blender Hifi Tool set
-# Copyright 2019 Matti 'Menithal' Lahtinen
+# Copyright 2021 Matti 'Menithal' Lahtinen
 
 import bpy
 from bpy.props import StringProperty
@@ -32,6 +32,7 @@ from . import pose_tools
 from . import mesh_tools
 from . import action_tools
 from . import weight_tools
+from . import curve_tools
 
 from .modules import hifi as hifi_ui
 from .modules import vrc as vrc_ui
@@ -87,6 +88,7 @@ def register_operators():
     sculpt_tools.module_register()
     generic_ui.module_register()
     weight_tools.module_register()
+    curve_tools.module_register()
 
 def unregister_operators():
     module_unregister()
@@ -101,3 +103,4 @@ def unregister_operators():
     sculpt_tools.module_unregister()
     generic_ui.module_unregister()
     weight_tools.module_unregister()
+    curve_tools.module_unregister()

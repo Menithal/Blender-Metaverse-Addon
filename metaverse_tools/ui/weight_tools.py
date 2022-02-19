@@ -8,12 +8,11 @@ class WEIGHTPAINT_PT_MVT_TOOLSET(bpy.types.Panel):
 
     @classmethod
     def poll(self, context):
-        print(context.mode + "SWAP")
         return context.mode == "PAINT_WEIGHT"
 
-    def draw(self):
+    def draw(self, context):
         layout = self.layout
-        layout.operator(WEIGHTPAINT_PT_MVT_TOOLSET.bl_idname, icon='MOD_VERTEX_WEIGHT', emboss=False)
+        layout.operator(WEIGHTPAINT_OT_MVT_TOOLSET_Smooth_Vertex_Group.bl_idname, icon='MOD_VERTEX_WEIGHT', emboss=False)
         return None
 
 
@@ -24,8 +23,8 @@ class WEIGHTPAINT_OT_MVT_TOOLSET_Smooth_Vertex_Group(bpy.types.Operator):
     bl_region_type = "TOOLS"
     bl_space_type = "VIEW_3D"
 
-    def execute(self):
-        bpy.ops.paint.vertex_color_smooth()
+    def execute(self, context):
+        bpy.ops.object.vertex_group_smooth()
         return {'FINISHED'}
 
 

@@ -33,6 +33,7 @@ class BONES_PT_MVT_TOOLSET(bpy.types.Panel):
 
         layout.operator(BONES_OT_MVT_TOOLSET_Add_Deform.bl_idname)
         layout.operator(BONES_OT_MVT_TOOLSET_Remove_Deform.bl_idname)
+        layout.operator(BONES_OT_MVT_TOOLSET_Match_Rotation.bl_idname)
         return None
 
 
@@ -254,6 +255,22 @@ class BONES_OT_MVT_TOOLSET_Add_Deform(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class BONES_OT_MVT_TOOLSET_Match_Rotation(bpy.types.Operator):
+    """Match bonerotation for easier IK creation"""
+    bl_idname = 'metaverse_toolset.match_rotation'
+    bl_label = 'Match Bone rotation'
+    bl_region_type = "TOOLS"
+    bl_space_types = "VIEW_3D"
+
+    
+    @classmethod
+    def poll(self, context):
+        return context.selected_editable_bones is not None and len(context.selected_editable_bones) > 0
+
+    def execute(self,context):
+        bones_builder.copy_editable_rotation(context.active_bones, context.selected_editable_bones)
+        return {'FINISHED'}
+
 
 
 classes = (
@@ -268,7 +285,8 @@ classes = (
     BONES_OT_MVT_TOOLSET_Mirror_And_Rename_On_X,
     BONES_OT_MVT_TOOLSET_Reparent_To_Last,
     BONES_OT_MVT_TOOLSET_Remove_Deform,
-    BONES_OT_MVT_TOOLSET_Add_Deform
+    BONES_OT_MVT_TOOLSET_Add_Deform,
+    BONES_OT_MVT_TOOLSET_Match_Rotation
 )
 
 

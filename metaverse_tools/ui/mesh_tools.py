@@ -21,6 +21,8 @@ class MESH_PT_MVT_TOOLSET(bpy.types.Panel):
         layout.operator(
             MESH_OT_MVT_TOOL_Clean_Unused_Vertex_Groups.bl_idname, icon='NORMALS_VERTEX',  emboss=False)
         layout.operator(
+            OBJECT_OT_MVT_TOOL_Union_Duplicate_Merge.bl_idname, icon='SELECT_EXTEND',  emboss=False)
+        layout.operator(
             OBJECT_OT_MVT_TOOL_Duplicate_Merge.bl_idname, icon='SELECT_EXTEND',  emboss=False)
         return None
 
@@ -111,6 +113,22 @@ class MESH_OT_MVT_TOOL_Clean_Unused_Vertex_Groups(bpy.types.Operator):
         return {"FINISHED"}
 
 
+class OBJECT_OT_MVT_TOOL_Union_Duplicate_Merge(bpy.types.Operator):
+    """ Quick Helper Button to duplicate and MERGE mesh without losing old Merges """
+    bl_label = "Duplicate Union Merge"
+    bl_idname = "metaverse_toolset.union_duplicate_merge"
+    bl_space_type = "VIEW_3D"
+
+    @classmethod
+    def poll(self, context):
+        return len(context.selected_objects) > 1 and context.active_object is not None and context.active_object.type == "MESH"
+
+    def execute(self, context):
+        mesh.duplicate_union_join(context.selected_objects)
+        return {"FINISHED"}
+
+
+
 class OBJECT_OT_MVT_TOOL_Duplicate_Merge(bpy.types.Operator):
     """ Quick Helper Button to duplicate and MERGE mesh without losing old Merges """
     bl_label = "Duplicate Merge"
@@ -133,7 +151,8 @@ classes = (
     MESH_OT_MVT_TOOL_Message_Processing,
     MESH_OT_MVT_TOOL_Merge_Modifiers_Shapekey,
     MESH_OT_MVT_TOOL_Clean_Unused_Vertex_Groups,
-    OBJECT_OT_MVT_TOOL_Duplicate_Merge
+    OBJECT_OT_MVT_TOOL_Duplicate_Merge,
+    OBJECT_OT_MVT_TOOL_Union_Duplicate_Merge
 )
 
 module_register, module_unregister = bpy.utils.register_classes_factory(

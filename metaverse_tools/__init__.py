@@ -109,7 +109,7 @@ def menu_func_export(self, context):
 
 
 classes = (
-    EXPORT_OT_MVT_TOOLSET_Message_Error_Missing_ATP_Override,
+    #EXPORT_OT_MVT_TOOLSET_Message_Error_Missing_ATP_Override,
     EXPORT_OT_MVT_TOOLSET_Writer_GLTF_JSON,
     EXPORT_OT_MVT_TOOLSET_Writer_FBX_JSON,
     EXPORT_OT_MVT_TOOLSET_Writer_Facerig_Bundle_DAE,

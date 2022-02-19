@@ -107,20 +107,80 @@ def clean_unused_vertex_groups(obj):
 def get_shape_keys(mesh):
     if mesh.type != "MESH":
         raise "Object was not a mesh"
-
+    if mesh.data.shape_keys is None:
+        return None
     return mesh.data.shape_keys.key_blocks
 
 
 def generate_empty_shapekeys(obj, target_shapekey_list):
     print("generate_empty_shapekeys", obj)
     shape_keys = get_shape_keys(obj)
+    if shape_keys is None:
+        bpy.ops.object.shape_key_add()
+        shape_keys = get_shape_keys(obj)
+
     for key in target_shapekey_list:
         print(key, shape_keys.find(key))
         if shape_keys.find(key) == -1:
             bpy.ops.object.shape_key_clear()
             obj.shape_key_add(name=key)
-            
 
+
+def duplicate_union_join(context_meshes, apply_modifiers=True):
+    meshes = common.of(context_meshes, "MESH")
+
+    if bpy.data.collections.get('Combined Mesh') is None:
+        bpy.context.scene.collection.children.link(bpy.data.collections.new('Combined Mesh'))
+
+    mesh_collection = bpy.data.collections.get('Combined Mesh')
+    common.select(meshes)
+    bpy.ops.object.duplicate()
+
+    duplicates = bpy.context.selected_objects[:]
+
+    common.deselect_all() #wipe selection for now
+
+    for duplicate in duplicates:
+        common.object_active(duplicate)
+        mesh_collection.objects.link(duplicate)
+        for modifier in duplicate.modifiers: 
+            apply_modifier(bpy.context, modifier.name, False)
+
+    boolean_union_objects(duplicates[0], duplicates)
+    combinator = bpy.context.active_object
+
+    combinator.name = meshes[0].name + " combined"
+
+
+def boolean_union_objects(active, meshes):
+    # Now if above is a mesh type to do join / boolean operations on
+    for mesh in meshes:
+        if mesh is not active:
+            # Material Combinator to pre-combine materials prior to applying boolean operator or joining objects together
+            # This allows the materials to be maintained even if they are joined.
+            # for each material the child's blender objects have
+            for material in mesh.data.materials.values():
+                # and if the material is set, and is not yet set for the parent, add an instance of the material to the parent
+                if material is not None and material not in bpy.context.object.data.materials.values():
+                    bpy.context.object.data.materials.append(material)
+            # If the scene wants to use boolean operators, this overrides join children (as it is a method to join children)
+            bpy.ops.object.modifier_add(type='TRIANGULATE')     
+            
+            name = mesh.name + '-Tri'
+            bpy.context.object.modifiers["Triangulate"].name = name
+            bpy.ops.object.modifier_apply(
+                modifier=name)
+            bpy.ops.object.modifier_add(type='BOOLEAN')
+            # Set name for modifier to keep track of it.
+            name = mesh.name + '-Boolean'
+            bpy.context.object.modifiers["Boolean"].name = name
+            bpy.context.object.modifiers[name].operation = 'UNION'
+            bpy.context.object.modifiers[name].object = mesh
+            bpy.ops.object.modifier_apply(
+                modifier=name)
+            # Clean up the child object from the blender scene.
+            bpy.data.objects.remove(mesh)
+            # TODO: Set Child.blender_object as the blender object of the parent to maintain links
 
 def duplicate_join(context_meshes, apply_modifiers=True):
     meshes = common.of(context_meshes, "MESH")
@@ -150,16 +210,34 @@ def duplicate_join(context_meshes, apply_modifiers=True):
     combinator.name = meshes[0].name + " combined"
 
 
+def bake_shape_key_to_all(base_name, context):    
+    #TODO: backup
+    # Go through new context,
+    key_blocks = context.data.shape_keys.key_blocks
+    list_shapes = [o for o in key_blocks]
+    for shapekey in list_shapes:
+        if base_name != shapekey.name and "Basis" != shapekey.name:
+            original_name = shapekey.name
+            shapekey.name = shapekey.name +  "_dup"
+            shapekey.value = 1.0
+            
+            context.shape_key_add(name=original_name, from_mix=True)
+            shapekey.value = 0.0
+            
+            context.shape_key_remove(shapekey)
+
+
+
 def sort_shapekeys(obj, target_shapekey_list):
-    print("sort_shapekeys", obj)
     shape_keys = get_shape_keys(obj)
-    print(shape_keys)
+    if shape_keys is None:
+        return
+    
     name_list = [sk.name for sk in shape_keys]
     moved = 0
 
     for key in reversed(target_shapekey_list):
         try:
-            
             index = name_list.index(key)
             bpy.context.object.active_shape_key_index = index + moved
             bpy.ops.object.shape_key_move(type='TOP')

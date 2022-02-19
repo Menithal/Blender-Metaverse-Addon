@@ -18,7 +18,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# Copyright 2019 Matti 'Menithal' Lahtinen
+# Copyright 2021 Matti 'Menithal' Lahtinen
 import bpy
 import re
 from bpy.types import EditBone
@@ -785,3 +785,14 @@ def retarget_armature(options, selected, skeleton=SkeletonTypes.HIFI, selected_o
         # Judas proofing:
         print("No Armature, select, throw an exception")
         raise Exception("You must have an armature to continue")
+
+
+def copy_editable_rotation(active_bone, selected):
+    normal_difference = (active_bone.head - active_bone.tail).normalized()
+
+    for bone in  selected:
+        distance = (bone.head - bone.tail).magnitude
+        if bone.tail.z > bone.head.z:
+            bone.tail = bone.head - distance * normal_difference
+        else:
+            bone.tail = bone.head + distance * normal_difference
