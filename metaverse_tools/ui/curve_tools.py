@@ -2,6 +2,8 @@
 from operator import truediv
 import bpy
 
+from metaverse_tools.utils.helpers.mesh import get_ui_meshes
+
 def get_curve_length(curve):
   depsgraph = bpy.context.evaluated_depsgraph_get()
   curveLength = sum (s.calc_length() for s in curve.evaluated_get(depsgraph).data.splines)
@@ -32,18 +34,6 @@ def make_mesh_per_curve(curves, mesh, axis, duplicate=False):
     modifier.show_on_cage = True
 
 
-def get_meshes(self, context):
-    obj = []
-    count = 0
-    for ob in context.scene.objects:
-        if ob.type == 'MESH':
-            if(ob.visible_get()):
-                obj.append((ob.name, ob.name, "MESH"))
-                count += 1
-
-    return obj 
-
-
 
 class CURVE_OT_MVT_TOOLSET_Hair_Mesh_To_Curves(bpy.types.Operator):
     bl_idname = "metaverse_toolset.duplicate_mesh_to_curves"
@@ -54,7 +44,7 @@ class CURVE_OT_MVT_TOOLSET_Hair_Mesh_To_Curves(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
     
     target_mesh: bpy.props.EnumProperty(
-        name="Select Mesh", items=get_meshes)
+        name="Select Mesh", items=get_ui_meshes)
     direction: bpy.props.EnumProperty(
         name="Direction", items=(('POS_X', 'X','AXIS_SIDE'),
         ('NEG_X','-X','AXIS_SIDE'),

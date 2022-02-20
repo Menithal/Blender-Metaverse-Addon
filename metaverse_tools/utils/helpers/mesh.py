@@ -104,6 +104,28 @@ def clean_unused_vertex_groups(obj):
     bpy.context.view_layer.objects.active = obj
 
 
+def get_ui_shape_keys(self, context):
+    obj = []
+    mesh = context.active_object
+    print("get ui shapekeys")
+    if mesh.type == 'MESH':
+        for ob in get_shape_keys(mesh):
+            obj.append((ob.name, ob.name, "MESH")) # Continue from here.
+    return obj 
+    
+
+def get_ui_meshes(self, context):
+    obj = []
+    count = 0
+    for ob in context.scene.objects:
+        if ob.type == 'MESH':
+            if(ob.visible_get()):
+                obj.append((ob.name, ob.name, "MESH"))
+                count += 1
+
+    return obj 
+
+
 def get_shape_keys(mesh):
     if mesh.type != "MESH":
         raise "Object was not a mesh"
@@ -227,7 +249,6 @@ def bake_shape_key_to_all(base_name, context):
             context.shape_key_remove(shapekey)
 
 
-
 def sort_shapekeys(obj, target_shapekey_list):
     shape_keys = get_shape_keys(obj)
     if shape_keys is None:
@@ -246,3 +267,26 @@ def sort_shapekeys(obj, target_shapekey_list):
             name_list.pop(index)
         except Exception as e:
             print("Could not find shapekey ", key, " Skipping: Full: ", e)
+
+
+
+
+def bake_shape_to_all(context, base_name):    
+    # backup object
+    # Go through new context,
+    key_blocks = context.data.shape_keys.key_blocks
+    list_shapes = [o for o in key_blocks]
+    for shapekey in list_shapes:
+        if base_name != shapekey.name and "Basis" != shapekey.name:
+            original_name = shapekey.name
+            shapekey.name = shapekey.name +  "_dup"
+            shapekey.value = 1.0
+            
+            context.shape_key_add(name=original_name, from_mix=True)
+            shapekey.value = 0.0
+            
+            context.shape_key_remove(shapekey)
+
+        #bpy.ops.object.shape_key_add(from_mix=True)
+
+#bake_shape_to_all("Baked_Shape", bpy.context.active_object)

@@ -24,6 +24,9 @@ class MESH_PT_MVT_TOOLSET(bpy.types.Panel):
             OBJECT_OT_MVT_TOOL_Union_Duplicate_Merge.bl_idname, icon='SELECT_EXTEND',  emboss=False)
         layout.operator(
             OBJECT_OT_MVT_TOOL_Duplicate_Merge.bl_idname, icon='SELECT_EXTEND',  emboss=False)
+            
+        layout.operator(
+            OBJECT_OT_MVT_TOOL_Bake_Shape_To_All.bl_idname, icon='MESH_DATA',  emboss=False)
         return None
 
 # boolean_mesh_data_duplicate
@@ -128,7 +131,6 @@ class OBJECT_OT_MVT_TOOL_Union_Duplicate_Merge(bpy.types.Operator):
         return {"FINISHED"}
 
 
-
 class OBJECT_OT_MVT_TOOL_Duplicate_Merge(bpy.types.Operator):
     """ Quick Helper Button to duplicate and MERGE mesh without losing old Merges """
     bl_label = "Duplicate Merge"
@@ -144,6 +146,30 @@ class OBJECT_OT_MVT_TOOL_Duplicate_Merge(bpy.types.Operator):
         return {"FINISHED"}
 
 
+class OBJECT_OT_MVT_TOOL_Bake_Shape_To_All(bpy.types.Operator):
+    """ Bake A Shapekey to all shapekeys """
+    bl_label = "Merge Shapekey to Others"
+    bl_idname = "metaverse_toolset.bake_shape_to_all"
+    bl_space_type = "VIEW_3D"
+
+    merge_shapekey: bpy.props.EnumProperty(
+        name="Select Blendshape", items=mesh.get_ui_shape_keys
+    )
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self, width=400)
+
+    @classmethod
+    def poll(self, context):
+        return context.active_object is not None and context.active_object.data.shape_keys is not None and len(context.active_object.data.shape_keys.key_blocks) > 0
+
+    def execute(self, context):
+
+        return {"FINISHED"}
+
+
+
 
 classes = (
     MESH_PT_MVT_TOOLSET,
@@ -152,7 +178,8 @@ classes = (
     MESH_OT_MVT_TOOL_Merge_Modifiers_Shapekey,
     MESH_OT_MVT_TOOL_Clean_Unused_Vertex_Groups,
     OBJECT_OT_MVT_TOOL_Duplicate_Merge,
-    OBJECT_OT_MVT_TOOL_Union_Duplicate_Merge
+    OBJECT_OT_MVT_TOOL_Union_Duplicate_Merge,
+    OBJECT_OT_MVT_TOOL_Bake_Shape_To_All
 )
 
 module_register, module_unregister = bpy.utils.register_classes_factory(
@@ -165,3 +192,5 @@ def register_operators():
 
 def unregister_operators():
     module_unregister()
+
+

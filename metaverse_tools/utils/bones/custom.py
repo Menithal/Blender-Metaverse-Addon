@@ -43,7 +43,6 @@ def get_armatures(self, context):
             if(ob.visible_get()):
                 obj.append((ob.name, ob.name, "ARMATURE_DATA"))
                 count += 1
-
     return obj
 
 
@@ -486,7 +485,6 @@ class AVATAR_OT_MVT_TOOLSET_Custom_Avatar_Binder_Operator(bpy.types.Operator):
 
         if self.armatures is not "":
             data = context.scene.objects[self.armatures].data
-
             # Do Filtering of the data set
 
             column.prop_search(self, 'hips', data, 'bones',
