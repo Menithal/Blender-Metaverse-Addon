@@ -20,8 +20,8 @@
 bl_info = {
     "name": "Metaverse Toolkit Blender Add-on",
     "author": "Matti 'Menithal' Lahtinen",
-    "version": (3, 1, 0),
-    "blender": (2, 90, 0),
+    "version": (4, 0, 0),
+    "blender": (3, 1, 0),
     "location": "File > Import-Export, Materials, Armature",
     "description": "Blender tools to allow for easier Content creation various platforms",
     "warning": "",
@@ -32,11 +32,10 @@ bl_info = {
 
 import addon_utils
 import sys
-import logging
 import bpy
 
-from bpy.types import Operator, AddonPreferences
-from bpy.props import StringProperty, IntProperty, BoolProperty
+from bpy.types import AddonPreferences
+from bpy.props import StringProperty, BoolProperty
 
 from metaverse_tools.ext.apply_modifier_for_object_with_shapekeys.ApplyModifierForObjectWithShapeKeys import ApplyModifierForObjectWithShapeKeysOperator
 
