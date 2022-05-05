@@ -165,7 +165,7 @@ class OBJECT_OT_MVT_TOOL_Bake_Shape_To_All(bpy.types.Operator):
         return context.active_object is not None and context.active_object.data.shape_keys is not None and len(context.active_object.data.shape_keys.key_blocks) > 0
 
     def execute(self, context):
-
+        mesh.bake_shape_key_to_all(self.merge_shapekey, context.active_object)
         return {"FINISHED"}
 
 

@@ -107,9 +107,8 @@ def clean_unused_vertex_groups(obj):
 def get_ui_shape_keys(self, context):
     obj = []
     mesh = context.active_object
-    print("get ui shapekeys")
     if mesh.type == 'MESH':
-        for ob in get_shape_keys(mesh):
+        for ob in get_shape_keys(mesh):    
             obj.append((ob.name, ob.name, "MESH")) # Continue from here.
     return obj 
     
@@ -235,14 +234,16 @@ def duplicate_join(context_meshes, apply_modifiers=True):
 def bake_shape_key_to_all(base_name, context):    
     #TODO: backup
     # Go through new context,
+    print(base_name + ' ' + context.name)
     key_blocks = context.data.shape_keys.key_blocks
     list_shapes = [o for o in key_blocks]
     for shapekey in list_shapes:
-        if base_name != shapekey.name and "Basis" != shapekey.name:
+        if base_name != shapekey.name:
+    
             original_name = shapekey.name
             shapekey.name = shapekey.name +  "_dup"
             shapekey.value = 1.0
-            
+            print(base_name +  ' ' + shapekey.name)
             context.shape_key_add(name=original_name, from_mix=True)
             shapekey.value = 0.0
             
