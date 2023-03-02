@@ -230,19 +230,27 @@ def duplicate_join(context_meshes, apply_modifiers=True):
 
     combinator.name = meshes[0].name + " combined"
 
-
-def bake_shape_key_to_all(base_name, context):    
-    #TODO: backup
-    # Go through new context,
-    print(base_name + ' ' + context.name)
+def clear_shape_key_values(context):
     key_blocks = context.data.shape_keys.key_blocks
     list_shapes = [o for o in key_blocks]
     for shapekey in list_shapes:
-        if base_name != shapekey.name:
+        shapekey.value = 0
+        
+def  bake_shape_key_to_all(base_name, context):    
+    #TODO: backup
+    # Go through new context,
+    clear_shape_key_values(context)
+    print(base_name + ' ' + context.name)
+    key_blocks = context.data.shape_keys.key_blocks
+    list_shapes = [o for o in key_blocks]
+
+
+    for shapekey in list_shapes:
+        if base_name != shapekey.name and shapekey.name != list_shapes[0].name:
     
             original_name = shapekey.name
             shapekey.name = shapekey.name +  "_dup"
-            shapekey.value = 1.0
+            shapekey.value = 1.0 
             print(base_name +  ' ' + shapekey.name)
             context.shape_key_add(name=original_name, from_mix=True)
             shapekey.value = 0.0
