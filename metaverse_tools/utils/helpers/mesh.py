@@ -44,6 +44,34 @@ def mix_weights(a, b):
     bpy.ops.object.modifier_move_up(modifier="VertexWeightMix")
     bpy.ops.object.modifier_apply(modifier="VertexWeightMix")
 
+def clean_non_assigned_vertex_groups(armature):
+    bpy.ops.object.mode_set(mode='OBJECT')
+    to_keep_names = [bone.name for bone in armature.data.bones]
+    child_objects = armature.children
+    
+    
+    def clean_weights(obj):
+        if obj.type != "MESH": 
+            return
+        
+        groups = copy.copy(obj.vertex_groups.values())
+        to_remove = []
+        
+        for group in groups:
+            if group.name not in to_keep_names:
+                to_remove.append(group)
+        
+        
+        for remove in to_remove:
+            print("- Non assigned group ", remove.name)
+            obj.vertex_groups.remove(remove)        
+        
+        
+    for child in child_objects:
+        clean_weights(child)
+        
+        
+    
 
 def clean_unused_vertex_groups(obj):
     # This part is generic:
