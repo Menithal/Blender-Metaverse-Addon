@@ -20,7 +20,5 @@
 
 import bpy
 from . import (
-    hifi_json,
-    fst,
     facerig
 )

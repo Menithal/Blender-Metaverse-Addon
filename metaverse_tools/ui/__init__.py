@@ -34,7 +34,6 @@ from . import action_tools
 from . import weight_tools
 from . import curve_tools
 
-from .modules import hifi as hifi_ui
 from .modules import vrc as vrc_ui
 from .modules import tu as tu_ui
 from .modules import generic as generic_ui
@@ -80,7 +79,7 @@ def register_operators():
     armature_tools.module_register()
     pose_tools.module_register()
     texture_tools.module_register()
-    hifi_ui.module_register()
+    #hifi_ui.module_register()
     vrc_ui.module_register()
     tu_ui.module_register()
     action_tools.module_register()
@@ -95,7 +94,7 @@ def unregister_operators():
     armature_tools.module_unregister()
     pose_tools.module_unregister()
     texture_tools.module_unregister()
-    hifi_ui.module_unregister()
+   # hifi_ui.module_unregister()
     vrc_ui.module_unregister()
     tu_ui.module_unregister()
     action_tools.module_unregister()

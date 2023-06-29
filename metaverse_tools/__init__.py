@@ -20,8 +20,8 @@
 bl_info = {
     "name": "Metaverse Toolkit Blender Add-on",
     "author": "Matti 'Menithal' Lahtinen",
-    "version": (4, 0, 0),
-    "blender": (3, 1, 0),
+    "version": (4, 0, 2),
+    "blender": (3, 6, 0),
     "location": "File > Import-Export, Materials, Armature",
     "description": "Blender tools to allow for easier Content creation various platforms",
     "warning": "",
@@ -37,24 +37,15 @@ import bpy
 from bpy.types import AddonPreferences
 from bpy.props import StringProperty, BoolProperty
 
-from metaverse_tools.ext.apply_modifier_for_object_with_shapekeys.ApplyModifierForObjectWithShapeKeys import ApplyModifierForObjectWithShapeKeysOperator
-
-from metaverse_tools.utils.bones.custom import bones_binder_register, bones_binder_unregister, bones_scene_define, bones_scene_clean
-
 from . import ui
 from . import armature
 from . import files
 from . import utils
 
-
+from .ext.apply_modifier_for_object_with_shapekeys.ApplyModifierForObjectWithShapeKeys import ApplyModifierForObjectWithShapeKeysOperator
+from .utils.bones.custom import bones_binder_register, bones_binder_unregister, bones_scene_define, bones_scene_clean
 from .files.facerig import EXPORT_OT_MVT_TOOLSET_Writer_Facerig_Bundle_DAE
-from .ext.modified_fbx_tools import EXPORT_OT_MVT_TOOLSET_FBX
-
 from .utils.bpyutil import operator_exists
-from .files.hifi_json.operator import *
-from .files.fst.operator import *
-
-from metaverse_tools.ext.apply_modifier_for_object_with_shapekeys.ApplyModifierForObjectWithShapeKeys import ApplyModifierForObjectWithShapeKeysOperator
 
 def on_color_space_automation_update(self, context):
     print("Color Space Toggle", self.colorspaces_on_save, context)
@@ -90,30 +81,22 @@ def reload_module(name):
 
 
 def menu_func_import(self, context):
-    self.layout.operator(IMPORT_OT_MVT_TOOLSET_Scene_From_JSON.bl_idname,
-                         text="HiFi Metaverse Scene JSON (.json)")
+    print("Deprecated")
+#    self.layout.operator(IMPORT_OT_MVT_TOOLSET_Scene_From_JSON.bl_idname,
+#                        text="HiFi Metaverse Scene JSON (.json)")
 
 
 def menu_func_export(self, context):
     
-    self.layout.operator(EXPORT_OT_MVT_TOOLSET_FBX.bl_idname, text="Vircadia FBX (.fbx)")
-    self.layout.operator(EXPORT_OT_MVT_TOOLSET_Hifi_FST_Writer_Operator.bl_idname,
-                         text="Vircadia Avatar FST (.fst)")
    # self.layout.operator(EXPORT_OT_MVT_TOOLSET_Writer_GLTF_JSON.bl_idname,
    #                      text="HiFi Metaverse Scene JSON / GLTF (.json/.glb/.glm)")
-    self.layout.operator(EXPORT_OT_MVT_TOOLSET_Writer_FBX_JSON.bl_idname,
-                         text="Vircadia Metaverse Scene JSON / FBX (.json/.fbx)")
     self.layout.operator(EXPORT_OT_MVT_TOOLSET_Writer_Facerig_Bundle_DAE.bl_idname,
                          text="FaceRig/Animaze Bundle Export (.dae)")
 
 
 classes = (
     #EXPORT_OT_MVT_TOOLSET_Message_Error_Missing_ATP_Override,
-    EXPORT_OT_MVT_TOOLSET_Writer_GLTF_JSON,
-    EXPORT_OT_MVT_TOOLSET_Writer_FBX_JSON,
     EXPORT_OT_MVT_TOOLSET_Writer_Facerig_Bundle_DAE,
-    EXPORT_OT_MVT_TOOLSET_FBX,
-    IMPORT_OT_MVT_TOOLSET_Scene_From_JSON,
     MVTAddOnPreferences,
 )
 
