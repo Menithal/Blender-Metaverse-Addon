@@ -65,8 +65,6 @@ def armature_debug():
 
     print("from mathutils import Matrix, Vector, Euler")
     armature = bpy.context.object
-
-    world_matrix = armature.matrix_world
             
     if bpy.context.active_object:
         bpy.ops.object.mode_set(mode = 'EDIT')

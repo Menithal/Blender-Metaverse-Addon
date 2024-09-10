@@ -126,13 +126,16 @@ class ARMATURE_OT_MVT_TOOLSET_Sort_VRC_Shapekeys(bpy.types.Operator):
 
     @classmethod
     def poll(self, context):
+        if context.active_object is None:
+            return False
+        if mesh.get_shape_keys(context.active_object) is None:
+            return False
         return context.mode == "OBJECT" and context.active_object is not None and context.active_object.type == "MESH" and len(mesh.get_shape_keys(context.active_object)) > 0
-
+  
+    
     def execute(self, context):
         mesh.sort_shapekeys(bpy.context.active_object, expected_vrc_shapekeys)
         return {'FINISHED'}
-
-
 
 
 

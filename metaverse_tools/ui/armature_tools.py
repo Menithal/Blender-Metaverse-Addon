@@ -1,6 +1,5 @@
 import bpy
-from metaverse_tools.utils.bones import bones_builder, mmd, mixamo, makehuman
-from metaverse_tools.armature import SkeletonTypes
+from metaverse_tools.utils.bones import bones_builder
 
 
 
@@ -19,7 +18,6 @@ class BONES_PT_MVT_TOOLSET(bpy.types.Panel):
         layout = self.layout
         # layout.operator(BONES_OT_MVT_TOOLSET_Set_Physical.bl_idname)
         # layout.operator(BONES_OT_MVT_TOOLSET_Remove_Physical.bl_idname)
-
         layout.operator(BONES_OT_MVT_TOOLSET_Combine.bl_idname)
         layout.operator(BONES_OT_MVT_TOOLSET_Combine_Disconnected.bl_idname)
         layout.operator(BONES_OT_MVT_TOOLSET_Connect_Selected.bl_idname)
@@ -31,14 +29,14 @@ class BONES_PT_MVT_TOOLSET(bpy.types.Panel):
 
         layout.operator(BONES_OT_MVT_TOOLSET_Reparent_To_Last.bl_idname)
 
-        layout.operator(BONES_OT_MVT_TOOLSET_Add_Deform.bl_idname)
-        layout.operator(BONES_OT_MVT_TOOLSET_Remove_Deform.bl_idname)
+        #layout.operator(BONES_OT_MVT_TOOLSET_Add_Deform.bl_idname)
+        #layout.operator(BONES_OT_MVT_TOOLSET_Remove_Deform.bl_idname)
         layout.operator(BONES_OT_MVT_TOOLSET_Match_Rotation.bl_idname)
         return None
 
 
 class BONES_OT_MVT_TOOLSET_Connect_Selected(bpy.types.Operator):
-    """ Connect selected bones to their Parent bones """
+    """ Connect selected bones to their Parent bone  """
     bl_idname = "metaverse_toolset.connect_selected_bones"
     bl_label = "Connect Selected "
     bl_region_type = "TOOLS"
@@ -261,7 +259,6 @@ class BONES_OT_MVT_TOOLSET_Match_Rotation(bpy.types.Operator):
     bl_label = 'Match Bone rotation'
     bl_region_type = "TOOLS"
     bl_space_types = "VIEW_3D"
-
     
     @classmethod
     def poll(self, context):
@@ -270,7 +267,6 @@ class BONES_OT_MVT_TOOLSET_Match_Rotation(bpy.types.Operator):
     def execute(self,context):
         bones_builder.copy_editable_rotation(context.active_bones, context.selected_editable_bones)
         return {'FINISHED'}
-
 
 
 classes = (

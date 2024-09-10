@@ -19,7 +19,7 @@ class ACTION_PT_MVT_TOOLSET(bpy.types.Panel):
 class ACTION_OT_MVT_Split_Mirrored(bpy.types.Operator):
     """ Helper Operator Make split animations from sets of combined animations """
     bl_idname = "metaverse_toolset.split_mirroable_actions"
-    bl_label = "Split Mirrorable Actions"
+    bl_label = "Mirrorable Actions"
 
     bl_space_type = "DOPESHEET_EDITOR"
 

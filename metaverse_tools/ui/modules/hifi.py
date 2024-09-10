@@ -27,7 +27,6 @@ from metaverse_tools.armature import SkeletonTypes
 
 category = "MVT: HiFi Tools"
 
-
 class AVATAR_PT_MVT_metaverse_toolset(bpy.types.Panel):
     """ Panel for Vircadia Avatar related conversion tools """
     bl_label = "Vircadia Avatar Tools"
@@ -231,50 +230,14 @@ class SCENE_OT_MVT_TOOLSET_Fix_Hifi_Scene_Env_Rotation(bpy.types.Operator):
         materials.fix_env_rotations()
         return {"FINISHED"}
 
-class BONES_OT_MVT_TOOLSET_Set_Physical(bpy.types.Operator):
-    """ Sets names for the select bones to match the flow bone setup in HF """
-    bl_idname = "metaverse_toolset.hf_set_physical_bones"
-    bl_label = "Set Bone Physical"
-
-    bl_space_type = "VIEW_3D"
-    bl_region_type = "UI"
-    bl_category = category
-
-    @classmethod
-    def poll(self, context):
-        return context.selected_bones is not None and len(context.selected_bones) > 0
-
-    def execute(self, context):
-        bones_builder.set_selected_bones_physical(context.selected_bones)
-        return {'FINISHED'}
-
-
-class BONES_OT_MVT_TOOLSET_Remove_Physical(bpy.types.Operator):
-    """ Clears names for the select bones from matching the flow bone setup in HF """
-    bl_idname = "metaverse_toolset.hf_remove_physical_bones"
-    bl_label = "Remove Bone Physical"
-
-    bl_space_type = "VIEW_3D"
-    bl_region_type = "UI"
-    bl_category = category
-
-    @classmethod
-    def poll(self, context):
-        return context.selected_bones is not None and len(context.selected_bones) > 0
-
-    def execute(self, context):
-        bones_builder.remove_selected_bones_physical(context.selected_bones)
-        return {'FINISHED'}
-
-
 
 classes = (
     AVATAR_PT_MVT_metaverse_toolset,
     ARMATURE_OT_MVT_TOOLSET_Create_HIFI_Operator,
     BONES_OT_MVT_TOOLSET_Fix_Rolls,
     BONES_OT_MVT_TOOLSET_Pin_Problem_Bones,
-    BONES_OT_MVT_TOOLSET_Set_Physical,
-    BONES_OT_MVT_TOOLSET_Remove_Physical,
+    #BONES_OT_MVT_TOOLSET_Set_Physical,
+    #BONES_OT_MVT_TOOLSET_Remove_Physical,
 
     AVATAR_OT_MVT_TOOLSET_Convert_Custom_To_Hifi,
     # AVATAR_OT_MVT_TOOLSET_Convert_MakeHuman_To_Hifi,

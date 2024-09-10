@@ -20,7 +20,7 @@
 bl_info = {
     "name": "Metaverse Toolkit Blender Add-on",
     "author": "Matti 'Menithal' Lahtinen",
-    "version": (4, 0, 2),
+    "version": (5, 0, 0),
     "blender": (3, 6, 0),
     "location": "File > Import-Export, Materials, Armature",
     "description": "Blender tools to allow for easier Content creation various platforms",
@@ -42,7 +42,7 @@ from . import armature
 from . import files
 from . import utils
 
-from .ext.apply_modifier_for_object_with_shapekeys.ApplyModifierForObjectWithShapeKeys import ApplyModifierForObjectWithShapeKeysOperator
+from .ext.apply_modifier_for_object_with_shapekeys.ApplyModifierForObjectWithShapeKeys import ApplyModifierForObjectWithShapeKeysOperator, applyModifierForObjectWithShapeKeys
 from .utils.bones.custom import bones_binder_register, bones_binder_unregister, bones_scene_define, bones_scene_clean
 from .files.facerig import EXPORT_OT_MVT_TOOLSET_Writer_Facerig_Bundle_DAE
 from .utils.bpyutil import operator_exists
@@ -60,10 +60,10 @@ class MVTAddOnPreferences(AddonPreferences):
     colorspaces_on_save: BoolProperty(name="Correct Color Space on save",
                                                      description="Correct Texture Color spaces for materials prior to saving.",
                                                     default=True,
-                                                    update=on_color_space_automation_update)
+                                                    update=on_color_space_automation_update) # type: ignore
 
     message_box: StringProperty(
-        name="Status", default="", options={"SKIP_SAVE"})
+        name="Status", default="", options={"SKIP_SAVE"}) # type: ignore
 
     def draw(self, context):
         layout = self.layout

@@ -153,9 +153,9 @@ def get_ui_meshes(self, context):
     return obj 
 
 
-def get_shape_keys(mesh):
+def get_shape_keys(mesh): 
     if mesh.type != "MESH":
-        raise "Object was not a mesh"
+        return None
     if mesh.data.shape_keys is None:
         return None
     return mesh.data.shape_keys.key_blocks
@@ -182,7 +182,7 @@ def duplicate_union_join(context_meshes, apply_modifiers=True):
         bpy.context.scene.collection.children.link(bpy.data.collections.new('Combined Mesh'))
 
     mesh_collection = bpy.data.collections.get('Combined Mesh')
-    common.select(meshes)
+    common.select(meshes) 
     bpy.ops.object.duplicate()
 
     duplicates = bpy.context.selected_objects[:]

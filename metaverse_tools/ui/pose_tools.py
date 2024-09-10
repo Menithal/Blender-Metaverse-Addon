@@ -1,13 +1,14 @@
 import bpy
 from metaverse_tools.utils.bones import bones_builder, pose_helper
 from metaverse_tools.armature import SkeletonTypes
+from metaverse_tools.utils.helpers.modifier_tool import apply_armature_restpose
 
 
 class ARMATURE_PT_MVT_TOOLSET(bpy.types.Panel):
     """ Panel for Object related tools """
     bl_label = "Armature Tools"
     bl_icon = "OBJECT_DATA"
-    bl_space_type = "VIEW_3D"
+    bl_space_type = "VIEW_3D"  
     bl_region_type = "TOOLS"
 
     @classmethod
@@ -16,6 +17,9 @@ class ARMATURE_PT_MVT_TOOLSET(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
+
+        row = layout.row()
+        row.operator(ARMATURE_OT_MVT_TOOLSET_Set_New_Restpose.bl_idname,  icon='OUTLINER_OB_ARMATURE')
 
         row = layout.row()
         row.operator(
@@ -61,10 +65,12 @@ class ARMATURE_OT_MVT_TOOLSET_Clear_Rest_Pose_Operator(bpy.types.Operator):
     bl_idname = "metaverse_toolset.clear_armature_rest_pose"
     bl_label = "Clear Pose"
     bl_region_type = "TOOLS"
-
     bl_space_type = "VIEW_3D"
 
+    # TODO: Only if Armature is selected
+
     def execute(self, context):
+        # TODO: May need a warning?
         bones_builder.clear_pose(bpy.context.view_layer.objects)
         return {'FINISHED'}
 
@@ -75,7 +81,6 @@ class OBJECT_OT_MVT_TOOLSET_Fix_Scale_Operator(bpy.types.Operator):
     bl_idname = "metaverse_toolset.objects_fix_scale_and_rotation"
     bl_label = "Fix Scale and Rotations"
     bl_region_type = "TOOLS"
-
     bl_space_type = "VIEW_3D"
 
     def execute(self, context):
@@ -91,13 +96,13 @@ class ARMATURE_PT_MVT_BONE_UTILITY(bpy.types.Panel):
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
 
+    # TODO: Only if Armature is selected
     @classmethod
     def poll(self, context):
         return (context.mode == "OBJECT" or context.mode == "POSE") and (context.active_object is not None and context.active_object.type == "ARMATURE")
 
     def draw(self, context):
         layout = self.layout
-
         
         layout.operator(
             ARMATURE_OT_MVT_TOOLSET_Clone_Locks.bl_idname)
@@ -385,22 +390,18 @@ class ARMATURE_OT_MVT_TOOLSET_Copy_Limits(bpy.types.Operator):
     def execute(self, context):
         pose_helper.copy_limit_constraints(context.active_pose_bone, context.selected_pose_bones)
         return {'FINISHED'}
+    
 
-# Add Max Normalization Amount allowing for override?
-#class ARMATURE_OT_MVT_TOOLSET_Normalize_Influences(bpy.types.Operator):
-#    """ Normalizes influences between any copy location/rotation/ """
-#    bl_idname = "metaverse_toolset.normalize_pose_constrain_influences"
-#    bl_label = "Normalize Constraint Influences"
-#    bl_region_type = "TOOLS"
+class ARMATURE_OT_MVT_TOOLSET_Set_New_Restpose(bpy.types.Operator):
+    """Set a new Restpose for all mesh parented to armature"""
+    bl_idname = "metaverse_toolset.rest_pose"
+    bl_label = "New Restpose"
+    bl_region_type = "TOOLS"
+    bl_space_type = "VIEW_3D"
 
-#    bl_space_type = "VIEW_3D"
-#    @classmethod
-#    def poll(self, context):
-#        return context.selected_pose_bones is not None and len(context.selected_pose_bones) >= 1
-
-#    def execute(self, context):
-#        pose_helper.normalize_constraints_rotation(context.selected_pose_bones)
-#        return {'FINISHED'}
+    def execute(self,context):
+        apply_armature_restpose(context)
+        return {'FINISHED'}
 
 
 classes = (
@@ -412,22 +413,18 @@ classes = (
     ARMATURE_OT_MVT_TOOLSET_Clear_Constraint,
     ARMATURE_OT_MVT_TOOLSET_Add_Location_Constraint,
     ARMATURE_OT_MVT_TOOLSET_Add_Influenced_Location_Constraint,
-
     ARMATURE_OT_MVT_TOOLSET_Mirror_Constraints,
     ARMATURE_OT_MVT_TOOLSET_Clone_Locks,
-
     ARMATURE_OT_MVT_TOOLSET_Lock_Rotations,
     ARMATURE_OT_MVT_TOOLSET_Unlock_Rotations,
-
     ARMATURE_OT_MVT_TOOLSET_Lock_Translations,
     ARMATURE_OT_MVT_TOOLSET_Unlock_Translations,
     ARMATURE_OT_MVT_TOOLSET_Copy_Custom_Shapes,
     ARMATURE_OT_MVT_TOOLSET_Clear_Custom_Shapes,
-    #ARMATURE_OT_MVT_TOOLSET_Normalize_Influences,
     ARMATURE_OT_MVT_TOOLSET_Copy_Limits,
     ARMATURE_OT_MVT_TOOLSET_Add_Copy_Rotational_Constraint,
-    ARMATURE_PT_MVT_BONE_UTILITY
-
+    ARMATURE_PT_MVT_BONE_UTILITY,
+    ARMATURE_OT_MVT_TOOLSET_Set_New_Restpose 
 )
 
 

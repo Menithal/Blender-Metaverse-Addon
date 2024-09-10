@@ -3,7 +3,7 @@ from metaverse_tools.utils.helpers import materials
 
 class MATERIALS_PT_MVT_TOOLSET(bpy.types.Panel):
     """ Panel for Material related tools """
-    bl_label = "Material Tools"
+    bl_label = "Material Tools (Legacy)"
     bl_region_type = "TOOLS"
     bl_space_type = "VIEW_3D"
 
